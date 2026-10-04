@@ -1,0 +1,9 @@
+{
+  "name": "@c-optiforge/orchestration",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": { "typecheck": "tsc --noEmit", "build": "tsc" },
+  "dependencies": { "@c-optiforge/contracts": "*" },
+  "devDependencies": { "typescript": "^5.9.3", "vitest": "^3.2.4" }
+}

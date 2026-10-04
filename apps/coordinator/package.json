@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@c-optiforge/contracts": "*",
+    "@c-optiforge/orchestration": "*",
     "@fastify/cors": "^11.1.0",
     "@fastify/websocket": "^11.2.0",
     "dotenv": "^17.2.3",
