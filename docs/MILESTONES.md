@@ -8,4 +8,5 @@ This file records verified implementation status. A milestone is marked complete
 | 12 Resource/capability profiler | Complete | Real CPU/memory measurements and C/Python/Java toolchain detection with captured versions; deterministic profiler tests. |
 | 13 Resource-aware scheduler | Complete | Capability/resource eligibility, deterministic weighted ranking, persisted explanations, dashboard score, and scheduler unit tests. |
 | 14 Failure detection and reassignment | Complete | Persistent attempt history, disconnect/heartbeat-loss recovery, event-loop-safe heartbeats during CPU work, and live cross-node reassignment verified with an interrupted 8,000,000-iteration SHA-256 task. |
-| 15+ Language pipelines and product completion | Pending | Not represented as implemented in the UI. |
+| 15 C compiler frontend | Complete | Position-aware lexer, structured AST parser, scoped symbol analysis, function/call validation, and type/return diagnostics for the documented C subset. Full ISO C coverage is not claimed. |
+| 16+ C IR, optimization, output, and remaining language/product milestones | Pending | Not represented as implemented in the UI. |
