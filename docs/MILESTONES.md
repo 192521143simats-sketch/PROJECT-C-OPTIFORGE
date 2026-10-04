@@ -14,4 +14,5 @@ This file records verified implementation status. A milestone is marked complete
 | 18 Result aggregation and adaptive evaluation | Complete | Persisted optimization batches validate worker function identity/control flow, select lowest-cost valid candidates, retain original IR on rejection, and record measured decisions. |
 | 19 C code generation and executable output | Complete | Selected C IR emits C11, compiles and links through real GCC, and produces a native downloadable binary; tests execute the artifact and verify exit code 42. |
 | 20 Python compiler/optimization pipeline | Complete | CPython performs real parsing and syntax validation; bounded AST optimization generates reparsed optimized source and a genuine version-labelled `.pyc` artifact verified by execution. |
-| 21+ Java and remaining product milestones | Pending | Java remains explicitly unavailable until a JDK compiler is installed and its full pipeline is implemented. |
+| 21 Java compiler/optimization pipeline | Complete | JDK 21 `javac` performs language analysis and bytecode generation, `javap` exposes bytecode IR/constant folding, and a genuine executable JAR is built and verified. |
+| 22+ User interface, unified workflow, downloads, and performance adaptation | Pending | Not represented as complete until their end-to-end paths are verified. |
