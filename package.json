@@ -1,0 +1,20 @@
+{
+  "name": "c-optiforge",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "concurrently -n coordinator,web -c cyan,magenta \"npm run dev -w @c-optiforge/coordinator\" \"npm run dev -w @c-optiforge/web\"",
+    "start": "npm run start -w @c-optiforge/coordinator",
+    "worker": "npm run start -w @c-optiforge/worker --",
+    "test": "vitest run",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": { "node": ">=22" }
+}
