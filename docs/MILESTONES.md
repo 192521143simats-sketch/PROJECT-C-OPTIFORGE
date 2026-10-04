@@ -22,4 +22,5 @@ This file records verified implementation status. A milestone is marked complete
 | 26 Security and worker isolation | Complete | Allow-listed schemas, bounded payloads, isolated Python compiler mode, compiler time/output limits, temporary-workspace cleanup, credential hashing/expiry, and documented native-worker trust boundary. |
 | 27 Complete Admin/User/Worker dashboards | Complete | Admin live node/task monitoring, functional compilation submission/status/download UI, consent enrollment page, and dedicated worker status/execution-boundary view. |
 | 28 Unit, integration, failure, and end-to-end testing | Complete | 42 automated tests in 14 files plus real MySQL/coordinator/worker integration, cross-node reassignment, three-language artifact, startup, and repeat-run verification; see `TEST_REPORT.md`. |
-| 29+ Final documentation and demonstration | Pending | Finalization phases remain explicit. |
+| 29 Fix, optimize, document, and finalize | Complete | Current README, operations/security/test documentation, one-command verification, startup troubleshooting, persistence guidance, and explicit production isolation limitation. |
+| 30 Final end-to-end demonstration | Pending | A fresh evidence-recorded link-to-artifact run remains. |
