@@ -19,4 +19,5 @@ This file records verified implementation status. A milestone is marked complete
 | 23 User-to-compiler-to-worker workflow | Complete | Unified jobs route connects C through IR/scheduler/workers/aggregation/codegen and Python/Java through their real language pipelines; all three verified live. |
 | 24 Output/download system | Complete | MySQL-backed binary artifact records preserve filename, media type, size, and bytes; live `.exe`, `.pyc`, and `.jar` downloads verified. |
 | 25 Performance metrics and adaptive scheduling | Complete | Real attempt latency/success history is grouped by node/capability and blended with current resource scoring; decisions remain capability-gated and explainable. |
-| 26+ Isolation, dashboard completion, full testing, and final demonstration | Pending | Security hardening and final product phases remain explicit. |
+| 26 Security and worker isolation | Complete | Allow-listed schemas, bounded payloads, isolated Python compiler mode, compiler time/output limits, temporary-workspace cleanup, credential hashing/expiry, and documented native-worker trust boundary. |
+| 27+ Dashboard completion, full testing, documentation, and final demonstration | Pending | Final product phases remain explicit. |
