@@ -9,7 +9,8 @@
     "start": "npm run start -w @c-optiforge/coordinator",
     "worker": "npm run start -w @c-optiforge/worker --",
     "test": "vitest run",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "verify": "npm run typecheck && npm test -- --run && npm run build"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
