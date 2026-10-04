@@ -15,4 +15,8 @@ This file records verified implementation status. A milestone is marked complete
 | 19 C code generation and executable output | Complete | Selected C IR emits C11, compiles and links through real GCC, and produces a native downloadable binary; tests execute the artifact and verify exit code 42. |
 | 20 Python compiler/optimization pipeline | Complete | CPython performs real parsing and syntax validation; bounded AST optimization generates reparsed optimized source and a genuine version-labelled `.pyc` artifact verified by execution. |
 | 21 Java compiler/optimization pipeline | Complete | JDK 21 `javac` performs language analysis and bytecode generation, `javap` exposes bytecode IR/constant folding, and a genuine executable JAR is built and verified. |
-| 22+ User interface, unified workflow, downloads, and performance adaptation | Pending | Not represented as complete until their end-to-end paths are verified. |
+| 22 User compilation interface | Complete | Functional language selection, source paste/upload, extension validation, persisted status polling, metrics, errors, and download action for C/Python/Java. |
+| 23 User-to-compiler-to-worker workflow | Complete | Unified jobs route connects C through IR/scheduler/workers/aggregation/codegen and Python/Java through their real language pipelines; all three verified live. |
+| 24 Output/download system | Complete | MySQL-backed binary artifact records preserve filename, media type, size, and bytes; live `.exe`, `.pyc`, and `.jar` downloads verified. |
+| 25 Performance metrics and adaptive scheduling | Complete | Real attempt latency/success history is grouped by node/capability and blended with current resource scoring; decisions remain capability-gated and explainable. |
+| 26+ Isolation, dashboard completion, full testing, and final demonstration | Pending | Security hardening and final product phases remain explicit. |

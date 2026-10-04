@@ -2,7 +2,8 @@ import type {CapabilityProfile,ResourceSnapshot} from "@c-optiforge/contracts";
 
 export type RequiredCapability="base"|"c"|"python"|"java";
 export type TaskRequirements={capability:RequiredCapability;minLogicalCores?:number;minFreeMemoryBytes?:number};
-export type SchedulableNode={id:string;status:"AVAILABLE"|string;profile:CapabilityProfile;resources:ResourceSnapshot|null};
+export type NodePerformance={sampleCount:number;averageExecutionTimeMs:number;successRate:number};
+export type SchedulableNode={id:string;status:"AVAILABLE"|string;profile:CapabilityProfile;resources:ResourceSnapshot|null;historicalPerformance?:Partial<Record<RequiredCapability,NodePerformance>>};
 export type CandidateEvaluation={nodeId:string;eligible:boolean;score:number|null;reasons:string[]};
 export type SchedulingDecision={selectedNodeId:string|null;score:number|null;explanation:string;evaluations:CandidateEvaluation[]};
 
@@ -24,7 +25,7 @@ export function evaluateNode(node:SchedulableNode,requirements:TaskRequirements)
 }
 
 export function selectNode(nodes:SchedulableNode[],requirements:TaskRequirements):SchedulingDecision{
-  const evaluations=nodes.map(node=>evaluateNode(node,requirements));
+  const evaluations=nodes.map(node=>evaluateNode(node,requirements)),eligibleWithHistory=nodes.filter(node=>evaluations.find(item=>item.nodeId===node.id)?.eligible&&node.historicalPerformance?.[requirements.capability]?.sampleCount);const fastest=eligibleWithHistory.length?Math.min(...eligibleWithHistory.map(node=>node.historicalPerformance![requirements.capability]!.averageExecutionTimeMs)):null;for(const evaluation of evaluations){if(!evaluation.eligible||evaluation.score===null)continue;const history=nodes.find(node=>node.id===evaluation.nodeId)?.historicalPerformance?.[requirements.capability];if(history&&fastest!==null){const latencyScore=fastest/history.averageExecutionTimeMs*100,adaptiveScore=evaluation.score*.75+latencyScore*.2+history.successRate*100*.05;evaluation.score=Number(adaptiveScore.toFixed(3));evaluation.reasons.push(`${history.sampleCount} historical sample(s)`,`${history.averageExecutionTimeMs.toFixed(2)} ms average`,`success ${(history.successRate*100).toFixed(1)}%`);}else evaluation.reasons.push("no historical samples; resource-only score");}
   const eligible=evaluations.filter((item):item is CandidateEvaluation&{score:number}=>item.eligible&&item.score!==null).sort((a,b)=>b.score-a.score||a.nodeId.localeCompare(b.nodeId));
   const selected=eligible[0];
   if(!selected)return{selectedNodeId:null,score:null,explanation:`No eligible node satisfies ${requirements.capability} capability and resource requirements.`,evaluations};

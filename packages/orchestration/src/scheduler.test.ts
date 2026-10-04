@@ -9,3 +9,5 @@ describe("resource-aware scheduler",()=>{
   it("selects the eligible node with greatest current headroom",()=>{const decision=selectNode([node("busy",90,80),node("free",10,20),node("offline",0,0,undefined,"OFFLINE")],{capability:"python"});expect(decision.selectedNodeId).toBe("free");expect(decision.explanation).toMatch(/CPU headroom 90.0%/);});
   it("returns an explicit no-eligible-node decision",()=>{const decision=selectNode([node("c-only",10,10,{c:true,python:false,java:false})],{capability:"java"});expect(decision.selectedNodeId).toBeNull();expect(decision.explanation).toMatch(/No eligible node/);});
 });
+
+describe("adaptive performance feedback",()=>{it("uses measured latency and reliability after eligibility checks",()=>{const slow=node("NODE-SLOW",10,10),fast=node("NODE-FAST",15,15);slow.historicalPerformance={c:{sampleCount:20,averageExecutionTimeMs:100,successRate:1}};fast.historicalPerformance={c:{sampleCount:20,averageExecutionTimeMs:10,successRate:1}};const decision=selectNode([slow,fast],{capability:"c"});expect(decision.selectedNodeId).toBe("NODE-FAST");expect(decision.explanation).toContain("historical sample");});});
