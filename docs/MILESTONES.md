@@ -23,4 +23,4 @@ This file records verified implementation status. A milestone is marked complete
 | 27 Complete Admin/User/Worker dashboards | Complete | Admin live node/task monitoring, functional compilation submission/status/download UI, consent enrollment page, and dedicated worker status/execution-boundary view. |
 | 28 Unit, integration, failure, and end-to-end testing | Complete | 42 automated tests in 14 files plus real MySQL/coordinator/worker integration, cross-node reassignment, three-language artifact, startup, and repeat-run verification; see `TEST_REPORT.md`. |
 | 29 Fix, optimize, document, and finalize | Complete | Current README, operations/security/test documentation, one-command verification, startup troubleshooting, persistence guidance, and explicit production isolation limitation. |
-| 30 Final end-to-end demonstration | Pending | A fresh evidence-recorded link-to-artifact run remains. |
+| 30 Final end-to-end demonstration | Complete | Fresh admin link → consent → registration → heartbeat → scheduled C IR tasks → measured worker results → aggregation → GCC output → persisted 135,922-byte executable download; see `FINAL_DEMO.md`. |
