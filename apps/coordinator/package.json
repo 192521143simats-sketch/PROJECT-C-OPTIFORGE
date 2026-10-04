@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@c-optiforge/compiler-c": "*",
+    "@c-optiforge/compiler-python": "*",
     "@c-optiforge/contracts": "*",
     "@c-optiforge/orchestration": "*",
     "@fastify/cors": "^11.1.0",

@@ -13,4 +13,5 @@ This file records verified implementation status. A milestone is marked complete
 | 17 Distributed C optimization | Complete | Coordinator decomposes validated C IR by function, requires real C-capable nodes, and workers execute the allow-listed optimizer. Live two-function source-to-worker-to-persisted-result flow verified. |
 | 18 Result aggregation and adaptive evaluation | Complete | Persisted optimization batches validate worker function identity/control flow, select lowest-cost valid candidates, retain original IR on rejection, and record measured decisions. |
 | 19 C code generation and executable output | Complete | Selected C IR emits C11, compiles and links through real GCC, and produces a native downloadable binary; tests execute the artifact and verify exit code 42. |
-| 20+ Python, Java, and remaining product milestones | Pending | Not represented as implemented in the UI. |
+| 20 Python compiler/optimization pipeline | Complete | CPython performs real parsing and syntax validation; bounded AST optimization generates reparsed optimized source and a genuine version-labelled `.pyc` artifact verified by execution. |
+| 21+ Java and remaining product milestones | Pending | Java remains explicitly unavailable until a JDK compiler is installed and its full pipeline is implemented. |

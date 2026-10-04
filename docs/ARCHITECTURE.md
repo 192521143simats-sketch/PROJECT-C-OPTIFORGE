@@ -77,7 +77,7 @@ These are intentionally deferred without changing the required architecture:
 - Production MySQL deployment topology and backup policy remain open; the database engine is fixed as MySQL.
 - Production sandbox: Linux container isolation with disabled network, cgroup resource limits, read-only base filesystem, and disposable workspaces is the intended baseline. Windows-host production workers require an equivalent container/VM boundary.
 - C frontend/IR: likely Clang/LLVM tooling or a deliberately scoped custom frontend plus LLVM IR; decide after the distributed foundation is stable.
-- Python representation: CPython AST plus bytecode/optimized-source artifacts.
+- Python representation is now implemented with the installed CPython AST/compiler APIs, bounded AST transformations, optimized-source regeneration, and version-specific `.pyc` output. Distributed Python task integration remains part of the later shared user-to-worker workflow milestone.
 - Java frontend: JDK compiler APIs or a parser/analysis library plus real `javac` output generation; a JDK is required.
 - Authentication provider and deployment topology remain open. Development uses explicit local admin credentials and scoped worker credentials.
 
