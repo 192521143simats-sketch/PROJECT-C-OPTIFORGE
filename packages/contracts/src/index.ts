@@ -67,9 +67,21 @@ export const testTaskSchema = z.discriminatedUnion("operation", [
 ]);
 export type TestTaskPayload = z.infer<typeof testTaskSchema>;
 
+const irValue=z.string().min(1).max(200);
+const irInstructionSchema=z.discriminatedUnion("op",[
+  z.object({op:z.literal("const"),dest:irValue,value:z.number()}),z.object({op:z.literal("copy"),dest:irValue,source:irValue}),
+  z.object({op:z.literal("unary"),dest:irValue,operator:z.enum(["+","-","!"]),operand:irValue}),z.object({op:z.literal("binary"),dest:irValue,operator:z.string().max(8),left:irValue,right:irValue}),
+  z.object({op:z.literal("call"),dest:irValue.nullable(),callee:z.string().min(1).max(200),arguments:z.array(irValue).max(128)}),z.object({op:z.literal("label"),name:irValue}),
+  z.object({op:z.literal("branch"),condition:irValue,thenLabel:irValue,elseLabel:irValue}),z.object({op:z.literal("jump"),target:irValue}),z.object({op:z.literal("return"),value:irValue.nullable()})
+]);
+export const cIrFunctionSchema=z.object({name:z.string().min(1).max(200),returnType:z.enum(["int","void"]),parameters:z.array(z.object({name:z.string().max(200),type:z.enum(["int","void"]),value:irValue})).max(128),instructions:z.array(irInstructionSchema).max(100_000)});
+export const cOptimizationTaskSchema=z.object({operation:z.literal("c_optimize_ir"),function:cIrFunctionSchema});
+export const workPayloadSchema=z.union([testTaskSchema,cOptimizationTaskSchema]);
+export type WorkPayload=z.infer<typeof workPayloadSchema>;
+
 export type CoordinatorMessage =
   | { type: "registered"; nodeId: string; workerToken: string; heartbeatIntervalMs: number }
-  | { type: "task_assignment"; taskId: string; attempt: number; taskKind: "TEST_COMPUTE"; payload: TestTaskPayload }
+  | { type: "task_assignment"; taskId: string; attempt: number; taskKind: "TEST_COMPUTE"|"C_OPTIMIZE_IR"; payload: WorkPayload }
   | { type: "error"; code: string; message: string };
 
 export function parseWorkerMessage(value: unknown) {
