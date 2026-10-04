@@ -11,4 +11,6 @@ This file records verified implementation status. A milestone is marked complete
 | 15 C compiler frontend | Complete | Position-aware lexer, structured AST parser, scoped symbol analysis, function/call validation, and type/return diagnostics for the documented C subset. Full ISO C coverage is not claimed. |
 | 16 C IR and optimization passes | Complete | Validated C AST lowers to versioned three-address IR; constant propagation/folding, algebraic simplification, and dead pure-temporary elimination are tested. |
 | 17 Distributed C optimization | Complete | Coordinator decomposes validated C IR by function, requires real C-capable nodes, and workers execute the allow-listed optimizer. Live two-function source-to-worker-to-persisted-result flow verified. |
-| 18+ Result aggregation, adaptive evaluation, output, and remaining language/product milestones | Pending | Not represented as implemented in the UI. |
+| 18 Result aggregation and adaptive evaluation | Complete | Persisted optimization batches validate worker function identity/control flow, select lowest-cost valid candidates, retain original IR on rejection, and record measured decisions. |
+| 19 C code generation and executable output | Complete | Selected C IR emits C11, compiles and links through real GCC, and produces a native downloadable binary; tests execute the artifact and verify exit code 42. |
+| 20+ Python, Java, and remaining product milestones | Pending | Not represented as implemented in the UI. |
