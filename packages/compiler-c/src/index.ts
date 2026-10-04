@@ -7,3 +7,4 @@ export * from "./ir.js";
 export * from "./lowering.js";
 export * from "./optimize.js";
 export * from "./aggregate.js";
+export * from "./codegen.js";
