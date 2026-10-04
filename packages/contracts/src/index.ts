@@ -76,12 +76,14 @@ const irInstructionSchema=z.discriminatedUnion("op",[
 ]);
 export const cIrFunctionSchema=z.object({name:z.string().min(1).max(200),returnType:z.enum(["int","void"]),parameters:z.array(z.object({name:z.string().max(200),type:z.enum(["int","void"]),value:irValue})).max(128),instructions:z.array(irInstructionSchema).max(100_000)});
 export const cOptimizationTaskSchema=z.object({operation:z.literal("c_optimize_ir"),function:cIrFunctionSchema});
-export const workPayloadSchema=z.union([testTaskSchema,cOptimizationTaskSchema]);
+export const pythonCompileTaskSchema=z.object({operation:z.literal("python_compile"),source:z.string().min(1).max(1_000_000)});
+export const javaCompileTaskSchema=z.object({operation:z.literal("java_compile"),source:z.string().min(1).max(1_000_000)});
+export const workPayloadSchema=z.union([testTaskSchema,cOptimizationTaskSchema,pythonCompileTaskSchema,javaCompileTaskSchema]);
 export type WorkPayload=z.infer<typeof workPayloadSchema>;
 
 export type CoordinatorMessage =
   | { type: "registered"; nodeId: string; workerToken: string; heartbeatIntervalMs: number }
-  | { type: "task_assignment"; taskId: string; attempt: number; taskKind: "TEST_COMPUTE"|"C_OPTIMIZE_IR"; payload: WorkPayload }
+  | { type: "task_assignment"; taskId: string; attempt: number; taskKind: "TEST_COMPUTE"|"C_OPTIMIZE_IR"|"PYTHON_COMPILE"|"JAVA_COMPILE"; payload: WorkPayload }
   | { type: "error"; code: string; message: string };
 
 export function parseWorkerMessage(value: unknown) {
