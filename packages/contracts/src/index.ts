@@ -11,7 +11,12 @@ export const capabilitySchema = z.object({
   totalMemoryBytes: z.number().nonnegative(),
   operatingSystem: z.string().min(1).max(200),
   architecture: z.string().min(1).max(50),
-  runtimes: z.object({ c: z.boolean(), python: z.boolean(), java: z.boolean() })
+  runtimes: z.object({ c: z.boolean(), python: z.boolean(), java: z.boolean() }),
+  toolchains: z.object({
+    c: z.object({ available: z.boolean(), version: z.string().max(300).optional() }),
+    python: z.object({ available: z.boolean(), version: z.string().max(300).optional() }),
+    java: z.object({ available: z.boolean(), version: z.string().max(300).optional() })
+  })
 });
 export type CapabilityProfile = z.infer<typeof capabilitySchema>;
 
