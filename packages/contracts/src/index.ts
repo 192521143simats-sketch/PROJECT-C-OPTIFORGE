@@ -62,7 +62,8 @@ export const workerMessageSchema = z.discriminatedUnion("type", [
 
 export const testTaskSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("sha256"), input: z.string().max(100_000) }),
-  z.object({ operation: z.literal("prime_count"), limit: z.number().int().min(2).max(2_000_000) })
+  z.object({ operation: z.literal("prime_count"), limit: z.number().int().min(2).max(2_000_000) }),
+  z.object({ operation: z.literal("sha256_chain"), input: z.string().max(10_000), iterations: z.number().int().min(1).max(10_000_000) })
 ]);
 export type TestTaskPayload = z.infer<typeof testTaskSchema>;
 
