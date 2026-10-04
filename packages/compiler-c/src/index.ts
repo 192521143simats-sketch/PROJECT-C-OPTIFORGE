@@ -3,3 +3,5 @@ export * from "./ast.js";
 export * from "./parser.js";
 export * from "./semantic.js";
 export * from "./frontend.js";
+export * from "./ir.js";
+export * from "./lowering.js";
