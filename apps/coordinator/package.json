@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@c-optiforge/compiler-c": "*",
     "@c-optiforge/contracts": "*",
     "@c-optiforge/orchestration": "*",
     "@fastify/cors": "^11.1.0",
