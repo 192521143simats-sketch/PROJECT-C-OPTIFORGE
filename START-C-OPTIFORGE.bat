@@ -30,12 +30,12 @@ goto WAIT_DOCKER
 echo [2/6] Docker Engine is already ready.
 
 :DOCKER_READY
-echo [3/6] Preparing configuration and starting C-OptiForge containers...
+echo [3/6] Preparing configuration and starting GRID-X containers...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\Initialize-Environment.ps1" -ProjectRoot "%~dp0."
 if errorlevel 1 exit /b 1
 docker compose -f "%~dp0compose.yaml" up -d mysql
 if errorlevel 1 (
-  echo ERROR: Docker Compose could not start the C-OptiForge MySQL service.
+  echo ERROR: Docker Compose could not start the GRID-X MySQL service.
   exit /b 1
 )
 
@@ -57,10 +57,10 @@ if !MYSQL_WAIT! GEQ 150 (
 goto WAIT_MYSQL
 
 :MYSQL_READY
-echo [5/6] Starting C-OptiForge coordinator and dashboard...
+echo [5/6] Starting GRID-X coordinator and dashboard...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\Start-Application.ps1" -ProjectRoot "%~dp0."
 if errorlevel 1 (
-  echo ERROR: C-OptiForge application startup failed. Check .runtime\application-error.log.
+  echo ERROR: GRID-X application startup failed. Check .runtime\application-error.log.
   exit /b 1
 )
 
@@ -70,7 +70,7 @@ if errorlevel 1 (
   echo ERROR: Coordinator health check failed.
   exit /b 1
 )
-echo C-OptiForge is ready.
+echo GRID-X is ready.
 echo Dashboard: http://localhost:5173/admin
 start "" "http://localhost:5173/admin"
 exit /b 0

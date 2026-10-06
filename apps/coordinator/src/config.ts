@@ -15,7 +15,12 @@ export const config = {
   port: integer("PORT", 4100),
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "http://localhost:5173",
   coordinatorPublicUrl: process.env.COORDINATOR_PUBLIC_URL,
-  adminApiKey: process.env.ADMIN_API_KEY ?? "development-admin-key",
+  adminUsername: process.env.ADMIN_USERNAME ?? "admin",
+  adminPasswordHash: process.env.ADMIN_PASSWORD_HASH,
+  adminPassword: process.env.ADMIN_PASSWORD,
+  nodeEnv: process.env.NODE_ENV ?? "development",
+  sessionTtlHours: integer("SESSION_TTL_HOURS", 12),
+  resetTtlMinutes: integer("RESET_TTL_MINUTES", 20),
   database: {
     host: process.env.DB_HOST ?? "127.0.0.1",
     port: integer("DB_PORT", 3307),
@@ -30,3 +35,4 @@ export const config = {
 };
 
 if (!config.database.password) throw new Error("DB_PASSWORD is required. Run START-C-OPTIFORGE.bat to initialize .env.");
+if (!config.adminPasswordHash && !config.adminPassword) throw new Error("ADMIN_PASSWORD_HASH or ADMIN_PASSWORD is required.");

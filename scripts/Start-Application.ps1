@@ -10,7 +10,7 @@ function Test-Endpoint([string]$Uri) {
 $coordinatorReady = Test-Endpoint 'http://localhost:4100/health'
 $webReady = Test-Endpoint 'http://localhost:5173/'
 if ($coordinatorReady -and $webReady) {
-    Write-Host 'C-OptiForge application services are already running; reusing them.'
+    Write-Host 'GRID-X application services are already running; reusing them.'
     exit 0
 }
 
@@ -21,7 +21,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'node_modules'))) {
 }
 
 if ($coordinatorReady -or $webReady) {
-    throw 'Only part of C-OptiForge is already running. Run STOP-C-OPTIFORGE.bat, then start again.'
+    throw 'Only part of GRID-X is already running. Run STOP-C-OPTIFORGE.bat, then start again.'
 }
 
 $stdout = Join-Path $runtimeDirectory 'application.log'
@@ -31,9 +31,9 @@ $process = Start-Process -FilePath 'npm.cmd' -ArgumentList @('run','dev') -Worki
 
 $deadline = [DateTime]::UtcNow.AddSeconds(90)
 do {
-    if ($process.HasExited) { throw "C-OptiForge exited during startup. See $stderr" }
+    if ($process.HasExited) { throw "GRID-X exited during startup. See $stderr" }
     if ((Test-Endpoint 'http://localhost:4100/health') -and (Test-Endpoint 'http://localhost:5173/')) { exit 0 }
     Start-Sleep -Seconds 2
 } while ([DateTime]::UtcNow -lt $deadline)
-throw "C-OptiForge did not become ready within 90 seconds. See $stdout and $stderr"
+throw "GRID-X did not become ready within 90 seconds. See $stdout and $stderr"
 

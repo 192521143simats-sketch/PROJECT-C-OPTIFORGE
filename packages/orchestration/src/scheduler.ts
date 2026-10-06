@@ -1,13 +1,13 @@
 import type {CapabilityProfile,ResourceSnapshot} from "@c-optiforge/contracts";
 
-export type RequiredCapability="base"|"c"|"python"|"java";
+export type RequiredCapability="base"|"ir"|"c"|"python"|"java";
 export type TaskRequirements={capability:RequiredCapability;minLogicalCores?:number;minFreeMemoryBytes?:number};
 export type NodePerformance={sampleCount:number;averageExecutionTimeMs:number;successRate:number};
 export type SchedulableNode={id:string;status:"AVAILABLE"|string;profile:CapabilityProfile;resources:ResourceSnapshot|null;historicalPerformance?:Partial<Record<RequiredCapability,NodePerformance>>};
 export type CandidateEvaluation={nodeId:string;eligible:boolean;score:number|null;reasons:string[]};
 export type SchedulingDecision={selectedNodeId:string|null;score:number|null;explanation:string;evaluations:CandidateEvaluation[]};
 
-function supports(profile:CapabilityProfile,capability:RequiredCapability){return capability==="base"||profile.runtimes[capability];}
+function supports(profile:CapabilityProfile,capability:RequiredCapability){return capability==="base"||capability==="ir"?capability==="base"||profile.operations.irOptimization:profile.runtimes[capability];}
 
 export function evaluateNode(node:SchedulableNode,requirements:TaskRequirements):CandidateEvaluation{
   const reasons:string[]=[];
@@ -15,10 +15,10 @@ export function evaluateNode(node:SchedulableNode,requirements:TaskRequirements)
   if(!supports(node.profile,requirements.capability))reasons.push(`${requirements.capability} capability is unavailable`);
   if(node.profile.logicalCores<(requirements.minLogicalCores??1))reasons.push(`requires at least ${requirements.minLogicalCores} logical cores`);
   if(!node.resources)reasons.push("no current resource snapshot");
-  else if(node.resources.freeMemoryBytes<(requirements.minFreeMemoryBytes??0))reasons.push(`requires at least ${requirements.minFreeMemoryBytes} free memory bytes`);
+  else if(node.resources.freeMemoryBytes<(requirements.minFreeMemoryBytes??0)&&!(node.profile.workerType==="BROWSER"&&node.resources.memoryMeasurementAvailable===false))reasons.push(`requires at least ${requirements.minFreeMemoryBytes} free memory bytes`);
   if(reasons.length)return{nodeId:node.id,eligible:false,score:null,reasons};
-  const cpuHeadroom=100-node.resources!.cpuUtilizationPercent;
-  const memoryHeadroom=100-node.resources!.memoryUtilizationPercent;
+  const cpuHeadroom=node.resources!.cpuMeasurementAvailable===false?50:100-node.resources!.cpuUtilizationPercent;
+  const memoryHeadroom=node.resources!.memoryMeasurementAvailable===false?50:100-node.resources!.memoryUtilizationPercent;
   const coreCapacity=Math.min(node.profile.logicalCores,32)/32*100;
   const score=Number((cpuHeadroom*.5+memoryHeadroom*.35+coreCapacity*.15).toFixed(3));
   return{nodeId:node.id,eligible:true,score,reasons:[`CPU headroom ${cpuHeadroom.toFixed(1)}%`,`memory headroom ${memoryHeadroom.toFixed(1)}%`,`${node.profile.logicalCores} logical cores`,`${requirements.capability} capability satisfied`]};

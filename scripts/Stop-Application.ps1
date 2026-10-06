@@ -5,7 +5,7 @@ if (Test-Path -LiteralPath $pidFile) {
     $applicationPid = [int](Get-Content -LiteralPath $pidFile -Raw)
     if (Get-Process -Id $applicationPid -ErrorAction SilentlyContinue) {
         & taskkill.exe /PID $applicationPid /T /F | Out-Null
-        Write-Host 'Stopped C-OptiForge application services.'
+        Write-Host 'Stopped GRID-X application services.'
     }
     Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
 } else {
@@ -19,6 +19,6 @@ if (Test-Path -LiteralPath $pidFile) {
             }
         }
     }
-    if (-not $stopped) { Write-Host 'C-OptiForge application services were not running.' }
+    if (-not $stopped) { Write-Host 'GRID-X application services were not running.' }
 }
 

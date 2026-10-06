@@ -1,0 +1,13 @@
+.auth-card{max-width:520px;margin:0 auto;display:grid;gap:18px}
+.auth-card label,.inline-form label{display:grid;gap:7px;font-weight:700}
+.profile{color:#b8c6d3}
+.link-button{background:transparent;color:#dce8f2;padding:0;border:0}
+.tabs,.pagination{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.tabs .active,.pagination .active{background:#16855d;color:#fff}
+.inline-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:end}
+.inline-form h2,.inline-form .notice{grid-column:1/-1}
+.danger{background:#b42318}.danger:hover{background:#912018}
+.muted{color:#667085}
+.download{display:inline-block;margin-top:14px;padding:10px 14px;background:#16855d;color:white;border-radius:8px;text-decoration:none}
+select,textarea{width:100%;border:1px solid #cbd4d8;border-radius:6px;padding:10px;font:inherit;background:#fff}
+@media(max-width:760px){header{padding:14px 18px}.brand{font-size:18px}header nav{gap:12px}main{padding:44px 16px}.heading h1{font-size:34px}.inline-form{grid-template-columns:1fr}.table-wrap{overflow-x:auto}.pagination{justify-content:center}.profile{display:none}}

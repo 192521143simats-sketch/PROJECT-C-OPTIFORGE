@@ -3,7 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "vite --host 0.0.0.0", "build": "tsc --noEmit && vite build", "typecheck": "tsc --noEmit" },
-  "dependencies": { "@vitejs/plugin-react": "latest", "vite": "latest", "typescript": "^5.9.3", "react": "^19.2.0", "react-dom": "^19.2.0" },
-  "devDependencies": { "@types/react": "^19.2.2", "@types/react-dom": "^19.2.2" }
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@c-optiforge/compiler-c": "^0.1.0",
+    "@c-optiforge/contracts": "^0.1.0",
+    "@vitejs/plugin-react": "latest",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2"
+  }
 }

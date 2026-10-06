@@ -6,6 +6,8 @@ export const taskStatuses = ["QUEUED", "ASSIGNED", "RUNNING", "COMPLETED", "FAIL
 export type TaskStatus = (typeof taskStatuses)[number];
 
 export const capabilitySchema = z.object({
+  workerType: z.enum(["NATIVE","BROWSER"]),
+  deviceType: z.enum(["DESKTOP","LAPTOP","PHONE","TABLET","SERVER","UNKNOWN"]),
   cpuModel: z.string().min(1).max(300),
   logicalCores: z.number().int().positive().max(1024),
   totalMemoryBytes: z.number().nonnegative(),
@@ -16,14 +18,17 @@ export const capabilitySchema = z.object({
     c: z.object({ available: z.boolean(), version: z.string().max(300).optional() }),
     python: z.object({ available: z.boolean(), version: z.string().max(300).optional() }),
     java: z.object({ available: z.boolean(), version: z.string().max(300).optional() })
-  })
+  }),
+  operations: z.object({irOptimization:z.boolean(),staticAnalysis:z.boolean(),browserCompute:z.boolean(),nativeCompilation:z.boolean()})
 });
 export type CapabilityProfile = z.infer<typeof capabilitySchema>;
 
 export const resourceSchema = z.object({
   cpuUtilizationPercent: z.number().min(0).max(100),
+  cpuMeasurementAvailable: z.boolean().optional(),
   freeMemoryBytes: z.number().nonnegative(),
   memoryUtilizationPercent: z.number().min(0).max(100),
+  memoryMeasurementAvailable: z.boolean().optional(),
   observedAt: z.string().datetime()
 });
 export type ResourceSnapshot = z.infer<typeof resourceSchema>;
@@ -82,7 +87,7 @@ export const workPayloadSchema=z.union([testTaskSchema,cOptimizationTaskSchema,p
 export type WorkPayload=z.infer<typeof workPayloadSchema>;
 
 export type CoordinatorMessage =
-  | { type: "registered"; nodeId: string; workerToken: string; heartbeatIntervalMs: number }
+  | { type: "registered"; nodeId: string; heartbeatIntervalMs: number }
   | { type: "task_assignment"; taskId: string; attempt: number; taskKind: "TEST_COMPUTE"|"C_OPTIMIZE_IR"|"PYTHON_COMPILE"|"JAVA_COMPILE"; payload: WorkPayload }
   | { type: "error"; code: string; message: string };
 

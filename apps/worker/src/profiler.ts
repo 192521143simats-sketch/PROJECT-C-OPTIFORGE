@@ -22,7 +22,7 @@ export async function probeToolchain(command:string,args:string[]){
 export async function profile(probe:ToolchainProbe=probeToolchain):Promise<CapabilityProfile>{
   const cpus=os.cpus();
   const [c,python]=await Promise.all([probe("gcc",["--version"]),probe("python",["--version"])]);let java=await probe("javac",["-version"]);if(!java.available&&probe===probeToolchain){for(const home of [process.env.COPTIFORGE_JDK_HOME,process.env.JAVA_HOME,"C:\\Program Files\\Java\\jdk-21.0.12.1"].filter(Boolean) as string[]){const executable=join(home,"bin",process.platform==="win32"?"javac.exe":"javac");if(existsSync(executable)){java=await probe(executable,["-version"]);if(java.available)break;}}}
-  return {cpuModel:cpus[0]?.model??"Unknown CPU",logicalCores:Math.max(cpus.length,1),totalMemoryBytes:os.totalmem(),operatingSystem:`${os.type()} ${os.release()}`,architecture:os.arch(),runtimes:{c:c.available,python:python.available,java:java.available},toolchains:{c,python,java}};
+  return {workerType:"NATIVE",deviceType:"DESKTOP",cpuModel:cpus[0]?.model??"Unknown CPU",logicalCores:Math.max(cpus.length,1),totalMemoryBytes:os.totalmem(),operatingSystem:`${os.type()} ${os.release()}`,architecture:os.arch(),runtimes:{c:c.available,python:python.available,java:java.available},toolchains:{c,python,java},operations:{irOptimization:true,staticAnalysis:true,browserCompute:true,nativeCompilation:true}};
 }
 
 export function calculateCpuUtilization(before:CpuTimes[],after:CpuTimes[]){
@@ -37,5 +37,5 @@ export function resources():ResourceSnapshot{
   const current=os.cpus();
   const cpuUtilizationPercent=calculateCpuUtilization(previous,current.map(cpu=>cpu.times));
   previous=current.map(cpu=>({...cpu.times}));const free=os.freemem(),all=os.totalmem();
-  return {cpuUtilizationPercent,freeMemoryBytes:free,memoryUtilizationPercent:calculateMemoryUtilization(all,free),observedAt:new Date().toISOString()};
+  return {cpuUtilizationPercent,cpuMeasurementAvailable:true,freeMemoryBytes:free,memoryUtilizationPercent:calculateMemoryUtilization(all,free),memoryMeasurementAvailable:true,observedAt:new Date().toISOString()};
 }
