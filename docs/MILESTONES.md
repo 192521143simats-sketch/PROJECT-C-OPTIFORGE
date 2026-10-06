@@ -24,3 +24,7 @@ This file records verified implementation status. A milestone is marked complete
 | 28 Unit, integration, failure, and end-to-end testing | Complete | 42 automated tests in 14 files plus real MySQL/coordinator/worker integration, cross-node reassignment, three-language artifact, startup, and repeat-run verification; see `TEST_REPORT.md`. |
 | 29 Fix, optimize, document, and finalize | Complete | Current README, operations/security/test documentation, one-command verification, startup troubleshooting, persistence guidance, and explicit production isolation limitation. |
 | 30 Final end-to-end demonstration | Complete | Fresh admin link → consent → registration → heartbeat → scheduled C IR tasks → measured worker results → aggregation → GCC output → persisted 135,922-byte executable download; see `FINAL_DEMO.md`. |
+
+## Production platform completion — 2026-10-06
+
+The application layer is now GRID-X. Permanent browser admin keys were replaced by Argon2id-backed accounts and HttpOnly MySQL sessions; USER signup/login/logout/reset and server RBAC were added. Reusable distributed networks now own many enrollments/nodes, task scheduling is network-isolated, browser and native capability classes are distinct, a real Web Worker path removes the normal command-line requirement, admin/user dashboards use owned data and server pagination, audit/security controls are active, and the live platform verifier covers the integrated path. See `PRODUCTION_PLATFORM.md` and `TEST_REPORT.md` for scope and evidence.

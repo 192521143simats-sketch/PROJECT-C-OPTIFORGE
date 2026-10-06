@@ -1,53 +1,39 @@
-# C-OptiForge
+# C-OptiForge research project
 
-C-OptiForge implements the architecture in the authoritative [master specification](./C-OptiForge_MASTER_BUILD_SPEC.md): consent-based distributed workers, persistent MySQL coordinator state, capability- and performance-aware scheduling, failure recovery, and real C, Python, and Java compiler pipelines with downloadable artifacts.
+The application is named **GRID-X**. C-OptiForge remains the repository and academic project identity: a distributed, resource-aware compiler for hardware-adaptive optimization.
 
-## Prerequisites
+GRID-X provides authenticated administrator and user roles, reusable isolated distributed networks, consent-based browser and native workers, capability-aware scheduling, failure/retry history, and real C, Python, and Java artifact pipelines backed by one Docker-managed MySQL database.
 
-- Node.js 22 or newer
-- npm 10 or newer
-- Docker Desktop with Docker Compose
-- GCC for C artifact generation
-- CPython 3 for Python analysis/bytecode generation
-- JDK 21 for Java compilation (auto-discovered, or set `COPTIFORGE_JDK_HOME`/`JAVA_HOME`)
+## Start
 
-## One-command Windows startup
+Requirements: Node.js 22+, npm 10+, Docker Desktop, GCC, CPython 3, and JDK 21 for native Java workers. The browser-worker path requires only a modern browser and cannot provide native compiler toolchains.
 
-```powershell
+```bat
 START-C-OPTIFORGE.bat
 ```
 
-The script initializes `.env` with random local credentials on first use, launches Docker Desktop when necessary, waits for Docker Engine, starts the Compose-managed MySQL service, waits for its healthcheck, and then starts the coordinator and dashboard. It is safe to run again while the environment is already running.
+Open `http://localhost:5173`. On the first start, the ignored `.env` receives a random `ADMIN_PASSWORD`; sign in with `ADMIN_USERNAME` and that password. Production deployments should replace the plaintext development fallback with an Argon2id `ADMIN_PASSWORD_HASH` and remove `ADMIN_PASSWORD`.
 
-Open `http://localhost:5173` for the role selector, `/admin` for coordinator control, `/compile` for compilation, or `/worker` for worker guidance. The generated development admin key is stored in the ignored `.env` file as `ADMIN_API_KEY`.
-
-To stop application processes and the MySQL container without deleting its data:
-
-```powershell
+```bat
 STOP-C-OPTIFORGE.bat
 ```
 
-MySQL uses database `c_optiforge`, application user `c_optiforge`, host port `3307`, and the Docker named volume `c-optiforge_mysql_data`. Never use `docker compose down -v` unless permanent data deletion is explicitly intended.
+Shutdown preserves the `c-optiforge_mysql_data` named volume. Never use `docker compose down -v` during normal operation.
 
-1. Create a distributed session.
-2. Open the generated participation link in the peer device browser.
-3. Review the disclosure and accept.
-4. Run the displayed command from a C-OptiForge checkout on that peer device.
-5. Wait for the node to become `AVAILABLE` on the dashboard.
-6. Use `/compile` to submit C, Python, or Java source, observe the persisted stages, and download the generated artifact.
+## Workflows
 
-C jobs lower source into validated function-level IR and distribute optimization before GCC code generation. Python jobs use CPython AST analysis and produce `.pyc`; Java jobs use JDK 21 and produce executable JARs. The scheduler only assigns nodes reporting the required real toolchain and blends current resources with measured historical success and latency.
+Administrator: sign in → create a distributed network → copy its reusable join link → inspect/revoke workers → monitor paginated tasks/jobs/audit events.
 
-For another device, set `PUBLIC_BASE_URL` to the browser-reachable web address and `COORDINATOR_PUBLIC_URL` to the worker-reachable coordinator address. When `COORDINATOR_PUBLIC_URL` is omitted, the coordinator derives it from the request host and standard forwarded headers.
+Worker: open `/join/<network-token>` → inspect network and browser permissions → click **Become a Worker** → remain on the worker console. Multiple devices use the same network link and receive separate enrollments/node IDs. No command prompt is needed for browser workers.
+
+User: sign up/sign in → choose an active network → submit C, Python, or Java source → follow persisted progress → download the owned artifact. C IR optimization can use browser workers. Python bytecode and Java compilation require compatible native workers.
 
 ## Verification
 
 ```powershell
-npm run typecheck
-npm test
-npm run build
-# or all three:
 npm run verify
+npm run verify:platform   # requires the running Docker/MySQL/coordinator stack
+npm audit
 ```
 
-Architecture and phase details are in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md), [docs/IMPLEMENTATION_PLAN.md](./docs/IMPLEMENTATION_PLAN.md), and [docs/MILESTONES.md](./docs/MILESTONES.md). Operational security boundaries are explicit in [docs/SECURITY.md](./docs/SECURITY.md), and verified coverage is recorded in [docs/TEST_REPORT.md](./docs/TEST_REPORT.md).
+See [production architecture](./docs/PRODUCTION_PLATFORM.md), [security](./docs/SECURITY.md), [operations](./docs/OPERATIONS.md), and the authoritative [master build specification](./C-OptiForge_MASTER_BUILD_SPEC.md).
