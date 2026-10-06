@@ -14,6 +14,10 @@ START-C-OPTIFORGE.bat
 
 Open `http://localhost:5173`. On the first start, the ignored `.env` receives a random `ADMIN_PASSWORD`; sign in with `ADMIN_USERNAME` and that password. Production deployments should replace the plaintext development fallback with an Argon2id `ADMIN_PASSWORD_HASH` and remove `ADMIN_PASSWORD`.
 
+For a phone or another computer on the same Wi-Fi/LAN, use the `Mobile/LAN` URL printed by `START-C-OPTIFORGE.bat` (for example, `http://192.168.0.5:5173`). Never replace its host with `localhost`: on a phone, `localhost` means the phone itself. The startup process uses the active LAN address when it generates reusable worker join links.
+
+Users select only the language and supply a source filename plus pasted or uploaded source. GRID-X chooses an active compatible network using the same resource-aware score and measured execution history used for worker scheduling. Network choice and compilation history are administrative concerns and are shown in the Admin dashboard. New worker identities are network-scoped (`NODE-A001`, `NODE-A002`, `NODE-B001`, and so on).
+
 ```bat
 STOP-C-OPTIFORGE.bat
 ```

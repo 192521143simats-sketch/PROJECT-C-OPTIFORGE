@@ -3,6 +3,19 @@ $ErrorActionPreference = 'Stop'
 $runtimeDirectory = Join-Path $ProjectRoot '.runtime'
 New-Item -ItemType Directory -Force -Path $runtimeDirectory | Out-Null
 
+# A phone's localhost is the phone itself. Publish join links with this PC's
+# active LAN address while keeping localhost available for desktop development.
+$lanAddress = Get-NetIPConfiguration -ErrorAction SilentlyContinue |
+    Where-Object { $_.IPv4DefaultGateway -and $_.IPv4Address } |
+    ForEach-Object { $_.IPv4Address.IPAddress } |
+    Where-Object { $_ -notmatch '^(127\.|169\.254\.)' } |
+    Select-Object -First 1
+if ($lanAddress) {
+    $env:PUBLIC_BASE_URL = "http://${lanAddress}:5173"
+    [IO.File]::WriteAllText((Join-Path $runtimeDirectory 'lan-url.txt'), $env:PUBLIC_BASE_URL)
+    Write-Host "Mobile/LAN URL: $env:PUBLIC_BASE_URL"
+}
+
 function Test-Endpoint([string]$Uri) {
     try { Invoke-WebRequest -UseBasicParsing -Uri $Uri -TimeoutSec 3 | Out-Null; return $true } catch { return $false }
 }

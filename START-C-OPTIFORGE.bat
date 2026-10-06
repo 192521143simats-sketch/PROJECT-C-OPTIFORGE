@@ -72,6 +72,11 @@ if errorlevel 1 (
 )
 echo GRID-X is ready.
 echo Dashboard: http://localhost:5173/admin
+if exist "%~dp0.runtime\lan-url.txt" (
+  set /p GRID_X_LAN_URL=<"%~dp0.runtime\lan-url.txt"
+  echo Mobile/LAN: !GRID_X_LAN_URL!
+  echo Use this Mobile/LAN address on phones; localhost on a phone points to the phone itself.
+)
 start "" "http://localhost:5173/admin"
 exit /b 0
 

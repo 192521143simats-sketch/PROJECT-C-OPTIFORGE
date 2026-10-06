@@ -7,7 +7,7 @@ export type DatabaseConfig={host:string;port:number;name:string;user:string;pass
 
 export class Store {
   private constructor(readonly pool:Pool){}
-  static async connect(config:DatabaseConfig){const pool=mysql.createPool({host:config.host,port:config.port,database:config.name,user:config.user,password:config.password,waitForConnections:true,connectionLimit:10,queueLimit:0,timezone:"Z",decimalNumbers:true});const store=new Store(pool);await store.migrate();return store;}
+  static async connect(config:DatabaseConfig){const pool=mysql.createPool({host:config.host,port:config.port,database:config.name,user:config.user,password:config.password,waitForConnections:true,connectionLimit:10,queueLimit:0,timezone:"Z",decimalNumbers:true});const store=new Store(pool);await store.migrate();await store.ensureNetworkIdentitySchema();return store;}
   async close(){await this.pool.end();}
   private async migrate(){const statements=[
     `CREATE TABLE IF NOT EXISTS sessions (id VARCHAR(64) PRIMARY KEY,status ENUM('ACTIVE','CLOSED','EXPIRED') NOT NULL,created_at VARCHAR(32) NOT NULL,expires_at VARCHAR(32) NOT NULL,INDEX idx_sessions_status(status)) ENGINE=InnoDB`,
@@ -30,6 +30,16 @@ export class Store {
   private async ensureColumn(table:string,column:string,definition:string){const[rows]=await this.pool.execute<RowDataPacket[]>("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?",[table,column]);if(!rows.length)await this.pool.execute(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);}
   private async ensureIndex(table:string,name:string,columns:string){const[rows]=await this.pool.execute<RowDataPacket[]>("SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND INDEX_NAME=?",[table,name]);if(!rows.length)await this.pool.execute(`ALTER TABLE \`${table}\` ADD INDEX \`${name}\` (${columns.split(",").map(column=>`\`${column}\``).join(",")})`);}
   private async ensureForeignKey(table:string,name:string,column:string,parentTable:string,parentColumn:string){const[rows]=await this.pool.execute<RowDataPacket[]>("SELECT 1 FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME=?",[name]);if(!rows.length)await this.pool.execute(`ALTER TABLE \`${table}\` ADD CONSTRAINT \`${name}\` FOREIGN KEY (\`${column}\`) REFERENCES \`${parentTable}\`(\`${parentColumn}\`)`);}
+  private async ensureNetworkIdentitySchema(){
+    await this.ensureColumn("distributed_networks","network_code","VARCHAR(12) NULL");
+    await this.ensureColumn("distributed_networks","next_node_number","INT NOT NULL DEFAULT 1");
+    const[rows]=await this.pool.execute<RowDataPacket[]>("SELECT id FROM distributed_networks WHERE network_code IS NULL ORDER BY created_at,id");
+    const[countRows]=await this.pool.execute<RowDataPacket[]>("SELECT COUNT(*) total FROM distributed_networks WHERE network_code IS NOT NULL");
+    let sequence=Number(countRows[0]?.total??0);
+    for(const row of rows){sequence++;await this.pool.execute("UPDATE distributed_networks SET network_code=? WHERE id=? AND network_code IS NULL",[Store.alphaCode(sequence),row.id]);}
+    await this.ensureIndex("distributed_networks","uq_network_code","network_code");
+  }
+  private static alphaCode(value:number){let code="",number=value;while(number>0){number--;code=String.fromCharCode(65+number%26)+code;number=Math.floor(number/26);}return code;}
   now(){return new Date().toISOString();} hash(token:string){return createHash("sha256").update(token).digest("hex");} token(){return randomBytes(32).toString("base64url");} id(prefix:string){return `${prefix}-${randomUUID()}`;}
   private async transaction<T>(work:(connection:PoolConnection)=>Promise<T>){const connection=await this.pool.getConnection();try{await connection.beginTransaction();const result=await work(connection);await connection.commit();return result;}catch(error){await connection.rollback();throw error;}finally{connection.release();}}
 
