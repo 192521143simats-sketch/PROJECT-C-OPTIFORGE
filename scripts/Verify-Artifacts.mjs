@@ -1,0 +1,40 @@
+import dotenv from "dotenv";
+import {mkdtemp,readFile,rm,writeFile} from "node:fs/promises";
+import {spawn} from "node:child_process";
+import {join} from "node:path";
+import {tmpdir} from "node:os";
+
+dotenv.config();
+const root=process.cwd(),base="http://localhost:4100",origin=process.env.PUBLIC_BASE_URL??"http://localhost:5173";
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(value,message)=>{if(!value)throw new Error(message);};
+class Client{
+  cookie="";
+  async request(path,{method="GET",body}={}){const response=await fetch(base+path,{method,headers:{origin,...(this.cookie?{cookie:this.cookie}:{}),...(body?{"content-type":"application/json"}:{})},body:body?JSON.stringify(body):undefined});const cookie=response.headers.get("set-cookie");if(cookie)this.cookie=cookie.split(";",1)[0];const value=(response.headers.get("content-type")??"").includes("json")?await response.json():Buffer.from(await response.arrayBuffer());return{status:response.status,value};}
+}
+async function poll(work,predicate,timeout=120_000){const end=Date.now()+timeout;do{const value=await work();if(predicate(value))return value;await pause(300);}while(Date.now()<end);throw new Error("Timed out waiting for compilation");}
+function run(executable,args){return new Promise((resolve,reject)=>{const child=spawn(executable,args,{windowsHide:true}),chunks=[];const timer=setTimeout(()=>{child.kill();reject(new Error("Sample execution timed out"));},10_000);child.stdout.on("data",chunk=>chunks.push(chunk));child.on("error",error=>{clearTimeout(timer);reject(error);});child.on("close",code=>{clearTimeout(timer);resolve({code,output:Buffer.concat(chunks).toString("utf8").trim()});});});}
+const admin=new Client(),user=new Client(),workerClient=new Client(),anonymous=new Client();
+const login=await admin.request("/api/auth/login",{method:"POST",body:{identifier:process.env.ADMIN_USERNAME,password:process.env.ADMIN_PASSWORD}});check(login.status===200,"Admin login failed");
+const created=await admin.request("/api/admin/networks",{method:"POST",body:{name:`Artifact verification ${Date.now()}`,description:"Temporary integration network",maxNodes:4,expiresAt:null}});check(created.status===201,"Network creation failed");
+const joinPath=`/api${new URL(created.value.joinUrl).pathname}`,enrolled=await workerClient.request(joinPath+"/accept",{method:"POST",body:{workerType:"NATIVE",deviceIdentity:`artifact-verification-${crypto.randomUUID()}`}});check(enrolled.status===201&&enrolled.value.developmentNativeCredential,"Native enrollment failed");
+const worker=spawn(process.execPath,[join(root,"node_modules","tsx","dist","cli.mjs"),join(root,"apps","worker","src","index.ts")],{cwd:root,windowsHide:true,env:{...process.env,COORDINATOR_URL:base,WORKER_CREDENTIAL:enrolled.value.developmentNativeCredential},stdio:["ignore","pipe","pipe"]}),runtime=await mkdtemp(join(tmpdir(),"grid-x-artifact-verification-"));
+let workerLog="";worker.stdout.on("data",chunk=>workerLog+=chunk.toString());worker.stderr.on("data",chunk=>workerLog+=chunk.toString());
+try{
+  const node=await poll(()=>admin.request("/api/admin/nodes?page=1&pageSize=10"),response=>response.value.items.some(item=>item.networkId===created.value.id&&item.status==="AVAILABLE"),30_000);check(node.status===200,"Native worker did not become available");
+  const email=`artifacts-${Date.now()}@example.test`,password="StrongPassword!42",signup=await user.request("/api/auth/signup",{method:"POST",body:{name:"Artifact Verification",email,password,confirmPassword:password}});check(signup.status===201,"User signup failed");check((await user.request("/api/auth/login",{method:"POST",body:{identifier:email,password}})).status===200,"User login failed");
+  const cases=[
+    {file:"sample-c-easy.c",language:"c",required:["GENERATED_SOURCE","EXECUTABLE","BUILD_REPORT_JSON","BUILD_REPORT_PDF"]},
+    {file:"sample-c-tough.c",language:"c",required:["GENERATED_SOURCE","EXECUTABLE","BUILD_REPORT_JSON","BUILD_REPORT_PDF"]},
+    {file:"sample-python-easy.py",language:"python",required:["SOURCE","GENERATED_SOURCE","BYTECODE","BUILD_REPORT_JSON","BUILD_REPORT_PDF"]},
+    {file:"sample-python-tough.py",language:"python",required:["SOURCE","GENERATED_SOURCE","BYTECODE","BUILD_REPORT_JSON","BUILD_REPORT_PDF"]},
+    {file:"sample-java-easy.java",language:"java",required:["SOURCE","BYTECODE","JAR","BUILD_REPORT_JSON","BUILD_REPORT_PDF"]},
+    {file:"sample-java-tough.java",language:"java",required:["SOURCE","BYTECODE","JAR","BUILD_REPORT_JSON","BUILD_REPORT_PDF"]}
+  ];
+  for(const item of cases){const source=await readFile(join(root,item.file),"utf8"),submitted=await user.request("/api/compilations",{method:"POST",body:{language:item.language,sourceName:item.file,source}});check(submitted.status===202,`${item.file}: submission rejected: ${JSON.stringify(submitted.value)}`);const response=await poll(()=>user.request(`/api/compilations/${submitted.value.id}`),value=>["COMPLETED","FAILED"].includes(value.value.status));const job=response.value;check(job.status==="COMPLETED",`${item.file}: compilation failed: ${job.error}; worker: ${workerLog.slice(-1200)}`);for(const type of item.required){const artifact=job.artifacts.find(value=>value.artifactType===type);check(artifact,`${item.file}: ${type} is missing`);const downloaded=await user.request(artifact.downloadUrl);check(downloaded.status===200&&(Buffer.isBuffer(downloaded.value)?downloaded.value.length>0:typeof downloaded.value==="object"),`${item.file}: ${type} download failed`);if(type==="BUILD_REPORT_JSON")check(downloaded.value.title==="GRID-X - Build Report",`${item.file}: report structure is invalid`);if(type==="BUILD_REPORT_PDF"){check(downloaded.value.subarray(0,4).toString()==="%PDF",`${item.file}: PDF is invalid`);if(process.env.GRID_X_REPORT_PREVIEW&&item.file==="sample-c-easy.c")await writeFile(process.env.GRID_X_REPORT_PREVIEW,downloaded.value);}if(type==="JAR")check(downloaded.value.subarray(0,2).toString()==="PK",`${item.file}: JAR is invalid`);if(type==="BYTECODE"&&item.language==="java")check(downloaded.value.subarray(0,4).toString("hex")==="cafebabe",`${item.file}: class bytecode is invalid`);if(type==="EXECUTABLE")check(["MZ","\u007fE"].includes(downloaded.value.subarray(0,2).toString()),`${item.file}: executable header is invalid`);}
+    const usable=job.artifacts.find(value=>value.artifactType===(item.language==="c"?"EXECUTABLE":item.language==="java"?"JAR":"GENERATED_SOURCE")),usableBytes=(await user.request(usable.downloadUrl)).value,usablePath=join(runtime,usable.fileName);await writeFile(usablePath,usableBytes);const executed=item.language==="c"?await run(usablePath,[]):item.language==="java"?await run("java",["-jar",usablePath]):await run("python",[usablePath]);check(item.language==="c"?executed.code===1:executed.code===0&&executed.output.length>0,`${item.file}: downloaded output did not run as expected (${executed.code}, ${executed.output})`);
+    const blocked=await anonymous.request(job.artifacts[0].downloadUrl);check(blocked.status===401,`${item.file}: anonymous download succeeded`);console.log(`${item.file}: ${job.id}, ${job.artifacts.length} verified artifacts, runnable output checked`);
+  }
+  const invalid=await user.request("/api/compilations",{method:"POST",body:{language:"c",sourceName:"invalid.c",source:"int main(void) { return missing; }"}});check(invalid.status===202,"Invalid C submission did not create a tracked job");const failed=await poll(()=>user.request(`/api/compilations/${invalid.value.id}`),value=>value.value.status==="FAILED");check(failed.value.artifacts.length===0,"Failed compilation exposed artifacts");check((await user.request("/api/artifacts/does-not-exist/download")).status===404,"Nonexistent artifact was downloadable");
+  console.log("Six language samples, authorized downloads, invalid source, and missing artifacts verified.");
+}finally{worker.kill();await pause(300);await rm(runtime,{recursive:true,force:true});await admin.request("/api/auth/logout",{method:"POST"});}

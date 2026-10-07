@@ -9,7 +9,7 @@
 .danger{background:#b42318}.danger:hover{background:#912018}
 .muted{color:#667085}
 .download{display:inline-block;margin-top:14px;padding:10px 14px;background:#16855d;color:white;border-radius:8px;text-decoration:none}
-.password-field{display:grid;grid-template-columns:1fr auto;align-items:stretch;gap:0}.password-field input{border-radius:6px 0 0 6px}.password-toggle{border-radius:0 6px 6px 0;padding:0 14px;background:#344054}.password-toggle:hover{background:#1d2939}
+.password-field{display:grid;grid-template-columns:1fr auto;align-items:stretch;gap:0}.password-field input{border-radius:6px 0 0 6px}.password-toggle{border-radius:0 6px 6px 0;padding:0 14px;background:#344054;display:grid;place-items:center}.password-toggle:hover{background:#1d2939}
 .refresh-button{min-width:112px}.spinner{display:inline-block;width:14px;height:14px;margin-right:7px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:spin .7s linear infinite}.refresh-time{font-size:13px;color:#667085}.node-list{margin:0;padding-left:18px;display:grid;gap:7px}.node-list.compact{gap:3px}.node-list li{white-space:nowrap}.node-list .status{margin:0 5px;font-size:11px;padding:3px 6px}
 @keyframes spin{to{transform:rotate(360deg)}}
 select,textarea{width:100%;border:1px solid #cbd4d8;border-radius:6px;padding:10px;font:inherit;background:#fff}
