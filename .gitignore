@@ -25,3 +25,14 @@ workspaces/
 *.jar
 .DS_Store
 Thumbs.db
+# Native packaging: local SDK configuration, signing secrets and generated packages.
+local.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+.gradle/
+*.apk
+*.aab
+*.msi
+*.msix

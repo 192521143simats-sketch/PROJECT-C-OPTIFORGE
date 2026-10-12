@@ -3,9 +3,10 @@
 | Gate | Current evidence/status |
 |---|---|
 | Dependency audit | npm zero advisories, baseline only |
-| Typecheck/build/unit | Baseline build/typecheck pass; 46 tests pass bounded concurrency; unrestricted baseline Java timeout recorded |
+| Typecheck/build/unit | Latest all workspace builds/typechecks, 63 unit and 3 script tests pass; clean archived prior runtime commit passes LTS install/verify |
 | Live isolated MySQL/API/compiler regression | PASSED limited existing platform/artifact verifiers; independent InnoDB deadlock recovery verified; broad cumulative tests remain incomplete |
 | Versioned protocol/atomic invitations/recovery/results | INCOMPLETE |
+| Migration startup foundation | PASSED isolated concurrent/partial-DDL/history tests; domain invitation migrations and production restore/rollback remain open |
 | Compiler semantics, contained execution/integrity | INCOMPLETE |
 | Web/browser complete cumulative UX | INCOMPLETE |
 | Resend/PostHog live integration | INCOMPLETE; external configuration/consent unverified |

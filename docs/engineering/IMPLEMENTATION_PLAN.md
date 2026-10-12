@@ -29,6 +29,7 @@ Iterate implementation → unit tests → isolated integration → build → evi
 - [x] Reproduce real disconnect/deadlock crash, add bounded transactional retries/background rejection handling, verify genuine InnoDB contention and live regression.
 - [x] Verify clean LTS lockfile install from engineering commit.
 - [x] Version worker protocol and validate coordinator/worker envelopes end-to-end (v1 foundation; broader cancellation/leases/capability negotiation still open).
+- [x] Adopt existing schema under a migration ledger; verify concurrent startup, interrupted DDL recovery and incompatible history rejection in isolated MySQL.
 - [ ] Atomic single-use invitations, migration ledger and identity/capacity concurrency.
 - [ ] Remaining compiler/task/browser/web phases, installer/core and native Kotlin/Compose Android.
 - [ ] Native builds, connected-device installation/testing, heterogeneous integration, signed packages and full release gates.

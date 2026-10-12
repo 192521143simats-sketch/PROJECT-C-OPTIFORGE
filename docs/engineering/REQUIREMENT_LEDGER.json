@@ -17377,10 +17377,12 @@
       "heading": "46. DATABASE",
       "line": 1971,
       "text": "Use migrations.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/database.ts; compose.yaml; scripts/",
-      "verification": "isolated MySQL migration/backup/restore integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/migrations.ts; src/migrations/0001-existing-schema.mjs; database.ts",
+      "verification": "Unit and isolated actual-MySQL migration concurrency/interruption/history verification",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-migrations/RESULTS.md"
+      ]
     },
     {
       "id": "A:46:L1973",
@@ -17389,10 +17391,12 @@
       "heading": "46. DATABASE",
       "line": 1973,
       "text": "Never mutate schema silently without migration tracking.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/database.ts; compose.yaml; scripts/",
-      "verification": "isolated MySQL migration/backup/restore integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Frozen migration artifact checksum and schema_migrations ledger",
+      "verification": "Real baseline interruption and immutable history rejection",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-migrations/RESULTS.md"
+      ]
     },
     {
       "id": "A:46:L1975",
