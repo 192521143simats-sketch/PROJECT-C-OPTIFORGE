@@ -19,21 +19,21 @@ function analyzeFunction(fn:FunctionDefinition,functions:Map<string,FunctionSign
   const lookup=(name:string)=>{for(let i=scopes.length-1;i>=0;i--){const found=scopes[i]!.get(name);if(found)return found;}return undefined;};
   const expressionType=(expression:Expression):CType=>{
     switch(expression.kind){
-      case"IntegerLiteral":return"int";
+      case"IntegerLiteral":if(!Number.isInteger(expression.value)||expression.value<0||expression.value>2147483647)report("CSEM013","Integer literal is outside the portable signed int subset; use native GCC compilation",expression.span);return"int";
       case"IdentifierExpression":{const type=lookup(expression.name);if(!type)report("CSEM003",`Use of undeclared identifier '${expression.name}'`,expression.span);return type??"int";}
       case"UnaryExpression":{const type=expressionType(expression.operand);if(type!=="int")report("CSEM004",`Unary '${expression.operator}' requires an int operand`,expression.span);return"int";}
       case"BinaryExpression":{const left=expressionType(expression.left),right=expressionType(expression.right);if(left!=="int"||right!=="int")report("CSEM005",`Binary '${expression.operator}' requires int operands`,expression.span);return"int";}
       case"AssignmentExpression":{const target=lookup(expression.target.name),value=expressionType(expression.value);if(!target)report("CSEM003",`Assignment to undeclared identifier '${expression.target.name}'`,expression.target.span);else if(target!==value)report("CSEM006","Assignment types are incompatible",expression.span);return target??"int";}
-      case"CallExpression":{const signature=functions.get(expression.callee);for(const argument of expression.arguments)expressionType(argument);if(!signature){report("CSEM007",`Call to undefined function '${expression.callee}'`,expression.span);return"int";}if(signature.parameterTypes.length!==expression.arguments.length)report("CSEM008",`Function '${expression.callee}' expects ${signature.parameterTypes.length} argument(s), received ${expression.arguments.length}`,expression.span);return signature.returnType;}
+      case"CallExpression":{const signature=functions.get(expression.callee),argumentTypes=expression.arguments.map(expressionType);if(!signature){report("CSEM007",`Call to undefined function '${expression.callee}'`,expression.span);return"int";}if(signature.parameterTypes.length!==expression.arguments.length)report("CSEM008",`Function '${expression.callee}' expects ${signature.parameterTypes.length} argument(s), received ${expression.arguments.length}`,expression.span);argumentTypes.forEach((type,index)=>{if(signature.parameterTypes[index]&&signature.parameterTypes[index]!==type)report("CSEM014",`Argument ${index+1} to '${expression.callee}' has incompatible type`,expression.arguments[index]!.span);});return signature.returnType;}
     }
   };
   const statement=(node:Statement):void=>{
     switch(node.kind){
       case"BlockStatement":block(node,true);break;
       case"VariableDeclaration":{const scope=scopes.at(-1)!;if(scope.has(node.name))report("CSEM009",`Variable '${node.name}' is already declared in this scope`,node.span);else scope.set(node.name,node.type);if(node.initializer&&expressionType(node.initializer)!==node.type)report("CSEM010",`Initializer for '${node.name}' has incompatible type`,node.initializer.span);break;}
-      case"ReturnStatement":{const actual=node.expression?expressionType(node.expression):"void";if(actual!==fn.returnType)report("CSEM011",`Return type '${actual}' does not match function return type '${fn.returnType}'`,node.span);break;}
-      case"IfStatement":expressionType(node.condition);statement(node.thenBranch);if(node.elseBranch)statement(node.elseBranch);break;
-      case"WhileStatement":expressionType(node.condition);statement(node.body);break;
+      case"ReturnStatement":{const actual=node.expression?expressionType(node.expression):"void";if(actual!==fn.returnType||(fn.returnType==="void"&&node.expression))report("CSEM011",`Return statement is incompatible with function return type '${fn.returnType}'`,node.span);break;}
+      case"IfStatement":if(expressionType(node.condition)!=="int")report("CSEM015","Condition requires an int value",node.condition.span);statement(node.thenBranch);if(node.elseBranch)statement(node.elseBranch);break;
+      case"WhileStatement":if(expressionType(node.condition)!=="int")report("CSEM015","Condition requires an int value",node.condition.span);statement(node.body);break;
       case"ExpressionStatement":if(node.expression)expressionType(node.expression);break;
     }
   };
