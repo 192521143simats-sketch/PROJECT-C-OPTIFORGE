@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import mysql from 'mysql2/promise';
 import {applyMigrations} from '../apps/coordinator/src/migrations.ts';
 import {existingSchemaMigration} from '../apps/coordinator/src/migrations/0001-existing-schema.mjs';
+import {workerInvitationMigration} from '../apps/coordinator/src/migrations/0002-worker-invitations.mjs';
 import {assertIsolatedTarget,verifyIsolatedCoordinator} from './Integration-Target.mjs';
 
 const target=assertIsolatedTarget();await verifyIsolatedCoordinator(target);
@@ -9,15 +10,15 @@ const pool=mysql.createPool({host:process.env.DB_HOST,port:Number(process.env.DB
 const id='9998_engineering_migration_probe';
 try{
   const [baseline]=await pool.query('SELECT id,checksum FROM schema_migrations ORDER BY id');
-  assert.equal(baseline.length,1);assert.equal(baseline[0].id,'0001_existing_schema');
+  assert.equal(baseline.length,2);assert.equal(baseline[0].id,'0001_existing_schema');assert.equal(baseline[1].id,'0002_worker_invitations');
   // Owned legacy rows exercise the actual adoption/backfills, not only a synthetic migration.
   const now=new Date().toISOString();
   await pool.execute("INSERT INTO users(id,name,email,password_hash,role,created_at,updated_at) VALUES('migration-user','Legacy fixture','migration-fixture@example.invalid','not-a-login-hash','USER',?,?)",[now,now]);
   await pool.execute("INSERT INTO distributed_networks(id,public_id,join_token_hash,name,status,created_by,created_at,configuration_json) VALUES('migration-network','migration-public',REPEAT('a',64),'Preserved legacy network','ACTIVE','migration-user',?,'{}')",[now]);
   await pool.execute("INSERT INTO compilation_jobs(id,language,source_name,source_text,status,stage,created_at) VALUES('migration-job','c','legacy.c','int main(){return 0;}','COMPLETED','COMPLETED',?)",[now]);
   await pool.execute("INSERT INTO artifacts(id,job_id,file_name,media_type,content,size_bytes,created_at) VALUES('migration-artifact','migration-job','legacy.c','text/plain',?,3,?)",[Buffer.from('abc'),now]);
-  await pool.execute('DELETE FROM schema_migrations WHERE id=?',[baseline[0].id]);
-  const actual=existingSchemaMigration();let adoptionInvocations=0;
+  await pool.execute('DELETE FROM schema_migrations WHERE id IN (?,?)',[baseline[0].id,baseline[1].id]);
+  const actual=existingSchemaMigration(),domain=workerInvitationMigration();let adoptionInvocations=0;
   const interruptedBaseline={...actual,run:async connection=>{
     adoptionInvocations++;
     const fault=new Proxy(connection,{get(object,key){
@@ -26,10 +27,10 @@ try{
     }});
     await actual.run(fault);
   }};
-  await assert.rejects(applyMigrations(pool,target.database,[interruptedBaseline]),/baseline DDL interruption/);
+  await assert.rejects(applyMigrations(pool,target.database,[interruptedBaseline,domain]),/baseline DDL interruption/);
   const [failedBaseline]=await pool.query('SELECT id FROM schema_migrations');assert.equal(failedBaseline.length,0);
   const resumedBaseline={...actual,run:async connection=>{adoptionInvocations++;await actual.run(connection);}};
-  await Promise.all([applyMigrations(pool,target.database,[resumedBaseline]),applyMigrations(pool,target.database,[resumedBaseline])]);
+  await Promise.all([applyMigrations(pool,target.database,[resumedBaseline,domain]),applyMigrations(pool,target.database,[resumedBaseline,domain])]);
   assert.equal(adoptionInvocations,2);
   const [network]=await pool.query("SELECT name,network_code FROM distributed_networks WHERE id='migration-network'");
   assert.equal(network[0].name,'Preserved legacy network');assert.equal(network[0].network_code,'A');
@@ -43,13 +44,13 @@ try{
     if(interrupted){interrupted=false;throw new Error('Deliberate isolated interruption after DDL');}
     await connection.query('INSERT IGNORE INTO engineering_migration_probe VALUES (1)');
   }};
-  await assert.rejects(applyMigrations(pool,target.database,[existing,probe]),/Deliberate isolated interruption/);
+  await assert.rejects(applyMigrations(pool,target.database,[existing,domain,probe]),/Deliberate isolated interruption/);
   const [notApplied]=await pool.execute('SELECT id FROM schema_migrations WHERE id=?',[id]);assert.equal(notApplied.length,0);
-  await Promise.all([applyMigrations(pool,target.database,[existing,probe]),applyMigrations(pool,target.database,[existing,probe])]);
+  await Promise.all([applyMigrations(pool,target.database,[existing,domain,probe]),applyMigrations(pool,target.database,[existing,domain,probe])]);
   assert.equal(invocations,2);
   const [completed]=await pool.execute('SELECT id FROM schema_migrations WHERE id=?',[id]);assert.equal(completed.length,1);
-  await assert.rejects(applyMigrations(pool,target.database,[existing,{...probe,definition:'Changed definition'}]),/changed/);
-  await assert.rejects(applyMigrations(pool,target.database,[existing]),/unknown|newer/);
+  await assert.rejects(applyMigrations(pool,target.database,[existing,domain,{...probe,definition:'Changed definition'}]),/changed/);
+  await assert.rejects(applyMigrations(pool,target.database,[existing,domain]),/unknown|newer/);
   const [data]=await pool.query('SELECT id FROM engineering_migration_probe');assert.deepEqual(data.map(row=>row.id),[1]);
   console.log(JSON.stringify({baselineAdopted:true,legacyDataAndBackfillsPreserved:true,actualBaselineInterruptionRecovered:true,serializedConcurrentStartup:true,partialDdlRecovery:true,failedMigrationNotRecorded:true,changedDefinitionRejected:true,newerDatabaseRejected:true,probeInvocations:invocations}));
 }finally{

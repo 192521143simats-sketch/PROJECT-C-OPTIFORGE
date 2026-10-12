@@ -10,7 +10,7 @@ const version=await request('/version');check(version.body.protocolVersion===1,'
 const login=await request('/api/auth/login',{identifier:process.env.ADMIN_USERNAME,password:process.env.ADMIN_PASSWORD});check(login.status===200,'Protocol verifier admin login failed');
 const network=await request('/api/admin/networks',{name:'Protocol boundary fixture',maxNodes:2},login.cookie);
 const join=`/api${new URL(network.body.joinUrl).pathname}`;
-const enrolled=await request(join+'/accept',{workerType:'BROWSER',deviceIdentity:'protocol-logical-client'});check(enrolled.status===201,'Protocol fixture enrollment failed');
+const enrolled=await request(join+'/accept',{consent:true,workerType:'BROWSER',deviceIdentity:'protocol-logical-client'});check(enrolled.status===201,'Protocol fixture enrollment failed');
 const url=target.base.replace(/^http/,'ws')+'/ws/worker';
 async function invalidVersion(packet){await new Promise((resolve,reject)=>{
   const socket=new WebSocket(url,{headers:{Cookie:enrolled.cookie,Origin:origin}});let code;

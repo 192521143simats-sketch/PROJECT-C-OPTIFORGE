@@ -15,7 +15,7 @@ export const taskStatuses = ["QUEUED", "ASSIGNED", "RUNNING", "COMPLETED", "FAIL
 export type TaskStatus = (typeof taskStatuses)[number];
 
 export const capabilitySchema = z.object({
-  workerType: z.enum(["NATIVE","BROWSER"]),
+  workerType: z.enum(["NATIVE","BROWSER","ANDROID"]),
   deviceType: z.enum(["DESKTOP","LAPTOP","PHONE","TABLET","SERVER","UNKNOWN"]),
   cpuModel: z.string().min(1).max(300),
   logicalCores: z.number().int().positive().max(1024),

@@ -30,6 +30,6 @@ Iterate implementation → unit tests → isolated integration → build → evi
 - [x] Verify clean LTS lockfile install from engineering commit.
 - [x] Version worker protocol and validate coordinator/worker envelopes end-to-end (v1 foundation; broader cancellation/leases/capability negotiation still open).
 - [x] Adopt existing schema under a migration ledger; verify concurrent startup, interrupted DDL recovery and incompatible history rejection in isolated MySQL.
-- [ ] Atomic single-use invitations, migration ledger and identity/capacity concurrency.
+- [x] Atomic single-use invitations, append-only migration and identity/capacity concurrency, with real isolated admission/reconnect/revocation tests. Native installation/device and broader lifecycle acceptance remain separate gates.
 - [ ] Remaining compiler/task/browser/web phases, installer/core and native Kotlin/Compose Android.
 - [ ] Native builds, connected-device installation/testing, heterogeneous integration, signed packages and full release gates.

@@ -21,3 +21,11 @@ Kinds/operations: TEST_COMPUTE → SHA-256, prime count, bounded SHA chain; C_OP
 Authority: coordinator validates schema/version, enrollment on registration and each subsequent message, and task/node/attempt/network ownership through persistence. Revocation closes scope. Native and browser clients now validate coordinator envelopes, not unchecked casts. Existing result semantic verification, durable leases, cancel/pause/resource policy and additional portable catalogue are still open requirements; v1 does not falsely claim those implemented.
 
 Compatibility policy: coordinated development upgrade from unversioned legacy to v1; no indefinite legacy admission or duplicate protocol. Future incompatible changes require a new version, explicit negotiation/upgrade path and fixture tests across all worker applications.
+
+## Admission and revocation
+
+Admin creates a network with `POST /api/admin/networks`, which supplies its first single-use `joinUrl`. `POST /api/admin/networks/:networkId/invitations` issues additional invitations with optional `ttlMinutes` (1–1440, default 15) and `workerTypes` (`BROWSER`, `NATIVE`, `ANDROID`). `POST /api/admin/invitations/:invitationId/revoke` invalidates an unused invitation. Only token hashes are persisted; never log or persist the returned URL in analytics.
+
+`GET /api/join/:token` inspects without admission. `POST /api/join/:token/accept` requires `consent:true`, `workerType` and `deviceIdentity`. A token admits exactly one enrollment atomically; expired/revoked/consumed tokens return 410, occupied/reserved capacity returns 409, disallowed worker type returns 403. Public information tokens cannot enroll. A ten-minute registration deadline prevents pending enrollments from holding slots indefinitely. Existing worker credentials and IDs are not rotated by this migration.
+
+Browser admission sets only a scoped HttpOnly cookie. Native and Android admission returns `workerCredential` for secure client storage and subsequent bearer authentication, never a URL parameter. `ANDROID` is a distinct identity limited to portable capabilities; protocol support is not an APK or device-test claim. `POST /api/worker/leave` accepts either mechanism, revokes the enrollment/current node atomically, closes its socket and requeues eligible work. Reconnect cannot evade revocation/capacity or renumber nodes.

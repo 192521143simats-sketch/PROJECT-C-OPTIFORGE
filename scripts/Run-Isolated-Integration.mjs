@@ -7,7 +7,7 @@ import mysql from 'mysql2/promise';
 import {assertIsolatedTarget,verifyIsolatedCoordinator} from './Integration-Target.mjs';
 
 const mode=process.argv[2]??'all';
-if(!['all','platform','artifacts'].includes(mode)) throw new Error('Use all, platform or artifacts.');
+if(!['all','platform','artifacts','enrollment'].includes(mode)) throw new Error('Use all, platform, artifacts or enrollment.');
 const root=process.cwd(),instance=randomBytes(8).toString('hex'),container=`gridx-test-${instance}`,database=`gridx_test_${instance}`;
 const password=randomBytes(32).toString('base64url'),rootPassword=randomBytes(32).toString('base64url');
 const startedAt=new Date().toISOString(),evidence=resolve(root,'.runtime','integration',instance);
@@ -46,7 +46,8 @@ try {
   coordinator.stdout.on('data',chunk=>{coordinatorLog+=chunk.toString();});coordinator.stderr.on('data',chunk=>{coordinatorLog+=chunk.toString();});
   coordinator.on('error',error=>{coordinatorLog+=`Coordinator spawn failed: ${error.message}`;});
   await waitFor(()=>verifyIsolatedCoordinator(assertIsolatedTarget(env)),'isolated coordinator readiness',60_000);
-  for(const script of ['Verify-Migrations.mjs','Verify-MySQL-Concurrency.mjs','Verify-Protocol.mjs',...(mode==='all'?['Verify-Platform.mjs','Verify-Artifacts.mjs']:[mode==='platform'?'Verify-Platform.mjs':'Verify-Artifacts.mjs'])]){
+  const scripts=mode==='enrollment'?['Verify-Migrations.mjs','Verify-Enrollment.mjs']:['Verify-Migrations.mjs','Verify-MySQL-Concurrency.mjs','Verify-Protocol.mjs',...(mode==='all'?['Verify-Platform.mjs','Verify-Artifacts.mjs']:[mode==='platform'?'Verify-Platform.mjs':'Verify-Artifacts.mjs'])];
+  for(const script of scripts){
     console.log(`Running ${script} against isolated test MySQL and coordinator...`);
     const result=await command(process.execPath,[resolve(root,'node_modules/tsx/dist/cli.mjs'),resolve(root,'scripts',script)],{env,timeout:300_000});
     await writeFile(resolve(evidence,`${script}.log`),result.output);

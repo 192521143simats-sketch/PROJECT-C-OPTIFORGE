@@ -15,7 +15,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "verify": "npm run typecheck && npm test -- --run && node --test scripts/*.test.mjs && npm run build",
     "verify:platform": "node scripts/Run-Isolated-Integration.mjs platform",
-    "verify:integration": "node scripts/Run-Isolated-Integration.mjs all",
+    "verify:integration": "node scripts/Run-Isolated-Integration.mjs all && node scripts/Run-Isolated-Integration.mjs enrollment",
     "verify:artifacts": "node scripts/Run-Isolated-Integration.mjs artifacts"
   },
   "devDependencies": {
