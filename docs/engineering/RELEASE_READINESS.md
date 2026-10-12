@@ -1,0 +1,20 @@
+# Release gate — NOT READY
+
+| Gate | Current evidence/status |
+|---|---|
+| Dependency audit | npm zero advisories, baseline only |
+| Typecheck/build/unit | Baseline build/typecheck pass; 46 tests pass bounded concurrency; unrestricted baseline Java timeout recorded |
+| Live isolated MySQL/API/compiler regression | PASSED limited existing platform/artifact verifiers; independent InnoDB deadlock recovery verified; broad cumulative tests remain incomplete |
+| Versioned protocol/atomic invitations/recovery/results | INCOMPLETE |
+| Compiler semantics, contained execution/integrity | INCOMPLETE |
+| Web/browser complete cumulative UX | INCOMPLETE |
+| Resend/PostHog live integration | INCOMPLETE; external configuration/consent unverified |
+| Windows desktop/installer/update/uninstall | NOT IMPLEMENTED |
+| Kotlin/Compose Android APK/AAB | NOT IMPLEMENTED; SDK present |
+| Production signatures | NOT VERIFIED; credentials not inspected/assumed |
+| Physical Android + clean Windows + actual heterogeneous demo | NOT VERIFIED; ADB now detects Redmi M2004J19C/API 29; native APK/installer still absent |
+| CI/SBOM/container/secret scans | INCOMPLETE |
+| Backup and actual isolated restore/rollback | NOT VERIFIED |
+| TLS production deployment/publishing | NOT AUTHORIZED/NOT VERIFIED |
+
+Completion requires every applicable A/B/M2 gate with actual evidence. No release package has been published and no production completion claim is made.

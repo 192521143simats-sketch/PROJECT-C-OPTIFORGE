@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {createOriginPolicy, trustedProxyPolicy, validateProductionEnvironment} from "./runtime-policy.js";
 
 const projectRoot=resolve(fileURLToPath(new URL("../../../",import.meta.url)));
-dotenv.config({path:resolve(projectRoot,".env")});
+// Isolated runners supply a complete environment; do not inherit developer secrets.
+if(!process.env.GRID_X_TEST_INSTANCE) dotenv.config({path:resolve(projectRoot,".env")});
 function integer(name: string, fallback: number): number {
   const value = Number(process.env[name] ?? fallback);
   if (!Number.isInteger(value) || value <= 0) throw new Error(`${name} must be a positive integer`);
@@ -19,6 +21,9 @@ export const config = {
   adminPasswordHash: process.env.ADMIN_PASSWORD_HASH,
   adminPassword: process.env.ADMIN_PASSWORD,
   nodeEnv: process.env.NODE_ENV ?? "development",
+  allowedOrigins: process.env.ALLOWED_ORIGINS,
+  trustedProxies: trustedProxyPolicy(process.env.TRUSTED_PROXIES),
+  testInstance: process.env.GRID_X_TEST_INSTANCE,
   sessionTtlHours: integer("SESSION_TTL_HOURS", 12),
   resetTtlMinutes: integer("RESET_TTL_MINUTES", 20),
   database: {
@@ -36,3 +41,6 @@ export const config = {
 
 if (!config.database.password) throw new Error("DB_PASSWORD is required. Run START-C-OPTIFORGE.bat to initialize .env.");
 if (!config.adminPasswordHash && !config.adminPassword) throw new Error("ADMIN_PASSWORD_HASH or ADMIN_PASSWORD is required.");
+validateProductionEnvironment(config);
+if(config.testInstance && (config.nodeEnv==="production" || !/^[a-f0-9]{16}$/.test(config.testInstance) || config.database.name!==`gridx_test_${config.testInstance}` || [4100,5173].includes(config.port))) throw new Error("Invalid isolated test coordinator configuration");
+export const allowedOrigin=createOriginPolicy(config.publicBaseUrl,config.nodeEnv,config.allowedOrigins);

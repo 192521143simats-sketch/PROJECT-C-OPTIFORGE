@@ -2,6 +2,7 @@ import mysql, { type Pool, type PoolConnection, type ResultSetHeader, type RowDa
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { CapabilityProfile, NodeStatus, ResourceSnapshot, TaskStatus, WorkPayload } from "@c-optiforge/contracts";
 import type {CIntermediateRepresentation} from "@c-optiforge/compiler-c";
+import {retryTransaction} from "./transaction.js";
 
 export type DatabaseConfig={host:string;port:number;name:string;user:string;password:string};
 export type StoredArtifact={artifactType:"SOURCE"|"GENERATED_SOURCE"|"EXECUTABLE"|"BYTECODE"|"JAR"|"BUILD_REPORT_JSON"|"BUILD_REPORT_PDF";fileName:string;mediaType:string;bytes:Buffer};
@@ -51,7 +52,7 @@ export class Store {
   }
   private static alphaCode(value:number){let code="",number=value;while(number>0){number--;code=String.fromCharCode(65+number%26)+code;number=Math.floor(number/26);}return code;}
   now(){return new Date().toISOString();} hash(token:string){return createHash("sha256").update(token).digest("hex");} token(){return randomBytes(32).toString("base64url");} id(prefix:string){return `${prefix}-${randomUUID()}`;}
-  private async transaction<T>(work:(connection:PoolConnection)=>Promise<T>){const connection=await this.pool.getConnection();try{await connection.beginTransaction();const result=await work(connection);await connection.commit();return result;}catch(error){await connection.rollback();throw error;}finally{connection.release();}}
+  private transaction<T>(work:(connection:PoolConnection)=>Promise<T>){return retryTransaction(this.pool,work);}
 
   async heartbeat(nodeId:string,resources:ResourceSnapshot){const[rows]=await this.pool.execute<RowDataPacket[]>("SELECT status FROM nodes WHERE id=?",[nodeId]);const row=rows[0] as {status:NodeStatus}|undefined;if(!row||row.status==="OFFLINE")return false;const status=row.status==="ONLINE"||row.status==="UNAVAILABLE"?"AVAILABLE":row.status;await this.pool.execute("UPDATE nodes SET status=?,resource_json=?,last_heartbeat=?,disconnected_at=NULL WHERE id=?",[status,JSON.stringify(resources),this.now(),nodeId]);return true;}
   async markDisconnected(nodeId:string){await this.pool.execute("UPDATE nodes SET status='OFFLINE',disconnected_at=? WHERE id=? AND status!='OFFLINE'",[this.now(),nodeId]);}

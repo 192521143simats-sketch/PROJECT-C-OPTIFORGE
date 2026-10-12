@@ -1,11 +1,11 @@
-import dotenv from "dotenv";
 import {mkdtemp,readFile,rm,writeFile} from "node:fs/promises";
 import {spawn} from "node:child_process";
 import {join} from "node:path";
 import {tmpdir} from "node:os";
+import {assertIsolatedTarget,verifyIsolatedCoordinator} from "./Integration-Target.mjs";
 
-dotenv.config();
-const root=process.cwd(),base="http://localhost:4100",origin=process.env.PUBLIC_BASE_URL??"http://localhost:5173";
+const target=assertIsolatedTarget(),root=process.cwd(),base=target.base,origin=process.env.PUBLIC_BASE_URL??"http://localhost:5173";
+await verifyIsolatedCoordinator(target);
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const check=(value,message)=>{if(!value)throw new Error(message);};
 class Client{

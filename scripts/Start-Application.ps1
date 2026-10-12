@@ -20,7 +20,7 @@ function Test-Endpoint([string]$Uri) {
     try { Invoke-WebRequest -UseBasicParsing -Uri $Uri -TimeoutSec 3 | Out-Null; return $true } catch { return $false }
 }
 
-$coordinatorReady = Test-Endpoint 'http://localhost:4100/health'
+$coordinatorReady = Test-Endpoint 'http://localhost:4100/ready'
 $webReady = Test-Endpoint 'http://localhost:5173/'
 if ($coordinatorReady -and $webReady) {
     Write-Host 'GRID-X application services are already running; reusing them.'
@@ -29,8 +29,8 @@ if ($coordinatorReady -and $webReady) {
 
 if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'node_modules'))) {
     Write-Host 'Installing Node.js dependencies (first start only)...'
-    & npm.cmd install --no-audit --no-fund --prefix $ProjectRoot
-    if ($LASTEXITCODE -ne 0) { throw 'npm install failed.' }
+    & npm.cmd ci --no-audit --no-fund --prefix $ProjectRoot
+    if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' }
 }
 
 if ($coordinatorReady -or $webReady) {
@@ -45,7 +45,7 @@ $process = Start-Process -FilePath 'npm.cmd' -ArgumentList @('run','dev') -Worki
 $deadline = [DateTime]::UtcNow.AddSeconds(90)
 do {
     if ($process.HasExited) { throw "GRID-X exited during startup. See $stderr" }
-    if ((Test-Endpoint 'http://localhost:4100/health') -and (Test-Endpoint 'http://localhost:5173/')) { exit 0 }
+    if ((Test-Endpoint 'http://localhost:4100/ready') -and (Test-Endpoint 'http://localhost:5173/')) { exit 0 }
     Start-Sleep -Seconds 2
 } while ([DateTime]::UtcNow -lt $deadline)
 throw "GRID-X did not become ready within 90 seconds. See $stdout and $stderr"
