@@ -6,13 +6,14 @@ import {retryTransaction} from "./transaction.js";
 import {applyMigrations} from "./migrations.js";
 import {existingSchemaMigration} from "./migrations/0001-existing-schema.mjs";
 import {workerInvitationMigration} from "./migrations/0002-worker-invitations.mjs";
+import {reusableNetworkLinkMigration} from "./migrations/0003-reusable-network-links.mjs";
 
 export type DatabaseConfig={host:string;port:number;name:string;user:string;password:string};
 export type StoredArtifact={artifactType:"SOURCE"|"GENERATED_SOURCE"|"EXECUTABLE"|"BYTECODE"|"JAR"|"BUILD_REPORT_JSON"|"BUILD_REPORT_PDF";fileName:string;mediaType:string;bytes:Buffer};
 
 export class Store {
   private constructor(readonly pool:Pool){}
-  static async connect(config:DatabaseConfig){const pool=mysql.createPool({host:config.host,port:config.port,database:config.name,user:config.user,password:config.password,waitForConnections:true,connectionLimit:10,queueLimit:0,timezone:"Z",decimalNumbers:true});const store=new Store(pool);try{await applyMigrations(pool,config.name,[existingSchemaMigration(),workerInvitationMigration()]);return store;}catch(error){await pool.end();throw error;}}
+  static async connect(config:DatabaseConfig){const pool=mysql.createPool({host:config.host,port:config.port,database:config.name,user:config.user,password:config.password,waitForConnections:true,connectionLimit:10,queueLimit:0,timezone:"Z",decimalNumbers:true});const store=new Store(pool);try{await applyMigrations(pool,config.name,[existingSchemaMigration(),workerInvitationMigration(),reusableNetworkLinkMigration()]);return store;}catch(error){await pool.end();throw error;}}
   async close(){await this.pool.end();}
   now(){return new Date().toISOString();} hash(token:string){return createHash("sha256").update(token).digest("hex");} token(){return randomBytes(32).toString("base64url");} id(prefix:string){return `${prefix}-${randomUUID()}`;}
   private transaction<T>(work:(connection:PoolConnection)=>Promise<T>){return retryTransaction(this.pool,work);}

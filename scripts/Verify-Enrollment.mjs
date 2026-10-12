@@ -20,9 +20,9 @@ try{
   const accepted=await Promise.all([request(joinPath+'/accept',body),request(joinPath+'/accept',{...body,deviceIdentity:'competing-device-fixture'})]);
   assert.deepEqual(accepted.map(x=>x.status).sort(),[201,410],'Invitation must be consumed atomically once');
   assert.equal((await request(joinPath+'/accept',body)).status,410,'Consumed token must not be replayed');
-  const publicPath=`/api${new URL(created.value.informationUrl).pathname}`;
+  const publicPath=`/api${new URL(created.value.joinUrl).pathname}`;
   const publicInfo=await request(publicPath);assert.equal(publicInfo.value.network.accepting,false);
-  assert.equal((await request(publicPath+'/accept',body)).status,410,'Public information token must not grant admission');
+  assert.equal((await request(publicPath+'/accept',body)).status,409,'Default reusable link must obey the existing capacity reservation');
   const extra=await issue();assert.equal(extra.status,201);
   assert.equal((await request(`/api${new URL(extra.value.joinUrl).pathname}/accept`,body)).status,409,'Pending enrollment must reserve the only capacity slot');
   const [rows]=await pool.execute('SELECT id,credential_hash,worker_type FROM network_enrollments WHERE network_id=?',[created.value.id]);assert.equal(rows.length,1);
@@ -96,5 +96,5 @@ try{
   assert.equal((await request(`/api${new URL(restricted.value.joinUrl).pathname}/accept`,{...body,workerType:'NATIVE'})).status,403);
   // The original 12-attempt/IP limit remains enabled, even for isolated test clients.
   assert.equal((await request(joinPath+'/accept',body)).status,429);
-  console.log(JSON.stringify({singleUseRace:true,explicitConsent:true,publicLinkCannotEnroll:true,pendingCapacityReservation:true,scopedType:true,concurrentRegistrationStable:true,busyReconnectPreserved:true,offlineReconnectCapacity:true,revocationAndExpiry:true,pendingLeaveRace:true,reconnectRevokeRace:true,distinctInvitationCapacityRace:true,pendingDeadlineReleasesCapacity:true,parallelNetworkIdentity:true,bearerLeave:true,workerCannotAdmin:true,productionRateLimitPreserved:true,logicalFixturesOnly:true}));
+  console.log(JSON.stringify({singleUseRace:true,explicitConsent:true,defaultLinkCapacityEnforced:true,pendingCapacityReservation:true,scopedType:true,concurrentRegistrationStable:true,busyReconnectPreserved:true,offlineReconnectCapacity:true,revocationAndExpiry:true,pendingLeaveRace:true,reconnectRevokeRace:true,distinctInvitationCapacityRace:true,pendingDeadlineReleasesCapacity:true,parallelNetworkIdentity:true,bearerLeave:true,workerCannotAdmin:true,productionRateLimitPreserved:true,logicalFixturesOnly:true}));
 }finally{await pool.end();}

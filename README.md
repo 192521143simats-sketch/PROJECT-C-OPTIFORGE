@@ -26,9 +26,9 @@ Shutdown preserves the `c-optiforge_mysql_data` named volume. Never use `docker 
 
 ## Workflows
 
-Administrator: sign in → create a distributed network → copy its first single-use invitation → use **Invite worker** for each additional device → inspect/revoke workers → monitor paginated tasks/jobs/audit events. Invitations expire after 15 minutes by default and can be revoked before use.
+Administrator: sign in → create a distributed network → copy its default reusable link → share the same link with multiple devices → inspect/revoke workers → monitor paginated tasks/jobs/audit events. Admission is invoked by default. Use **Revoke link / Invoke link** to close/reopen admission without disconnecting existing workers; **Show / copy link** retrieves the same URL after refresh or restart.
 
-Worker: open `/join/<invitation-token>` → inspect network and browser permissions → click **Become a Worker** → remain on the worker console. Each device needs a separate invitation and retains its assigned node ID on reconnect. An old public network link is information-only and cannot enroll. No command prompt is needed for browser workers. A pending enrollment reserves capacity for ten minutes; leaving revokes its credential.
+Worker: open `/join/<network-token>` → inspect network and browser permissions → click **Become a Worker** → remain on the worker console. Multiple devices can use the same invoked link, each receiving its own enrollment and stable node ID. Revoked/expired links show an unavailable page and cannot enroll. No command prompt is needed for browser workers. Pending enrollment reserves capacity for ten minutes; leaving revokes only that worker's credential. Existing networks receive a fresh default link once during migration 0003; retrieve it from Admin rather than reusing an old information URL.
 
 User: sign up/sign in → submit C, Python, or Java source → follow persisted progress → download the owned artifact. The coordinator selects a compatible network. C IR optimization can use browser workers. Python bytecode and Java compilation require compatible native workers.
 

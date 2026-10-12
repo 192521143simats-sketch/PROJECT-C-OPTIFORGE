@@ -505,10 +505,10 @@
       "heading": "M2. EXPLICIT RECONCILIATION REGISTER",
       "line": 70,
       "text": "R03 — Join-link reuse versus single-use invitations: differing specificity.",
-      "status": "IMPLEMENTED",
+      "status": "SUPERSEDED_BY_USER",
       "implementation": "apps/coordinator/src/networks.ts; apps/coordinator/src/migrations/0002-worker-invitations.mjs; apps/coordinator/src/server.ts; apps/web/src/main.tsx",
-      "verification": "npm run verify and verify:integration passed; admission races and scoped revocation verified; physical browser/native installer acceptance remains open",
-      "evidence": ["docs/engineering/evidence/2026-10-12-invitations/RESULTS.md"]
+      "verification": "2026-10-12 explicit user override requires reusable default admission with invoke/revoke; preserved historical evidence, see USER_REQUIREMENT_OVERRIDES.md",
+      "evidence": ["docs/engineering/evidence/2026-10-12-invitations/RESULTS.md", "docs/engineering/USER_REQUIREMENT_OVERRIDES.md"]
     },
     {
       "id": "M:M2:L71",
@@ -517,10 +517,10 @@
       "heading": "M2. EXPLICIT RECONCILIATION REGISTER",
       "line": 71,
       "text": "A:3, A:16–17 describe a controlled network link shared with peers; B:6.2 requires a time-limited single-use enrollment invitation that becomes unusable after enrollment. Resolution: each actual enrollment invitation is high-entropy, network-scoped, hashed server-side, expiring, revocable, and atomically single-use. Generate separate invitations for multiple contributors. If a reusable network information/join landing link is provided, it must not itself act as a reusable credential; authorized issuance of a fresh single-use invitation and explicit consent remain necessary. Opening any link alone creates no node and executes no task. Protect tokens from logs/referrers/analytics and never put long-lived worker/admin credentials in URLs.",
-      "status": "IMPLEMENTED",
+      "status": "SUPERSEDED_BY_USER",
       "implementation": "apps/coordinator/src/networks.ts; apps/coordinator/src/server.ts; apps/web/index.html; apps/web/src/main.tsx; scripts/Verify-Enrollment.mjs",
-      "verification": "Live MySQL/API invitation, consent, replay, expiry, revocation, type/capacity races passed; production builds passed; physical UI/referrer/provider acceptance still open",
-      "evidence": ["docs/engineering/evidence/2026-10-12-invitations/RESULTS.md"]
+      "verification": "2026-10-12 explicit user override supersedes single-use-only clause; explicit consent, private scoped credentials and capacity guarantees retained. See USER_REQUIREMENT_OVERRIDES.md",
+      "evidence": ["docs/engineering/evidence/2026-10-12-invitations/RESULTS.md", "docs/engineering/USER_REQUIREMENT_OVERRIDES.md"]
     },
     {
       "id": "M:M2:L73",

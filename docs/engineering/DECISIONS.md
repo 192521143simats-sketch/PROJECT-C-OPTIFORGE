@@ -6,7 +6,7 @@ M2 in the preserved master is authoritative; this table indexes all 18 resolutio
 |---|---|
 | R01 | GRID-X visible product; academic C-OptiForge technical identity retained. |
 | R02 | Node/internal engineering details restricted to authorized engineering views; user reports abstract private participation. |
-| R03 | Reusable public network information is not an enrollment credential; fresh hashed expiring revocable atomic single-use invitations required. |
+| R03 | Superseded by the explicit 2026-10-12 user instruction: reusable default network link, invoked by default, admin revoke/invoke toggle; explicit consent and atomic capacity preserved. See USER_REQUIREMENT_OVERRIDES.md. |
 | R04 | Windows desktop/core installer and uninstaller mandatory; portable package intermediate only. |
 | R05 | Native Kotlin and Jetpack Compose Android, with verified compatible toolchain. |
 | R06 | Genuine C/GCC, Python .py/.pyc, Java source/class and eligible runnable JAR plus javap; honest subsets and failures. |

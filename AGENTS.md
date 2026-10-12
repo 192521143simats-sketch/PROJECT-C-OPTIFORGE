@@ -1,6 +1,6 @@
 # GRID-X engineering rules
 
-The existing MySQL-backed workspace is authoritative. Read `docs/engineering/PROJECT_STATUS.md`, `IMPLEMENTATION_PLAN.md`, `DECISIONS.md`, and the preserved master specification before continuing implementation.
+The existing MySQL-backed workspace is authoritative. Read `docs/engineering/PROJECT_STATUS.md`, `IMPLEMENTATION_PLAN.md`, `DECISIONS.md`, `USER_REQUIREMENT_OVERRIDES.md`, and the preserved master specification before continuing implementation. Explicit later user overrides take precedence over conflicting master clauses.
 
 - Implement the cumulative A/B specification using M2 conflict resolutions and B:20 phase order. Do not replace working compiler, auth, worker or persistence systems.
 - Preserve `.env`, databases, backups and Docker volumes. No destructive cleanup, production publishing, real email or paid account changes without explicit approval.
