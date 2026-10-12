@@ -2,33 +2,42 @@ import PDFDocument from "pdfkit";
 import type {StoredArtifact} from "./database.js";
 
 type Language="c"|"python"|"java";
-type ReportInput={language:Language;sourceName:string;source:string;artifacts:StoredArtifact[];warnings?:string[];processingTimeMs?:number|undefined;memoryBytes?:number|undefined};
+export type ReportDiagnostic={severity:"error"|"warning";message:string;line?:number|null|undefined;column?:number|null|undefined};
+export type ReportOptimization={description:string;line?:number|null};
+type ReportInput={language:Language;sourceName:string;source:string;artifacts:StoredArtifact[];warnings?:string[];diagnostics?:ReportDiagnostic[];optimizations?:ReportOptimization[];status?:"SUCCESS"|"FAILED";runnableJar?:boolean;processingTimeMs?:number|undefined;memoryBytes?:number|undefined};
 type BuildReport={title:string;compilationSummary:{sourceFile:string;language:string;compilationStatus:string;dateTime:string;sourceSizeBytes:number;sourceLines:number};result:{status:string;message:string;outputAvailable:string[]};programInformation:{language:string;sourceFile:string;sourceLines:number;compilation:string;warnings:number;errors:number;warningDetails:string[]};output:{generatedFiles:string[];filePurposes:Array<{file:string;purpose:string}>;howToUse:string};programExecution:{message:string};resourceUsage:{processingTimeSeconds:number|null;memoryUsedBytes:number|null;outputSizeBytes:number|null};codeQualitySummary:{syntax:string;compilationProcessing:string;errors:number;warnings:number;outputGeneration:string;overallAssessment:string};recommendations:string[];finalResult:{status:string;message:string;availableArtifacts:string[]}};
 
 export async function buildReports(input:ReportInput):Promise<StoredArtifact[]>{
+  const diagnostics=input.diagnostics??[],errors=diagnostics.filter(item=>item.severity==="error"),warnings=[...(input.warnings??[]),...diagnostics.filter(item=>item.severity==="warning").map(item=>`${item.line?`Line ${item.line}: `:""}${item.message}`)];
+  const successful=input.status!=="FAILED"&&errors.length===0,assessment=successful?"The program was successfully processed and the generated output is ready to use.":"The program could not be successfully processed. Review the errors listed below.";
   const names=input.artifacts.map(artifact=>artifact.fileName);
   const output=input.artifacts.find(artifact=>["EXECUTABLE","JAR","GENERATED_SOURCE"].includes(artifact.artifactType));
   const sourceLines=input.source.replace(/\r?\n$/,"").split(/\r?\n/).length;
   const purposes:Record<StoredArtifact["artifactType"],string>={SOURCE:"Original source code",GENERATED_SOURCE:"Final generated or optimized source code",EXECUTABLE:"Runnable compiled program",BYTECODE:input.language==="java"?"Compiled Java class":"Compiled Python bytecode",JAR:"Java archive",BUILD_REPORT_JSON:"Machine-readable build report",BUILD_REPORT_PDF:"This build report"};
   const report={
     title:"GRID-X - Build Report",
-    compilationSummary:{sourceFile:input.sourceName,language:input.language.toUpperCase(),compilationStatus:"Successful",dateTime:new Date().toLocaleString("en-GB",{day:"2-digit",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}),sourceSizeBytes:Buffer.byteLength(input.source),sourceLines},
-    result:{status:"Compilation Successful",message:"Your program was successfully processed and the requested output is ready.",outputAvailable:[...names,"build-report.json","build-report.pdf"]},
-    programInformation:{language:input.language.toUpperCase(),sourceFile:input.sourceName,sourceLines,compilation:"Successful",warnings:input.warnings?.length??0,errors:0,warningDetails:input.warnings??[]},
+    compilationSummary:{sourceFile:input.sourceName,language:input.language.toUpperCase(),compilationStatus:successful?"Successful":"Failed",dateTime:new Date().toLocaleString("en-GB",{day:"2-digit",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}),sourceSizeBytes:Buffer.byteLength(input.source),sourceLines},
+    result:{status:successful?"Compilation Successful":"Compilation Failed",message:assessment,outputAvailable:[...names,"build-report.json","build-report.pdf"]},
+    programInformation:{language:input.language.toUpperCase(),sourceFile:input.sourceName,sourceLines,compilation:successful?"Successful":"Failed",warnings:warnings.length,errors:errors.length,warningDetails:warnings},
     output:{generatedFiles:[...names,"build-report.json","build-report.pdf"],filePurposes:[...input.artifacts.map(artifact=>({file:artifact.fileName,purpose:purposes[artifact.artifactType]})),{file:"build-report.json",purpose:purposes.BUILD_REPORT_JSON},{file:"build-report.pdf",purpose:purposes.BUILD_REPORT_PDF}],howToUse:input.language==="c"?"Run the generated program on a compatible system.":input.language==="python"?"Run the generated .py file using Python.":"Run the generated .jar file using Java when the source defines a main entry point."},
     programExecution:{status:"Not performed",message:"Execution was not performed. The generated artifact is available for download.",output:null,executionTimeSeconds:null},
     resourceUsage:{processingTimeSeconds:input.processingTimeMs===undefined?null:Number((input.processingTimeMs/1000).toFixed(3)),memoryUsedBytes:input.memoryBytes??null,outputSizeBytes:output?.bytes.byteLength??null},
-    codeQualitySummary:{syntax:"Passed",compilationProcessing:"Passed",errors:0,warnings:input.warnings?.length??0,outputGeneration:"Passed",overallAssessment:"The program was successfully processed and the generated output is ready to use."},
-    recommendations:input.warnings?.length?["Review the warnings listed in Program Information."]:["Your program compiled successfully and requires no corrections."],
-    finalResult:{status:"SUCCESS",message:`Your ${input.language.toUpperCase()} program was successfully processed.`,availableArtifacts:[...names,"build-report.json","build-report.pdf"]},
+    codeQualitySummary:{syntax:successful?"Passed":"Not confirmed",compilationProcessing:successful?"Passed":"Failed",errors:errors.length,warnings:warnings.length,outputGeneration:successful?"Passed":"Not produced",overallAssessment:assessment},
+    recommendations:errors.length?errors.map(item=>`Correct ${item.line?`line ${item.line}: `:"the reported issue: "}${item.message}`):warnings.length?warnings.map(warning=>`Review ${warning}`):["Your program compiled successfully and requires no corrections."],
+    finalResult:{status:successful?"SUCCESS":"FAILED",message:successful?`Your ${input.language.toUpperCase()} program was successfully processed.`:`Your ${input.language.toUpperCase()} program could not be compiled.`,availableArtifacts:[...names,"build-report.json","build-report.pdf"]},
+    ...(errors.length?{errors}:{}),
+    optimizations:input.optimizations??[],
     reportGeneratedBy:"GRID-X"
   };
+  Object.assign(report.output,{optimizedSource:input.artifacts.find(item=>item.artifactType==="GENERATED_SOURCE")?.bytes.toString("utf8")??null});
+  if(!successful){report.programExecution.message="Execution was not performed. Compilation failed; no usable output was produced.";report.output.howToUse="No usable output was produced. Correct the reported source issues and compile again.";}
+  if(input.language==="java"&&input.runnableJar===false){report.output.howToUse="This is a Java library archive, not a runnable program. Use its classes from a compatible Java application.";const jar=report.output.filePurposes.find(item=>item.file.endsWith(".jar"));if(jar)jar.purpose="Java library archive (no runnable main entry point)";}
   const json:StoredArtifact={artifactType:"BUILD_REPORT_JSON",fileName:"build-report.json",mediaType:"application/json",bytes:Buffer.from(JSON.stringify(report,null,2),"utf8")};
   const pdf=await renderPdf(report);
   return[json,{artifactType:"BUILD_REPORT_PDF",fileName:"build-report.pdf",mediaType:"application/pdf",bytes:pdf}];
 }
 
-function renderPdf(report:BuildReport):Promise<Buffer>{
+function renderPdf(report:BuildReport&{errors?:ReportDiagnostic[];optimizations:ReportOptimization[]}):Promise<Buffer>{
   return new Promise((resolve,reject)=>{
     const document=new PDFDocument({size:"A4",margin:42,info:{Title:report.title,Author:"GRID-X"}}),chunks:Buffer[]=[];
     document.on("data",chunk=>chunks.push(Buffer.from(chunk)));document.on("error",reject);document.on("end",()=>resolve(Buffer.concat(chunks)));
@@ -43,7 +52,9 @@ function renderPdf(report:BuildReport):Promise<Buffer>{
     heading(5,"Program Execution");document.text(report.programExecution.message);
     heading(6,"Resource Usage");line("Processing Time",report.resourceUsage.processingTimeSeconds===null?null:`${report.resourceUsage.processingTimeSeconds} seconds`);line("Memory Used",report.resourceUsage.memoryUsedBytes===null?null:`${(report.resourceUsage.memoryUsedBytes/1024/1024).toFixed(1)} MB`);line("Output Size",report.resourceUsage.outputSizeBytes===null?null:`${(report.resourceUsage.outputSizeBytes/1024).toFixed(1)} KB`);
     heading(7,"Code Quality Summary");line("Syntax",report.codeQualitySummary.syntax);line("Compilation / Processing",report.codeQualitySummary.compilationProcessing);line("Errors",report.codeQualitySummary.errors);line("Warnings",report.codeQualitySummary.warnings);line("Output Generation",report.codeQualitySummary.outputGeneration);document.text(report.codeQualitySummary.overallAssessment);
+    if(report.errors?.length){heading(8,"Errors");report.errors.forEach(error=>document.text(`${error.line?`Line ${error.line}: `:""}${error.message}`));document.text("Review the indicated source lines and correct these issues before compiling again.");}
     heading(9,"Recommendations");files(report.recommendations);
+    if(report.optimizations.length){document.text("Optimizations made:");report.optimizations.forEach(item=>document.text(`${item.line?`Line ${item.line}: `:""}${item.description}`));}
     heading(10,"Final Result");document.font("Helvetica-Bold").text(report.finalResult.status).font("Helvetica").text(report.finalResult.message).text("Available artifacts:");files(report.finalResult.availableArtifacts);document.moveDown().text("Report Generated By GRID-X");
     document.end();
   });

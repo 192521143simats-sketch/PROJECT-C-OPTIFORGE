@@ -16,7 +16,21 @@ Coordinator → worker:
 - `task_assignment`: `taskId`, `attempt`, `taskKind`, schema-validated matching allow-listed payload.
 - `error`: stable code and bounded message; policy violation closes 1008, which stops blind credential/protocol reconnect loops.
 
-Kinds/operations: TEST_COMPUTE → SHA-256, prime count, bounded SHA chain; C_OPTIMIZE_IR → C IR function optimization; PYTHON_COMPILE/ JAVA_COMPILE → corresponding native pipeline only. Shell commands are never an operation. Browser performs portable compute/IR, not native toolchains. Android/Windows implementations must use this contract as it evolves, not fork the coordinator.
+Kinds/operations: TEST_COMPUTE → SHA-256, prime count, bounded SHA chain; C_OPTIMIZE_IR → C IR function optimization; C_COMPILE → actual native GCC source compilation; PYTHON_COMPILE/ JAVA_COMPILE → corresponding native pipeline only. Shell commands are never an operation. Browser performs portable compute/IR, not native toolchains. Android/Windows implementations must use this contract as it evolves, not fork the coordinator.
+
+The additive v1 full-source C operation is capability-gated: only a node advertising
+`runtimes.c=true` AND `operations.nativeCSource=true` receives `C_COMPILE`.
+Absent flag means unsupported, including older native v1 clients. Existing IR and
+other tasks remain compatible. Native compiler payloads carry optional `sourceName`
+(safe basename) and actual `source`; older callers retain compiler defaults.
+`task_state` may carry at most 100 located error/warning diagnostics (2000 characters
+per message). Compiler diagnostics are terminal for that attempt/job; transport
+loss/timeouts retain existing retries. Native result envelopes carry actual output
+bytes as base64, generated source, diagnostics and truthful transformation evidence.
+The coordinator checks language/operation, file names, bounds, bytecode/executable
+headers and nonempty bytes before committing artifacts. WebSocket payload limit is
+32 MB to accommodate bounded class/JAR outputs; source HTTP limits are unchanged.
+These are integrity screens, not independent verification of an adversarial worker.
 
 Authority: coordinator validates schema/version, enrollment on registration and each subsequent message, and task/node/attempt/network ownership through persistence. Revocation closes scope. Native and browser clients now validate coordinator envelopes, not unchecked casts. Existing result semantic verification, durable leases, cancel/pause/resource policy and additional portable catalogue are still open requirements; v1 does not falsely claim those implemented.
 

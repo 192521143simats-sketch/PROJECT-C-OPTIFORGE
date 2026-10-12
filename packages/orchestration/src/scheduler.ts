@@ -1,7 +1,7 @@
 import type {CapabilityProfile,ResourceSnapshot} from "@c-optiforge/contracts";
 
 export type RequiredCapability="base"|"ir"|"c"|"python"|"java";
-export type TaskRequirements={capability:RequiredCapability;minLogicalCores?:number;minFreeMemoryBytes?:number};
+export type TaskRequirements={capability:RequiredCapability;minLogicalCores?:number;minFreeMemoryBytes?:number;requireNativeCSource?:boolean};
 export type NodePerformance={sampleCount:number;averageExecutionTimeMs:number;successRate:number};
 export type SchedulableNode={id:string;status:"AVAILABLE"|string;profile:CapabilityProfile;resources:ResourceSnapshot|null;historicalPerformance?:Partial<Record<RequiredCapability,NodePerformance>>};
 export type CandidateEvaluation={nodeId:string;eligible:boolean;score:number|null;reasons:string[]};
@@ -13,6 +13,7 @@ export function evaluateNode(node:SchedulableNode,requirements:TaskRequirements)
   const reasons:string[]=[];
   if(node.status!=="AVAILABLE")reasons.push(`status is ${node.status}`);
   if(!supports(node.profile,requirements.capability))reasons.push(`${requirements.capability} capability is unavailable`);
+  if(requirements.requireNativeCSource&&node.profile.operations.nativeCSource!==true)reasons.push("native C source task protocol is unavailable");
   if(node.profile.logicalCores<(requirements.minLogicalCores??1))reasons.push(`requires at least ${requirements.minLogicalCores} logical cores`);
   if(!node.resources)reasons.push("no current resource snapshot");
   else if(node.resources.freeMemoryBytes<(requirements.minFreeMemoryBytes??0)&&!(node.profile.workerType==="BROWSER"&&node.resources.memoryMeasurementAvailable===false))reasons.push(`requires at least ${requirements.minFreeMemoryBytes} free memory bytes`);

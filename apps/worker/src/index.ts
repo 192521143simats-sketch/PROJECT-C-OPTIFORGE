@@ -35,7 +35,7 @@ function connect(){
       if(busy){send({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"FAILED",error:"Worker is already busy"});return;}
       busy=true;console.log(`Executing ${message.taskId} attempt ${message.attempt}`);send({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"RUNNING"});
       try{const completed=await execute(message.payload);send({type:"task_result",taskId:message.taskId,attempt:message.attempt,...completed,resources:resources()});console.log(`Completed ${message.taskId} in ${completed.executionTimeMs.toFixed(2)} ms`);}
-      catch(error){send({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"FAILED",error:error instanceof Error?error.message:"Execution failed"});}
+      catch(error){const diagnostics=(error as {diagnostics?:Array<{severity:"error"|"warning";message:string;line?:number|null;column?:number|null}>})?.diagnostics;send({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"FAILED",error:(error instanceof Error?error.message:"Execution failed").slice(0,2000),...(Array.isArray(diagnostics)?{diagnostics:diagnostics.slice(0,100).map(item=>({severity:item.severity,message:item.message.slice(0,2000),line:item.line??null,column:item.column??null}))}:{})});}
       finally{busy=false;}
     }else if(message.type==="error")console.error(`${message.code}: ${message.message}`);
   });

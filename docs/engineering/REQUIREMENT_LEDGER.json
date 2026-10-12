@@ -12181,10 +12181,10 @@
       "heading": "27. PYTHON PIPELINE",
       "line": 1375,
       "text": "→ genuine pyc generation",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "packages/compiler-python; apps/worker; coordinator artifact flow",
+      "verification": "Actual CPython bytecode generation, semantic tests and authorized downloaded artifacts in isolated MySQL integration",
+      "evidence": ["docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"]
     },
     {
       "id": "A:27:L1376",
@@ -12193,10 +12193,10 @@
       "heading": "27. PYTHON PIPELINE",
       "line": 1376,
       "text": "→ artifact verification",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED",
       "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "verification": "Structural headers, source relationship and authorized downloads tested; independent malicious-worker correctness verification remains open",
+      "evidence": ["docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"]
     },
     {
       "id": "A:27:L1377",
@@ -12361,10 +12361,10 @@
       "heading": "28. JAVA PIPELINE",
       "line": 1396,
       "text": "→ artifact validation",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED",
       "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "verification": "Actual javac classes/JAR, entry points, structural validation and downloads tested; independent malicious-worker correctness verification remains open",
+      "evidence": ["docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"]
     },
     {
       "id": "A:28:L1397",

@@ -17,4 +17,11 @@ describe("versioned worker protocol",()=>{
   it("cannot encode a caller-supplied unsupported version",()=>{
     expect(JSON.parse(encodeProtocolMessage({type:'disconnect',protocolVersion:99})).protocolVersion).toBe(1);
   });
+  it("authorizes native C compilation without accepting a mismatched task or unsafe filename",()=>{
+    const assignment={type:"task_assignment",protocolVersion:1,taskId:"TASK-c",attempt:1,taskKind:"C_COMPILE",payload:{operation:"c_compile",source:"int main(void){return 0;}",sourceName:"ledger.c"}};
+    expect(parseCoordinatorMessage(assignment)).toEqual(assignment);
+    expect(()=>parseCoordinatorMessage({...assignment,taskKind:"C_OPTIMIZE_IR"})).toThrow();
+    expect(()=>parseCoordinatorMessage({...assignment,payload:{...assignment.payload,sourceName:"../ledger.c"}})).toThrow();
+    expect(parseWorkerMessage({type:"task_state",protocolVersion:1,taskId:"TASK-c",attempt:1,status:"FAILED",diagnostics:[{severity:"error",message:"Undefined variable",line:2,column:3}]}).type).toBe("task_state");
+  });
 });

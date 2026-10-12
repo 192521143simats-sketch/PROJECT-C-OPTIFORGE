@@ -28,7 +28,7 @@ export const capabilitySchema = z.object({
     python: z.object({ available: z.boolean(), version: z.string().max(300).optional() }),
     java: z.object({ available: z.boolean(), version: z.string().max(300).optional() })
   }),
-  operations: z.object({irOptimization:z.boolean(),staticAnalysis:z.boolean(),browserCompute:z.boolean(),nativeCompilation:z.boolean()})
+  operations: z.object({irOptimization:z.boolean(),staticAnalysis:z.boolean(),browserCompute:z.boolean(),nativeCompilation:z.boolean(),nativeCSource:z.boolean().optional()})
 });
 export type CapabilityProfile = z.infer<typeof capabilitySchema>;
 
@@ -58,7 +58,8 @@ export const taskStateMessageSchema = z.object({
   taskId: z.string().min(1).max(64),
   attempt: z.number().int().positive(),
   status: z.enum(["RUNNING", "FAILED"]),
-  error: z.string().max(2000).optional()
+  error: z.string().max(2000).optional(),
+  diagnostics:z.array(z.object({severity:z.enum(["error","warning"]),message:z.string().max(2000),line:z.number().int().positive().nullable().optional(),column:z.number().int().positive().nullable().optional()})).max(100).optional()
 });
 export const taskResultMessageSchema = z.object({
   protocolVersion,
@@ -94,18 +95,20 @@ const irInstructionSchema=z.discriminatedUnion("op",[
 ]);
 export const cIrFunctionSchema=z.object({name:z.string().min(1).max(200),returnType:z.enum(["int","void"]),parameters:z.array(z.object({name:z.string().max(200),type:z.enum(["int","void"]),value:irValue})).max(128),instructions:z.array(irInstructionSchema).max(100_000)});
 export const cOptimizationTaskSchema=z.object({operation:z.literal("c_optimize_ir"),function:cIrFunctionSchema});
-export const pythonCompileTaskSchema=z.object({operation:z.literal("python_compile"),source:z.string().min(1).max(1_000_000)});
-export const javaCompileTaskSchema=z.object({operation:z.literal("java_compile"),source:z.string().min(1).max(1_000_000)});
-export const workPayloadSchema=z.union([testTaskSchema,cOptimizationTaskSchema,pythonCompileTaskSchema,javaCompileTaskSchema]);
+const sourceName=z.string().min(1).max(255).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/);
+export const cCompileTaskSchema=z.object({operation:z.literal("c_compile"),source:z.string().min(1).max(1_000_000),sourceName:sourceName.optional()});
+export const pythonCompileTaskSchema=z.object({operation:z.literal("python_compile"),source:z.string().min(1).max(1_000_000),sourceName:sourceName.optional()});
+export const javaCompileTaskSchema=z.object({operation:z.literal("java_compile"),source:z.string().min(1).max(1_000_000),sourceName:sourceName.optional()});
+export const workPayloadSchema=z.union([testTaskSchema,cOptimizationTaskSchema,cCompileTaskSchema,pythonCompileTaskSchema,javaCompileTaskSchema]);
 export type WorkPayload=z.infer<typeof workPayloadSchema>;
 
 export const coordinatorMessageSchema=z.discriminatedUnion("type",[
   z.object({protocolVersion,type:z.literal("registered"),nodeId:z.string().min(1).max(64),heartbeatIntervalMs:z.number().int().min(1000).max(60_000)}),
-  z.object({protocolVersion,type:z.literal("task_assignment"),taskId:z.string().min(1).max(64),attempt:z.number().int().positive(),taskKind:z.enum(["TEST_COMPUTE","C_OPTIMIZE_IR","PYTHON_COMPILE","JAVA_COMPILE"]),payload:workPayloadSchema}),
+  z.object({protocolVersion,type:z.literal("task_assignment"),taskId:z.string().min(1).max(64),attempt:z.number().int().positive(),taskKind:z.enum(["TEST_COMPUTE","C_OPTIMIZE_IR","C_COMPILE","PYTHON_COMPILE","JAVA_COMPILE"]),payload:workPayloadSchema}),
   z.object({protocolVersion,type:z.literal("error"),code:z.string().min(1).max(100),message:z.string().max(2000)})
 ]).superRefine((message,context)=>{
   if(message.type!=="task_assignment")return;
-  const operations={TEST_COMPUTE:["sha256","prime_count","sha256_chain"],C_OPTIMIZE_IR:["c_optimize_ir"],PYTHON_COMPILE:["python_compile"],JAVA_COMPILE:["java_compile"]};
+  const operations={TEST_COMPUTE:["sha256","prime_count","sha256_chain"],C_OPTIMIZE_IR:["c_optimize_ir"],C_COMPILE:["c_compile"],PYTHON_COMPILE:["python_compile"],JAVA_COMPILE:["java_compile"]};
   if(!operations[message.taskKind].includes(message.payload.operation))context.addIssue({code:"custom",path:["payload","operation"],message:"Task kind and authorized operation do not match"});
 });
 export type CoordinatorMessage=z.infer<typeof coordinatorMessageSchema>;
