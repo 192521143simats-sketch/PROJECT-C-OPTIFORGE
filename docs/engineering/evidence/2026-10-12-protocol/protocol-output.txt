@@ -1,0 +1,1 @@
+{"versionedHandshake":"passed","missingVersion":"rejected","unsupportedVersion":"rejected","cookieOrigin":"enforced","revocationClosesConnection":"passed","coordinatorStillReady":true,"client":"logical test fixture, not physical device"}

@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import { profile,resources } from "./profiler.js";
 import { execute } from "./executor.js";
-import type { CoordinatorMessage } from "@c-optiforge/contracts";
+import {encodeProtocolMessage,parseCoordinatorMessage,type CoordinatorMessage} from "@c-optiforge/contracts";
 
 function argument(name:string){const index=process.argv.indexOf(name);return index>=0?process.argv[index+1]:undefined;}
 const coordinator=argument("--coordinator")??process.env.COORDINATOR_URL;
@@ -14,7 +14,7 @@ let heartbeat:NodeJS.Timeout|undefined;
 let reconnectTimer:NodeJS.Timeout|undefined;
 let busy=false;
 let leaving=false;
-const send=(value:unknown)=>{if(socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify(value));};
+const send=(value:object)=>{if(socket?.readyState===WebSocket.OPEN)socket.send(encodeProtocolMessage(value));};
 
 function connect(){
   const url=new URL("/ws/worker",coordinator);url.protocol=url.protocol==="https:"?"wss:":"ws:";
@@ -24,7 +24,8 @@ function connect(){
     send({type:"register",profile:await profile()});
   });
   socket.on("message",async raw=>{
-    const message=JSON.parse(raw.toString()) as CoordinatorMessage;
+    let message:CoordinatorMessage;
+    try{message=parseCoordinatorMessage(JSON.parse(raw.toString()));}catch{console.error("Coordinator message rejected: incompatible or invalid protocol.");socket?.close(1008,"Protocol incompatible");return;}
     if(message.type==="registered"){
       nodeId=message.nodeId;
       if(heartbeat)clearInterval(heartbeat);
@@ -41,7 +42,7 @@ function connect(){
   socket.on("close",(code,reason)=>{
     if(heartbeat){clearInterval(heartbeat);heartbeat=undefined;}
     console.log(`Disconnected (${code}) ${reason.toString()}`);
-    if(leaving||code===1000){process.exit(0);return;}
+    if(leaving||code===1000||code===1008){process.exit(code===1008?2:0);return;}
     if(!leaving){console.log("Coordinator connection lost; reconnecting in 2 seconds...");reconnectTimer=setTimeout(connect,2_000);}
   });
   socket.on("error",error=>console.error("Worker connection error:",error.message));

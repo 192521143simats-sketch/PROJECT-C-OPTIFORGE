@@ -27,8 +27,8 @@ Iterate implementation → unit tests → isolated integration → build → evi
 - [x] Add explicit production origin/proxy/password/TLS policy and cookie-WebSocket origin guards.
 - [x] Isolate live MySQL/API/worker/compiler verifiers from developer records.
 - [x] Reproduce real disconnect/deadlock crash, add bounded transactional retries/background rejection handling, verify genuine InnoDB contention and live regression.
-- [ ] Verify clean LTS lockfile install from engineering commit.
-- [ ] Version worker protocol and validate coordinator/worker envelopes end-to-end.
+- [x] Verify clean LTS lockfile install from engineering commit.
+- [x] Version worker protocol and validate coordinator/worker envelopes end-to-end (v1 foundation; broader cancellation/leases/capability negotiation still open).
 - [ ] Atomic single-use invitations, migration ledger and identity/capacity concurrency.
 - [ ] Remaining compiler/task/browser/web phases, installer/core and native Kotlin/Compose Android.
 - [ ] Native builds, connected-device installation/testing, heterogeneous integration, signed packages and full release gates.

@@ -1,5 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
 import {createRoot} from "react-dom/client";
+import {encodeProtocolMessage,parseCoordinatorMessage,type CoordinatorMessage} from "@c-optiforge/contracts";
 import "./styles.css";import "./compiler.css";import "./platform.css";
 
 type User={id:string;name:string;email:string;role:"ADMIN"|"USER"};
@@ -78,24 +79,25 @@ function BrowserNode({networkName,onLeave}:{networkName?:string;onLeave?:()=>voi
       setStatus("CONNECTING");
       const protocol=location.protocol==="https:"?"wss:":"ws:",ws=new WebSocket(`${protocol}//${location.host}/ws/worker`);
       socket.current=ws;
-      ws.onopen=()=>ws.send(JSON.stringify({type:"register",profile:browserProfile()}));
+      ws.onopen=()=>ws.send(encodeProtocolMessage({type:"register",profile:browserProfile()}));
       ws.onmessage=event=>{
-        const message=JSON.parse(event.data);
-        if(message.type==="registered"){registeredNode=message.nodeId;setNodeId(message.nodeId);setStatus("AVAILABLE");setError("");ws.send(JSON.stringify({type:"heartbeat",resources:browserResources()}));}
-        else if(message.type==="task_assignment"){setStatus("BUSY");ws.send(JSON.stringify({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"RUNNING"}));taskWorker.postMessage(message);}
+        let message:CoordinatorMessage;
+        try{message=parseCoordinatorMessage(JSON.parse(event.data));}catch{setError("Coordinator protocol is incompatible or invalid. Update this page before reconnecting.");ws.close(1008,"Protocol incompatible");return;}
+        if(message.type==="registered"){registeredNode=message.nodeId;setNodeId(message.nodeId);setStatus("AVAILABLE");setError("");ws.send(encodeProtocolMessage({type:"heartbeat",resources:browserResources()}));}
+        else if(message.type==="task_assignment"){setStatus("BUSY");ws.send(encodeProtocolMessage({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"RUNNING"}));taskWorker.postMessage(message);}
         else if(message.type==="error")setError(message.message);
       };
-      ws.onclose=()=>{if(!active||leaving.current)return;setStatus(document.hidden?"BACKGROUND":"DISCONNECTED");registeredNode="";reconnect=setTimeout(connect,2000);};
+      ws.onclose=event=>{if(!active||leaving.current)return;registeredNode="";if(event.code===1008){setStatus("ERROR");setError("Enrollment is invalid/revoked or the worker protocol is incompatible. Request a new invitation or reload the updated app.");return;}setStatus(document.hidden?"BACKGROUND":"DISCONNECTED");reconnect=setTimeout(connect,2000);};
       ws.onerror=()=>setError("Worker connection interrupted. Reconnecting…");
     }
     taskWorker.onmessage=event=>{
       const message=event.data,ws=socket.current;
       if(ws?.readyState!==WebSocket.OPEN)return;
-      if(message.type==="completed")ws.send(JSON.stringify({type:"task_result",taskId:message.taskId,attempt:message.attempt,result:message.result,executionTimeMs:message.executionTimeMs,resources:browserResources()}));
-      else ws.send(JSON.stringify({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"FAILED",error:message.error}));
+      if(message.type==="completed")ws.send(encodeProtocolMessage({type:"task_result",taskId:message.taskId,attempt:message.attempt,result:message.result,executionTimeMs:message.executionTimeMs,resources:browserResources()}));
+      else ws.send(encodeProtocolMessage({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"FAILED",error:message.error}));
       setStatus("AVAILABLE");
     };
-    const heartbeat=setInterval(()=>{if(socket.current?.readyState===WebSocket.OPEN&&registeredNode)socket.current.send(JSON.stringify({type:"heartbeat",resources:browserResources()}));},5000);
+    const heartbeat=setInterval(()=>{if(socket.current?.readyState===WebSocket.OPEN&&registeredNode)socket.current.send(encodeProtocolMessage({type:"heartbeat",resources:browserResources()}));},5000);
     const visibility=()=>{if(document.hidden)setStatus("BACKGROUND");else if(socket.current?.readyState!==WebSocket.OPEN)setStatus("CONNECTING");};
     document.addEventListener("visibilitychange",visibility);connect();
     return()=>{active=false;clearInterval(heartbeat);clearTimeout(reconnect);document.removeEventListener("visibilitychange",visibility);taskWorker.terminate();socket.current?.close();};

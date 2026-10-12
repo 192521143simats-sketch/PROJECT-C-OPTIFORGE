@@ -18565,10 +18565,12 @@
       "heading": "51. VERSIONING",
       "line": 2116,
       "text": "Coordinator must reject incompatible protocol versions gracefully.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "packages/contracts/src/index.ts; coordinator/native/browser message paths",
+      "verification": "protocol unit tests; actual WebSocket missing/unsupported-version close1008 integration",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-protocol/RESULTS.md"
+      ]
     },
     {
       "id": "A:51:L2118",
@@ -46973,10 +46975,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5448,
       "text": "- Introduce explicit protocol versioning and compatibility rules.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "packages/contracts/src/index.ts; WORKER_PROTOCOL.md; coordinator/native/browser",
+      "verification": "60 unit/3 script tests; full isolated protocol/platform/artifacts suites",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-protocol/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5449",

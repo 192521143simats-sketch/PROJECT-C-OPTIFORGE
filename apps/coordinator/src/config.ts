@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {readFileSync} from "node:fs";
 import {createOriginPolicy, trustedProxyPolicy, validateProductionEnvironment} from "./runtime-policy.js";
 
 const projectRoot=resolve(fileURLToPath(new URL("../../../",import.meta.url)));
@@ -13,6 +14,7 @@ function integer(name: string, fallback: number): number {
 }
 
 export const config = {
+  productVersion: String(JSON.parse(readFileSync(resolve(projectRoot,"package.json"),"utf8")).version),
   host: process.env.HOST ?? "0.0.0.0",
   port: integer("PORT", 4100),
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "http://localhost:5173",

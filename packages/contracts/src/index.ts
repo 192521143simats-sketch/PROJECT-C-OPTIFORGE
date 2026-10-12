@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const PROTOCOL_VERSION=1 as const;
+const protocolVersion=z.literal(PROTOCOL_VERSION);
+export class ProtocolCompatibilityError extends Error {
+  readonly code="PROTOCOL_INCOMPATIBLE";
+  constructor(){super("Worker protocol is incompatible. Update the worker application and coordinator together.");}
+}
+function requireProtocol(value:unknown){if(!value||typeof value!=="object"||!("protocolVersion" in value)||value.protocolVersion!==PROTOCOL_VERSION)throw new ProtocolCompatibilityError();}
+export function encodeProtocolMessage<T extends object>(message:T){return JSON.stringify({...message,protocolVersion:PROTOCOL_VERSION});}
+
 export const nodeStatuses = ["REGISTERING", "ONLINE", "AVAILABLE", "BUSY", "UNAVAILABLE", "OFFLINE"] as const;
 export type NodeStatus = (typeof nodeStatuses)[number];
 export const taskStatuses = ["QUEUED", "ASSIGNED", "RUNNING", "COMPLETED", "FAILED", "REQUEUED"] as const;
@@ -34,29 +43,33 @@ export const resourceSchema = z.object({
 export type ResourceSnapshot = z.infer<typeof resourceSchema>;
 
 export const registerMessageSchema = z.object({
+  protocolVersion,
   type: z.literal("register"),
   profile: capabilitySchema
 });
 export const heartbeatMessageSchema = z.object({
+  protocolVersion,
   type: z.literal("heartbeat"),
   resources: resourceSchema
 });
 export const taskStateMessageSchema = z.object({
+  protocolVersion,
   type: z.literal("task_state"),
-  taskId: z.string(),
+  taskId: z.string().min(1).max(64),
   attempt: z.number().int().positive(),
   status: z.enum(["RUNNING", "FAILED"]),
   error: z.string().max(2000).optional()
 });
 export const taskResultMessageSchema = z.object({
+  protocolVersion,
   type: z.literal("task_result"),
-  taskId: z.string(),
+  taskId: z.string().min(1).max(64),
   attempt: z.number().int().positive(),
   result: z.unknown(),
   executionTimeMs: z.number().nonnegative(),
   resources: resourceSchema
 });
-export const disconnectMessageSchema = z.object({ type: z.literal("disconnect") });
+export const disconnectMessageSchema = z.object({ protocolVersion,type: z.literal("disconnect") });
 export const workerMessageSchema = z.discriminatedUnion("type", [
   registerMessageSchema,
   heartbeatMessageSchema,
@@ -75,7 +88,7 @@ export type TestTaskPayload = z.infer<typeof testTaskSchema>;
 const irValue=z.string().min(1).max(200);
 const irInstructionSchema=z.discriminatedUnion("op",[
   z.object({op:z.literal("const"),dest:irValue,value:z.number()}),z.object({op:z.literal("copy"),dest:irValue,source:irValue}),
-  z.object({op:z.literal("unary"),dest:irValue,operator:z.enum(["+","-","!"]),operand:irValue}),z.object({op:z.literal("binary"),dest:irValue,operator:z.string().max(8),left:irValue,right:irValue}),
+  z.object({op:z.literal("unary"),dest:irValue,operator:z.enum(["+","-","!"]),operand:irValue}),z.object({op:z.literal("binary"),dest:irValue,operator:z.enum(["+","-","*","/","%","==","!=","<","<=",">",">=","&&","||"]),left:irValue,right:irValue}),
   z.object({op:z.literal("call"),dest:irValue.nullable(),callee:z.string().min(1).max(200),arguments:z.array(irValue).max(128)}),z.object({op:z.literal("label"),name:irValue}),
   z.object({op:z.literal("branch"),condition:irValue,thenLabel:irValue,elseLabel:irValue}),z.object({op:z.literal("jump"),target:irValue}),z.object({op:z.literal("return"),value:irValue.nullable()})
 ]);
@@ -86,11 +99,19 @@ export const javaCompileTaskSchema=z.object({operation:z.literal("java_compile")
 export const workPayloadSchema=z.union([testTaskSchema,cOptimizationTaskSchema,pythonCompileTaskSchema,javaCompileTaskSchema]);
 export type WorkPayload=z.infer<typeof workPayloadSchema>;
 
-export type CoordinatorMessage =
-  | { type: "registered"; nodeId: string; heartbeatIntervalMs: number }
-  | { type: "task_assignment"; taskId: string; attempt: number; taskKind: "TEST_COMPUTE"|"C_OPTIMIZE_IR"|"PYTHON_COMPILE"|"JAVA_COMPILE"; payload: WorkPayload }
-  | { type: "error"; code: string; message: string };
+export const coordinatorMessageSchema=z.discriminatedUnion("type",[
+  z.object({protocolVersion,type:z.literal("registered"),nodeId:z.string().min(1).max(64),heartbeatIntervalMs:z.number().int().min(1000).max(60_000)}),
+  z.object({protocolVersion,type:z.literal("task_assignment"),taskId:z.string().min(1).max(64),attempt:z.number().int().positive(),taskKind:z.enum(["TEST_COMPUTE","C_OPTIMIZE_IR","PYTHON_COMPILE","JAVA_COMPILE"]),payload:workPayloadSchema}),
+  z.object({protocolVersion,type:z.literal("error"),code:z.string().min(1).max(100),message:z.string().max(2000)})
+]).superRefine((message,context)=>{
+  if(message.type!=="task_assignment")return;
+  const operations={TEST_COMPUTE:["sha256","prime_count","sha256_chain"],C_OPTIMIZE_IR:["c_optimize_ir"],PYTHON_COMPILE:["python_compile"],JAVA_COMPILE:["java_compile"]};
+  if(!operations[message.taskKind].includes(message.payload.operation))context.addIssue({code:"custom",path:["payload","operation"],message:"Task kind and authorized operation do not match"});
+});
+export type CoordinatorMessage=z.infer<typeof coordinatorMessageSchema>;
+export function parseCoordinatorMessage(value:unknown){requireProtocol(value);return coordinatorMessageSchema.parse(value);}
 
 export function parseWorkerMessage(value: unknown) {
+  requireProtocol(value);
   return workerMessageSchema.parse(value);
 }
