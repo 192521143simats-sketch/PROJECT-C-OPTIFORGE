@@ -7,7 +7,7 @@ import mysql from 'mysql2/promise';
 import {assertIsolatedTarget,verifyIsolatedCoordinator} from './Integration-Target.mjs';
 
 const mode=process.argv[2]??'all';
-if(!['all','platform','artifacts','enrollment','reusable','execution','results','leases','recovery','cancellation'].includes(mode)) throw new Error('Unknown isolated integration mode.');
+if(!['all','platform','artifacts','enrollment','reusable','execution','results','leases','recovery','cancellation','phase4'].includes(mode)) throw new Error('Unknown isolated integration mode.');
 const root=process.cwd(),instance=randomBytes(8).toString('hex'),container=`gridx-test-${instance}`,database=`gridx_test_${instance}`;
 const password=randomBytes(32).toString('base64url'),rootPassword=randomBytes(32).toString('base64url');
 const startedAt=new Date().toISOString(),evidence=resolve(root,'.runtime','integration',instance);
@@ -15,16 +15,17 @@ await mkdir(evidence,{recursive:true});
 let created=false,coordinator,coordinatorLog='',exitCode=1;
 const results=[];
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-function command(executable,args,{env=process.env,timeout=30_000,onControl}={}) {
+function command(executable,args,{env=process.env,timeout=30_000,onControl,input}={}) {
   return new Promise((resolve,reject)=>{
-    const child=spawn(executable,args,{cwd:root,env,windowsHide:true,stdio:onControl?['ignore','pipe','pipe','ipc']:['ignore','pipe','pipe']});
+    const child=spawn(executable,args,{cwd:root,env,windowsHide:true,stdio:onControl?['ignore','pipe','pipe','ipc']:[input===undefined?'ignore':'pipe','pipe','pipe']});
+    if(input!==undefined)child.stdin.end(input);
     let output='',settled=false;
     const finish=(error,code)=>{if(settled)return;settled=true;clearTimeout(timer);error?reject(error):resolve({code,output});};
     const timer=setTimeout(()=>{child.kill();finish(new Error(`${executable} timed out after ${timeout} ms`));},timeout);
     child.stdout.on('data',chunk=>{output+=chunk.toString();if(output.length>2_000_000){child.kill();finish(new Error('Integration command output limit exceeded'));}});
     child.stderr.on('data',chunk=>{output+=chunk.toString();});
     child.on('error',error=>finish(error));child.on('close',code=>finish(undefined,code??-1));
-    if(onControl)child.on("message",message=>{void onControl(message.recoveryAction).then(()=>child.send({id:message.id}),()=>child.send({id:message.id,error:"Isolated fault control failed; inspect runner logs"})).catch(()=>{});});
+    if(onControl)child.on("message",message=>{void onControl(message.recoveryAction).then(()=>child.send({id:message.id}),error=>{const safe=String(error.message).replaceAll(password,'[REDACTED]').replaceAll(rootPassword,'[REDACTED]');results.push({fault:message.recoveryAction,error:safe});console.error(`Owned fault ${message.recoveryAction}: ${safe}`);child.send({id:message.id,error:"Isolated fault control failed; inspect runner logs"});}).catch(()=>{});});
   });
 }
 async function checked(executable,args,options){const value=await command(executable,args,options);if(value.code!==0) throw new Error(`${executable} failed (exit ${value.code}); see isolated evidence logs`);return value.output.trim();}
@@ -34,7 +35,8 @@ try {
   console.log('Checking Docker engine (bounded; does not modify the developer database)...');
   await checked('docker',['info','--format','{{.ServerVersion}}'],{timeout:30_000});
   console.log(`Creating isolated MySQL fixture ${container} (temporary storage, no developer volume)...`);
-  await checked('docker',['create','--name',container,'--label',`gridx.test.instance=${instance}`,'--memory','768m','--publish','127.0.0.1::3306','--tmpfs','/var/lib/mysql:rw','--env','MYSQL_ROOT_PASSWORD','--env','MYSQL_DATABASE','--env','MYSQL_USER','--env','MYSQL_PASSWORD','mysql:8.4'],{timeout:180_000,env:{...process.env,MYSQL_ROOT_PASSWORD:rootPassword,MYSQL_DATABASE:database,MYSQL_USER:'gridx_test',MYSQL_PASSWORD:password}});
+  const fixedFixturePort=mode==='phase4'?await availablePort():null;
+  await checked('docker',['create','--name',container,'--label',`gridx.test.instance=${instance}`,'--memory','768m','--publish',`127.0.0.1:${fixedFixturePort??''}:3306`,'--tmpfs','/var/lib/mysql:rw','--env','MYSQL_ROOT_PASSWORD','--env','MYSQL_DATABASE','--env','MYSQL_USER','--env','MYSQL_PASSWORD','mysql:8.4',...(mode==='phase4'?['mysqld','--datadir=/gridx-test-data']:[])],{timeout:180_000,env:{...process.env,MYSQL_ROOT_PASSWORD:rootPassword,MYSQL_DATABASE:database,MYSQL_USER:'gridx_test',MYSQL_PASSWORD:password}});
   created=true;
   await checked('docker',['start',container]);
   const published=await checked('docker',['port',container,'3306/tcp']);
@@ -54,15 +56,35 @@ try {
       coordinator.kill();await Promise.race([new Promise(resolve=>coordinator.once("exit",resolve)),pause(5000)]);
       if(coordinator.exitCode===null&&coordinator.signalCode===null)throw new Error("Owned coordinator did not exit");
       startCoordinator();await waitFor(()=>verifyIsolatedCoordinator(assertIsolatedTarget(env)),"restarted isolated coordinator",60000);
+    }else if(action==="restartMySQL"){
+      if(mode!=="phase4")throw new Error("Restart requires persistent owned fixture");
+      await checked("docker",["restart",container],{timeout:60000});
+      await waitFor(async()=>{const connection=await mysql.createConnection({host:'127.0.0.1',port:dbPort,database,user:'gridx_test',password,connectTimeout:2000});try{await connection.query('SELECT 1');}finally{await connection.end();}},'restarted isolated MySQL',60000);
+      await waitFor(()=>verifyIsolatedCoordinator(assertIsolatedTarget(env)),"database restart readiness",60000);
+    }else if(action==="backupRestoreMySQL"){
+      const clone=database+"_restore";
+      const rootConnection=await mysql.createConnection({host:'127.0.0.1',port:dbPort,user:'root',password:rootPassword});
+      try{
+        await rootConnection.query("CREATE DATABASE "+clone);
+        const dump=await checked("docker",["exec","--env","MYSQL_PWD",container,"mysqldump","--user=root","--single-transaction","--skip-comments","--set-gtid-purged=OFF","--no-tablespaces",database],{env:{...process.env,MYSQL_PWD:rootPassword}});
+        await writeFile(resolve(evidence,"isolated-backup.sql"),dump);
+        await checked("docker",["exec","--interactive","--env","MYSQL_PWD",container,"mysql","--user=root",clone],{env:{...process.env,MYSQL_PWD:rootPassword},input:dump});
+        for(const table of ["users","distributed_networks","nodes","tasks","task_attempts","results","compilation_jobs","artifacts"]){
+          const [[original]]=await rootConnection.query("SELECT COUNT(*) total FROM "+database+"."+table),[[restored]]=await rootConnection.query("SELECT COUNT(*) total FROM "+clone+"."+table);
+          if(Number(original.total)!==Number(restored.total))throw new Error("Isolated backup restore row mismatch");
+        }
+        const [hashes]=await rootConnection.query("SELECT COUNT(*) invalid FROM "+clone+".artifacts WHERE content_sha256<>LOWER(SHA2(content,256)) OR size_bytes<>OCTET_LENGTH(content)");
+        if(Number(hashes[0].invalid)!==0)throw new Error("Restored artifact integrity mismatch");
+      }finally{await rootConnection.end();}
     }else if(action==="pauseMySQL")await checked("docker",["pause",container]);
     else if(action==="resumeMySQL"){await checked("docker",["unpause",container]);await waitFor(()=>verifyIsolatedCoordinator(assertIsolatedTarget(env)),"resumed isolated MySQL",30000);}
     else throw new Error("Unknown isolated fault action");
   }
   await waitFor(()=>verifyIsolatedCoordinator(assertIsolatedTarget(env)),'isolated coordinator readiness',60_000);
-  const scripts=mode==='cancellation'?['Verify-Task-Cancellation.mjs']:mode==='recovery'?['Verify-Task-Recovery.mjs']:mode==='leases'?['Verify-Task-Leases.mjs']:mode==='results'?['Verify-Migrations.mjs','Verify-Task-Results.mjs']:mode==='execution'?['Verify-Migrations.mjs','Verify-Execution.mjs']:mode==='reusable'?['Verify-Reusable-Link.mjs']:mode==='enrollment'?['Verify-Migrations.mjs','Verify-Enrollment.mjs']:['Verify-Migrations.mjs','Verify-MySQL-Concurrency.mjs','Verify-Protocol.mjs',...(mode==='all'?['Verify-Task-Results.mjs','Verify-Platform.mjs','Verify-Artifacts.mjs']:[mode==='platform'?'Verify-Platform.mjs':'Verify-Artifacts.mjs'])];
+  const scripts=mode==='phase4'?['Verify-Phase4-Closure.mjs']:mode==='cancellation'?['Verify-Task-Cancellation.mjs']:mode==='recovery'?['Verify-Task-Recovery.mjs']:mode==='leases'?['Verify-Task-Leases.mjs']:mode==='results'?['Verify-Migrations.mjs','Verify-Task-Results.mjs']:mode==='execution'?['Verify-Migrations.mjs','Verify-Execution.mjs']:mode==='reusable'?['Verify-Reusable-Link.mjs']:mode==='enrollment'?['Verify-Migrations.mjs','Verify-Enrollment.mjs']:['Verify-Migrations.mjs','Verify-MySQL-Concurrency.mjs','Verify-Protocol.mjs',...(mode==='all'?['Verify-Task-Results.mjs','Verify-Platform.mjs','Verify-Artifacts.mjs']:[mode==='platform'?'Verify-Platform.mjs':'Verify-Artifacts.mjs'])];
   for(const script of scripts){
     console.log(`Running ${script} against isolated test MySQL and coordinator...`);
-    const result=await command(process.execPath,[resolve(root,'node_modules/tsx/dist/cli.mjs'),resolve(root,'scripts',script)],{env,timeout:300_000,...(script==='Verify-Task-Recovery.mjs'?{onControl:control}:{})});
+    const result=await command(process.execPath,['--import','tsx',resolve(root,'scripts',script)],{env,timeout:300_000,...(['Verify-Task-Recovery.mjs','Verify-Phase4-Closure.mjs'].includes(script)?{onControl:control}:{})});
     await writeFile(resolve(evidence,`${script}.log`),result.output);
     results.push({script,exitCode:result.code});
     if(result.code!==0) throw new Error(`${script} failed; inspect ${evidence}`);

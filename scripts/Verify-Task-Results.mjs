@@ -155,6 +155,7 @@ try{
     await store.assignTask(overlapId,identities[0],1,'isolated overlap fixture');await store.setTaskRunning(overlapId,identities[0],1);
     const oldResult=store.completeTask(overlapId,identities[0],1,longExecution.result,longExecution.executionTimeMs,resources()).then(()=>null,error=>error);
     await pause(40);await store.failOrRequeueNodeTasks(identities[0],'Fixture disconnected during recomputation');await store.markDisconnected(identities[0]);
+    await poll(async()=>{const [rows]=await store.pool.execute('SELECT next_eligible_at<=UTC_TIMESTAMP(3) eligible FROM tasks WHERE id=?',[overlapId]);return Boolean(rows[0]?.eligible);},Boolean);
     await store.assignTask(overlapId,identities[1],1,'isolated retry fixture');await store.setTaskRunning(overlapId,identities[1],2);
     try{await store.completeTask(overlapId,identities[1],2,longExecution.result,longExecution.executionTimeMs,resources());}
     finally{const stale=await oldResult;assert.equal(stale?.code,'STALE_TASK_RESULT');}

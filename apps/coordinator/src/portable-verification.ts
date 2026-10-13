@@ -1,15 +1,10 @@
 import {createHash} from "node:crypto";
 import {setImmediate as yieldToIO} from "node:timers/promises";
 import {performance} from "node:perf_hooks";
-import {testTaskSchema} from "@c-optiforge/contracts";
+import {testTaskSchema,portableResultSchema,portableWorkloadCatalogue} from "@c-optiforge/contracts";
 import {z} from "zod";
 
-const digest=z.string().regex(/^[a-f0-9]{64}$/);
-const resultSchema=z.discriminatedUnion("operation",[
-  z.object({operation:z.literal("sha256"),digest,inputBytes:z.number().int().nonnegative()}).strict(),
-  z.object({operation:z.literal("prime_count"),limit:z.number().int(),count:z.number().int().nonnegative()}).strict(),
-  z.object({operation:z.literal("sha256_chain"),digest,iterations:z.number().int().positive()}).strict()
-]);
+const resultSchema=portableResultSchema;
 
 export class ResultVerificationError extends Error {
   readonly code="RESULT_VERIFICATION_FAILED";
@@ -23,9 +18,9 @@ export class StaleTaskResultError extends Error {
 // worker's claimed digest/verification flag. Cooperative chunks keep I/O alive.
 export async function verifyPortableResult(payload:unknown,result:unknown,signal?:AbortSignal){
   const input=testTaskSchema.safeParse(payload),answer=resultSchema.safeParse(result);
-  if(!input.success||!answer.success)throw new ResultVerificationError("Portable result verification failed: invalid result schema.");
+  if(!input.success||!answer.success||input.data.operation!==answer.data.operation)throw new ResultVerificationError("Portable result verification failed: invalid result schema.");
   const started=performance.now();
-  const checkCancelled=()=>{if(signal?.aborted)throw new ResultVerificationError("Portable result verification timed out or was cancelled.");};
+  const checkCancelled=()=>{if(signal?.aborted||performance.now()-started>portableWorkloadCatalogue[input.data.operation].executionLimit.maxDurationMs)throw new ResultVerificationError("Portable result verification timed out or was cancelled.");};
   checkCancelled();
   let expected:z.infer<typeof resultSchema>;
   const task=input.data;
@@ -38,6 +33,27 @@ export async function verifyPortableResult(payload:unknown,result:unknown,signal
       if((iteration+1)%500===0){await yieldToIO();checkCancelled();}
     }
     expected={operation:task.operation,iterations:task.iterations,digest:Buffer.from(bytes).toString("hex")};
+  }else if(task.operation==="matrix_multiply"){
+    // Independent column dot-products rather than the worker's row accumulation.
+    const matrix:number[][]=[];
+    for(let row=0;row<task.left.length;row++){
+      const output:number[]=[];
+      for(let column=0;column<task.right[0]!.length;column++){
+        let sum=0;
+        for(let inner=0;inner<task.right.length;inner++)sum+=task.left[row]![inner]!*task.right[inner]![column]!;
+        output.push(sum);
+      }
+      matrix.push(output);await yieldToIO();checkCancelled();
+    }
+    expected={operation:task.operation,matrix};
+  }else if(task.operation==="portable_benchmark"){
+    let state=BigInt(task.seed);
+    // BigInt/modulo reference avoids sharing worker Math.imul overflow logic.
+    for(let iteration=0;iteration<task.iterations;iteration++){
+      state=(1664525n*state+1013904223n)%4294967296n;
+      if((iteration+1)%4096===0){await yieldToIO();checkCancelled();}
+    }
+    expected={operation:task.operation,seed:task.seed,iterations:task.iterations,checksum:Number(state)};
   }else{
     // Reference sieve marks composites first, then counts remaining primes.
     const composite=new Uint8Array(task.limit+1);
@@ -56,7 +72,7 @@ export async function verifyPortableResult(payload:unknown,result:unknown,signal
   checkCancelled();
   // Property order is irrelevant; every required value must match exactly.
   for(const key of Object.keys(expected) as (keyof typeof expected)[]){
-    if(answer.data[key]!==expected[key])throw new ResultVerificationError("Portable result verification failed: answer differs from independent recomputation.");
+    if(JSON.stringify(answer.data[key])!==JSON.stringify(expected[key]))throw new ResultVerificationError("Portable result verification failed: answer differs from independent recomputation.");
   }
   return {...expected,verification:{status:"VERIFIED",method:"independent-recomputation",version:1,verifiedAt:new Date().toISOString(),verificationTimeMs:performance.now()-started}};
 }

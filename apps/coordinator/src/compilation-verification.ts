@@ -2,10 +2,12 @@ import {compileCSource,optimizeCIR,type IRFunction} from "@c-optiforge/compiler-
 import {compilePython} from "@c-optiforge/compiler-python";
 import {compileJava} from "@c-optiforge/compiler-java";
 import {isDeepStrictEqual} from "node:util";
+import {runCompilerProcess} from './compiler-process-control.js';
 type Source={language:"c"|"python"|"java";sourceName:string;sourceText:string};
 
 /** Final published native bytes are rebuilt from authoritative source, not worker bytes. */
-export async function verifyCompilation(source:Source,worker:any){
+export async function verifyCompilation(source:Source,worker:any,signal?:AbortSignal):Promise<any>{
+  if(signal){signal.throwIfAborted();return runCompilerProcess({action:'verify',source,worker},signal);}
   if(worker.operation!==`${source.language}_compile`)throw new Error("Worker compilation language mismatch");
   const verification={method:"Independent source compilation",language:source.language};
   if(source.language==="c"){

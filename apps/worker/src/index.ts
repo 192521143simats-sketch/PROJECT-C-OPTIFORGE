@@ -26,7 +26,7 @@ function connect(){
   socket=new WebSocket(url,{headers:{Authorization:`Bearer ${credential}`}});
   socket.on("open",async()=>{
     console.log(`Connected to ${url.host}${nodeId?` as ${nodeId}`:"; registering scoped native worker..."}`);
-    const capabilities=await profile();send({type:"register",profile:{...capabilities,operations:{...capabilities.operations,taskCancellation:true}}});
+    const capabilities=await profile();send({type:"register",profile:{...capabilities,operations:{...capabilities.operations,taskCancellation:true,portableMatrix:true,portableBenchmark:true}}});
   });
   socket.on("message",async raw=>{
     let message:CoordinatorMessage;

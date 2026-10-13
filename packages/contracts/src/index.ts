@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {sha256TaskSchema,primeCountTaskSchema,sha256ChainTaskSchema,matrixMultiplyTaskSchema,portableBenchmarkTaskSchema} from "./portable-catalogue.js";
+export * from "./portable-catalogue.js";
+import {contributionPolicySchema} from "./network-policy.js";
+export * from "./network-policy.js";
 
 export const PROTOCOL_VERSION=1 as const;
 const protocolVersion=z.literal(PROTOCOL_VERSION);
@@ -28,7 +32,8 @@ export const capabilitySchema = z.object({
     python: z.object({ available: z.boolean(), version: z.string().max(300).optional() }),
     java: z.object({ available: z.boolean(), version: z.string().max(300).optional() })
   }),
-  operations: z.object({irOptimization:z.boolean(),staticAnalysis:z.boolean(),browserCompute:z.boolean(),nativeCompilation:z.boolean(),nativeCSource:z.boolean().optional(),taskCancellation:z.boolean().optional()})
+  operations: z.object({irOptimization:z.boolean(),staticAnalysis:z.boolean(),browserCompute:z.boolean(),nativeCompilation:z.boolean(),nativeCSource:z.boolean().optional(),taskCancellation:z.boolean().optional(),portableMatrix:z.boolean().optional(),portableBenchmark:z.boolean().optional()}),
+  contributionPolicy:contributionPolicySchema.optional()
 });
 export type CapabilityProfile = z.infer<typeof capabilitySchema>;
 
@@ -38,7 +43,12 @@ export const resourceSchema = z.object({
   freeMemoryBytes: z.number().nonnegative(),
   memoryUtilizationPercent: z.number().min(0).max(100),
   memoryMeasurementAvailable: z.boolean().optional(),
-  observedAt: z.string().datetime()
+  observedAt: z.string().datetime(),
+  batteryPercent:z.number().min(0).max(100).optional(),
+  isCharging:z.boolean().optional(),
+  networkType:z.enum(["WIFI","ETHERNET","CELLULAR","OFFLINE","UNKNOWN"]).optional(),
+  thermalState:z.enum(["NORMAL","MODERATE","SEVERE","CRITICAL","UNKNOWN"]).optional(),
+  lifecycleState:z.enum(["FOREGROUND","BACKGROUND","PAUSED","UNKNOWN"]).optional()
 });
 export type ResourceSnapshot = z.infer<typeof resourceSchema>;
 
@@ -80,9 +90,7 @@ export const workerMessageSchema = z.discriminatedUnion("type", [
 ]);
 
 export const testTaskSchema = z.discriminatedUnion("operation", [
-  z.object({ operation: z.literal("sha256"), input: z.string().max(100_000) }),
-  z.object({ operation: z.literal("prime_count"), limit: z.number().int().min(2).max(2_000_000) }),
-  z.object({ operation: z.literal("sha256_chain"), input: z.string().max(10_000), iterations: z.number().int().min(1).max(10_000_000) })
+  sha256TaskSchema,primeCountTaskSchema,sha256ChainTaskSchema,matrixMultiplyTaskSchema,portableBenchmarkTaskSchema
 ]);
 export type TestTaskPayload = z.infer<typeof testTaskSchema>;
 
@@ -109,7 +117,7 @@ export const coordinatorMessageSchema=z.discriminatedUnion("type",[
   z.object({protocolVersion,type:z.literal("error"),code:z.string().min(1).max(100),message:z.string().max(2000)})
 ]).superRefine((message,context)=>{
   if(message.type!=="task_assignment")return;
-  const operations={TEST_COMPUTE:["sha256","prime_count","sha256_chain"],C_OPTIMIZE_IR:["c_optimize_ir"],C_COMPILE:["c_compile"],PYTHON_COMPILE:["python_compile"],JAVA_COMPILE:["java_compile"]};
+  const operations={TEST_COMPUTE:["sha256","prime_count","sha256_chain","matrix_multiply","portable_benchmark"],C_OPTIMIZE_IR:["c_optimize_ir"],C_COMPILE:["c_compile"],PYTHON_COMPILE:["python_compile"],JAVA_COMPILE:["java_compile"]};
   if(!operations[message.taskKind].includes(message.payload.operation))context.addIssue({code:"custom",path:["payload","operation"],message:"Task kind and authorized operation do not match"});
 });
 export type CoordinatorMessage=z.infer<typeof coordinatorMessageSchema>;

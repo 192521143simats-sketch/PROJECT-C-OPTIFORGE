@@ -1,6 +1,9 @@
 import {it,expect} from "vitest";
 import {verifyCompilation,verifyIROptimization,describeVerifiedOptimization} from "./compilation-verification.js";
 import {lowerCToIR,optimizeCIR} from "@c-optiforge/compiler-c";
+it("aborts native coordinator verification before starting a compiler or producing bytes",async()=>{
+  await expect(verifyCompilation({language:"c",sourceName:"cancel.c",sourceText:"int main(void){return 0;}"},{operation:"c_compile",generatedSource:"int main(void){return 0;}"},AbortSignal.abort())).rejects.toMatchObject({name:"AbortError"});
+},30000);
 it("accepts equivalent IR regardless of MySQL JSON object-key order",()=>{
   const original=lowerCToIR("int main(void){int amount=2+3;return amount-5;}").functions[0]!,expected=optimizeCIR({kind:"COptiForgeCIR",version:1,functions:[original]});
   const reorder=(value:any):any=>Array.isArray(value)?value.map(reorder):value&&typeof value==="object"?Object.fromEntries(Object.entries(value).reverse().map(([key,item])=>[key,reorder(item)])):value;

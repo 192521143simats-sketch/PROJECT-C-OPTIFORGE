@@ -86,7 +86,7 @@ function BrowserNode({networkName,onLeave}:{networkName?:string;onLeave?:()=>voi
       setStatus("CONNECTING");
       const protocol=location.protocol==="https:"?"wss:":"ws:",ws=new WebSocket(`${protocol}//${location.host}/ws/worker`);
       socket.current=ws;
-      ws.onopen=()=>ws.send(encodeProtocolMessage({type:"register",profile:{...browserProfile(),operations:{...browserProfile().operations,taskCancellation:true}}}));
+      ws.onopen=()=>ws.send(encodeProtocolMessage({type:"register",profile:{...browserProfile(),operations:{...browserProfile().operations,taskCancellation:true,portableMatrix:true,portableBenchmark:true}}}));
       ws.onmessage=event=>{
         let message:CoordinatorMessage;
         try{message=parseCoordinatorMessage(JSON.parse(event.data));}catch{setError("Coordinator protocol is incompatible or invalid. Update this page before reconnecting.");ws.close(1008,"Protocol incompatible");return;}
