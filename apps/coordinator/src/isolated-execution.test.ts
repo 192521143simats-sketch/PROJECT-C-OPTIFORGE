@@ -25,7 +25,7 @@ describe.skipIf(process.env.GRID_X_SANDBOX_TEST!=="1")("real isolated execution"
     expect(result.execution.status).toBe("SUCCEEDED");expect(result.execution.stdout).toBe("5\n");expect(result.execution.durationMs).toBeGreaterThan(0);expect(result.execution.peakMemoryBytes).toBeGreaterThan(0);
   },60000);
   it("reports real runtime errors rather than compiler errors",async()=>{
-    const result=await executeIsolated({language:"python",sourceName:"invoice.py",generatedSource:"print(1/0)",artifact:null});expect(result.execution.status).toBe("FAILED");expect(result.execution.stderr).toContain("ZeroDivisionError");expect(result.execution.exitCode).toBe(1);
+    const result=await executeIsolated({language:"python",sourceName:"invoice.py",generatedSource:"print(1/0)",artifact:null});expect(result.execution.status).toBe("FAILED");expect(result.execution.stderr).toContain("ZeroDivisionError");expect(result.execution.stderr).toContain('File "compiled_invoice.py", line 1');expect(result.execution.exitCode).toBe(1);
   },60000);
   it("terminates a nonterminating program",async()=>{
     const result=await executeIsolated({language:"python",sourceName:"loop.py",generatedSource:"while True: pass",artifact:null});expect(result.execution.status).toBe("TIMED_OUT");

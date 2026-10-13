@@ -34693,10 +34693,12 @@
       "heading": "5.1 C pipeline",
       "line": 3977,
       "text": "The pipeline must provide useful source-positioned errors and warnings wherever the underlying stages can produce them.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/build-report.ts; apps/coordinator/src/source-language.ts; apps/web/src/compilation-feedback.tsx; existing language pipelines",
+      "verification": "Actual compiler/runtime diagnostic counts and source positions where available, all nine original samples plus repaired variants; unit/React rendering tests and isolated fixture 8048bde042cf8403. Scope and remaining gates in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-report-diagnostics/RESULTS.md"
+      ]
     },
     {
       "id": "B:5.1:L3979",
@@ -34801,10 +34803,12 @@
       "heading": "5.2 Python pipeline",
       "line": 3994,
       "text": "- Syntax diagnostics.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/build-report.ts; apps/coordinator/src/source-language.ts; apps/web/src/compilation-feedback.tsx; existing language pipelines",
+      "verification": "Actual compiler/runtime diagnostic counts and source positions where available, all nine original samples plus repaired variants; unit/React rendering tests and isolated fixture 8048bde042cf8403. Scope and remaining gates in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-report-diagnostics/RESULTS.md"
+      ]
     },
     {
       "id": "B:5.2:L3995",
@@ -34813,10 +34817,12 @@
       "heading": "5.2 Python pipeline",
       "line": 3995,
       "text": "- Source-positioned errors where available.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/build-report.ts; apps/coordinator/src/source-language.ts; apps/web/src/compilation-feedback.tsx; existing language pipelines",
+      "verification": "Actual compiler/runtime diagnostic counts and source positions where available, all nine original samples plus repaired variants; unit/React rendering tests and isolated fixture 8048bde042cf8403. Scope and remaining gates in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-report-diagnostics/RESULTS.md"
+      ]
     },
     {
       "id": "B:5.2:L3996",
@@ -35067,10 +35073,12 @@
       "heading": "5.3 Java pipeline",
       "line": 4022,
       "text": "- Accurate build and execution reporting.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/build-report.ts; apps/coordinator/src/source-language.ts; apps/web/src/compilation-feedback.tsx; existing language pipelines",
+      "verification": "Actual compiler/runtime diagnostic counts and source positions where available, all nine original samples plus repaired variants; unit/React rendering tests and isolated fixture 8048bde042cf8403. Scope and remaining gates in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-report-diagnostics/RESULTS.md"
+      ]
     },
     {
       "id": "B:5.3:L4024",
@@ -35223,10 +35231,12 @@
       "heading": "5.4 Cross-language behavior",
       "line": 4041,
       "text": "- Consistent user-facing job and report formats.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/build-report.ts; apps/coordinator/src/source-language.ts; apps/web/src/compilation-feedback.tsx; existing language pipelines",
+      "verification": "Actual compiler/runtime diagnostic counts and source positions where available, all nine original samples plus repaired variants; unit/React rendering tests and isolated fixture 8048bde042cf8403. Scope and remaining gates in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-report-diagnostics/RESULTS.md"
+      ]
     },
     {
       "id": "B:5.4:L4043",
@@ -35235,10 +35245,12 @@
       "heading": "5.4 Cross-language behavior",
       "line": 4043,
       "text": "The frontend must not accept arbitrary source text, silently switch compilers, or report a language as supported merely because the user selected it.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/build-report.ts; apps/coordinator/src/source-language.ts; apps/web/src/compilation-feedback.tsx; existing language pipelines",
+      "verification": "18 known foreign-content and 18 extension mismatch checks rejected; selected real compiler remains authoritative for ambiguous/polyglot source. Universal text classification and physical browser acceptance are not claimed.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-report-diagnostics/RESULTS.md"
+      ]
     },
     {
       "id": "B:5.5:L4045",

@@ -109,6 +109,36 @@ library handling, authorized reports and invalid source diagnosis. Enable Docker
 unit tests with `$env:GRID_X_SANDBOX_TEST='1'; npm run verify` in PowerShell.
 No developer database is reset.
 
+## Report outcomes and language validation
+
+Compilation and execution are separate phases. Valid code can compile and then
+fail at runtime (for example, division by zero). The overall report/result panel
+then says execution failed and PARTIAL_SUCCESS: real compiled artifacts remain
+downloadable, but execution is not represented as successful. Program Information
+counts compiler error diagnostics and failed execution separately; the combined
+error total adds those counts, not stack frames. UNAVAILABLE infrastructure is not
+counted as a user-code error. Warnings are actual compiler diagnostics or recognized
+Python runtime warnings, not guessed static-analysis findings.
+
+Runtime locations identify the executed/generated file, whose line numbering may
+differ from the original input after optimization. Corrected reporting applies to
+new jobs; stored historical reports are not rewritten.
+
+Source extensions must match the selected language. Clear foreign-language
+declarations are rejected before scheduling, with selected/supplied language in
+the message. Comments/string literals are ignored; ambiguous and polyglot source
+is judged by the selected real toolchain. Text alone cannot universally identify
+a program's language, and this check is not presented as a universal classifier.
+
+Run every existing sample and the mismatch matrix in isolated MySQL/Docker:
+`$env:GRID_X_TEST_SAMPLES='1'; npm run verify:execution` (PowerShell).
+This exercises the six easy/tough files, three deliberately invalid industrial
+files, repaired industrial variants submitted in memory, real warnings/runtime
+failures, all 18 foreign-language combinations and 18 extension mismatches.
+Original sample files remain unchanged. The two C easy/tough samples intentionally
+return 1 for a true check; that is reported as non-zero execution, not fabricated
+success. Return 0 from main when a successful process exit is intended.
+
 Subprocess/source/output/time limits and disabled Java annotation processors do
 not sandbox host compiler invocations. Full compilation containment, broader result
 verification, task leases/cancellation, packaged Windows and native Android

@@ -8,5 +8,6 @@ export function diagnosticAdvice(message:string):string{
   if(/IndexError|out of bounds/i.test(message))return "Check the index against the collection length before accessing the element.";
   if(/EOFError/i.test(message))return "The program requested input after standard input ended. Supply the required input or handle end-of-input.";
   if(/ClassNotFound|NoClassDefFound|ModuleNotFound/i.test(message))return "Provide the named runtime dependency in the target environment; compilation alone does not provide external dependencies.";
+  if(/exited with code|exit status/i.test(message))return "Check whether the non-zero exit code is intentional. For a C program, return 0 from main for successful completion; inspect any runtime diagnostics before changing error handling.";
   return "Review the specific diagnostic and indicated source location; the system has not applied an automatic correction.";
 }

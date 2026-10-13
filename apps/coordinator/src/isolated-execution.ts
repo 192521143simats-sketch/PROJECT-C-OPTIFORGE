@@ -24,7 +24,7 @@ export async function executeIsolated(input:Input):Promise<{execution:ExecutionE
     if(run.code!==0)return{execution:unavailable("The isolated execution environment failed or exhausted its resource limit; program success was not established.")};
     const value=JSON.parse(run.output),execution=evidenceSchema.parse(value.execution);
     // Strip sandbox-internal paths while preserving line numbers and actual errors.
-    execution.stderr=execution.stderr.replaceAll("/work/program.py",input.sourceName).replaceAll("/work/program.c",input.sourceName).replaceAll("/work/program.jar",input.artifact?.fileName??input.sourceName);
+    execution.stderr=execution.stderr.replaceAll("/work/program.py",input.artifact?.fileName??`compiled_${input.sourceName}`).replaceAll("/work/program.c",input.sourceName).replaceAll("/work/program.jar",input.artifact?.fileName??input.sourceName);
     if(input.language==="python")execution.artifactName=input.artifact?.fileName??`compiled_${input.sourceName}`;
     if(!value.artifact)return{execution};
     const artifact=z.object({fileName:z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,125}$/),contentBase64:z.string().max(11000000)}).parse(value.artifact),bytes=decodeCompilerOutput(artifact.contentBase64,11000000);if(bytes.length>8000000||!bytes.subarray(0,4).equals(Buffer.from([127,69,76,70])))throw new Error("Invalid Linux output");

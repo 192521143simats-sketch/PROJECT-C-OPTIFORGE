@@ -20,6 +20,7 @@ import {executeIsolated} from "./isolated-execution.js";
 import {verifyCompilation,describeVerifiedOptimization} from "./compilation-verification.js";
 import {AuthService,passwordPolicy,type AuthUser,type Role} from "./auth.js";
 import {NetworkService,AdmissionError} from "./networks.js";
+import {sourceLanguageMismatch} from "./source-language.js";
 
 const SESSION_COOKIE="gridx_session",WORKER_COOKIE="gridx_worker";
 type AuthRequest=FastifyRequest&{auth?:AuthUser};
@@ -93,6 +94,7 @@ async function aggregateCompletedBatch(taskId:string){const batch=await store.ge
     if(!parsed.success)return reply.code(400).send(apiError("INVALID_COMPILATION","Check the compilation request.",parsed.error.issues));
     const{language,sourceName,source}=parsed.data,extension={c:".c",python:".py",java:".java"}[language];
     if(!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(sourceName)||!sourceName.toLowerCase().endsWith(extension))return reply.code(400).send(apiError("INVALID_SOURCE_EXTENSION",`Use a filename ending in ${extension}, without a directory path.`));
+    const mismatch=sourceLanguageMismatch(language,source);if(mismatch)return reply.code(400).send(apiError("SOURCE_LANGUAGE_MISMATCH",mismatch));
     let ir:ReturnType<typeof lowerCToIR>|null=null;if(language==="c"){try{ir=lowerCToIR(source);}catch{/* The real GCC path handles source outside the custom IR grammar and reports invalid C. */}}
     const capability=language==="c"?(ir?"ir":"c"):language,networkId=await selectNetworkFor(capability);
     if(!networkId)return reply.code(409).send(apiError("NO_COMPATIBLE_NETWORK",capability==="ir"?"Connect an IR-capable browser or native worker to an active network.":"Connect a compatible native worker to an active network for this language."));

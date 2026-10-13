@@ -77,3 +77,31 @@ containment is still required; Docker execution is not a universal sandbox or
 correctness guarantee. Windows installer/native Android APK and physical acceptance
 are not built/tested. ADB found no device on 2026-10-13. Web was built; physical
 browser/mobile UI acceptance and public deployment are not claimed.
+
+## Report and language-admission correction - 2026-10-13
+
+Corrected the overall report, actual warning/error counts and execution source
+locations; compilation success no longer implies execution success. Failed
+execution retains genuine outputs with PARTIAL_SUCCESS. The compiler screen
+renders persisted diagnostics, clears rejected/stale submissions and fetches
+failed-job reports. Clear foreign-language declarations/extensions are rejected
+before scheduling; ambiguous source remains the selected real compiler's job.
+
+Fresh Docker-enabled full verification passed all 156 tests, three script checks
+and all eight workspace typechecks/builds. Sample execution fixture
+`8048bde042cf8403` passed all six original easy/tough samples, three invalid
+industrial samples, three in-memory repaired industrial variants, runtime/compiler
+warnings and errors, source locations, timeout/heartbeat, authorized downloads
+and 36 language/extension rejection checks. Original C easy/tough return 1, so
+their real execution is correctly unsuccessful despite successful compilation.
+Fresh downloaded success/failure PDFs were rendered and visually reviewed.
+
+General isolated regressions also passed: `7b5a2c26310637c7` (migrations,
+concurrency, protocol, platform, artifacts), `d6bfe6b0543e3964` (enrollment),
+`5adb62ce246ba167` (reusable links). All owned test fixtures were cleaned.
+
+See `evidence/2026-10-13-report-diagnostics/RESULTS.md` for commands, actual counts,
+the transient C test timeout/retry and remaining boundaries. No developer data,
+volumes, sample files, secrets or migrations were reset/changed. Historical saved
+reports are not rewritten; resubmit to generate corrected reports. Next remains
+Phase 4 and the separately tracked native packaging/device/release gates.
