@@ -3,6 +3,11 @@
 Date: 2026-10-13. Baseline: `2228cf93aee7bf0805a9d75809ae577658ef1576`.
 Branch: `engineering/grid-x-release-foundation`.
 
+Implementation committed/pushed as `73396b963a6206f879e096ee30cbec4126441a49`
+(`feat: persist task leases and recover interrupted work`). GitHub origin was
+`https://github.com/192521143simats-sketch/PROJECT-C-OPTIFORGE.git`; remote branch
+hash matched local HEAD and tracked tree was clean after the non-force push.
+
 ## Implemented scope
 
 1. Migration `0004_task_attempt_leases` adds an indexed nullable millisecond UTC
@@ -41,6 +46,15 @@ pause/unpause preserves tmpfs data; stop/start would not. No production fault AP
 | `node scripts/Run-Isolated-Integration.mjs enrollment` | PASS `1b94b87003a53ca2`: migrations and real isolated consent/identity/capacity/revocation |
 | `node scripts/Run-Isolated-Integration.mjs reusable` | PASS `2263b22b988e9f88`: reusable default links/admission toggle and stable node identity |
 
+Post-implementation-commit repetitions also passed: leases
+`6833f69429b8e0aa` and recovery `079f6be2f75ffa19`. Their machine-readable script
+summaries include the actual lock-wait rejection, 100/1/0 batches, paused-DB
+disconnect intersection, native busy reconnect and both compiler-publication
+crash boundaries. The stage completion ledger records the exact BASE-to-commit
+range and successful commands, not merely a presumed baseline.
+The post-commit full `GRID_X_SANDBOX_TEST=1 npm run verify` repetition also passed
+all 175 tests, 3 script tests and all eight workspace checks/builds (exit 0).
+
 Execution outcomes are not forced to success. Existing C samples return 1 and are
 reported as unsuccessful execution despite valid compilation; runtime errors and
 timeouts remain real outcomes. Artifact regressions also test thirteen real
@@ -50,6 +64,8 @@ library JAR behavior, Unicode/long filenames, authorization and missing artifact
 Local detailed logs: `.runtime/integration/<fixture>/summary.json`, script logs
 and coordinator logs. They are intentionally ignored, not committed credential
 material. Assertions and portable evidence reside in the tracked scripts.
+The completed plan's local verification/review/RED→GREEN logs are preserved under
+`.runtime/task-recovery-evidence-2026-10-13/` after scratch-workspace archival.
 
 ## Behavioral RED → GREEN and review
 

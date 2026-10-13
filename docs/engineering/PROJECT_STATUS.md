@@ -133,3 +133,42 @@ attempt leases and restart/MySQL-interruption recovery, proved with isolated
 fault-injection tests. No developer records, volumes, credentials or compiler
 pipelines were reset/replaced. Windows installer, native Android APK and physical
 device acceptance remain pending, not achieved by logical protocol fixtures.
+
+## 2026-10-13 — Phase 4 durable task leases and failure recovery
+
+Implemented and pushed `73396b9` (`feat: persist task leases and recover interrupted
+work`) to the existing engineering branch at the requested GitHub origin. Remote
+hash matched local HEAD and the tracked tree was clean after push. Migration 0004
+adds immutable MySQL attempt deadlines without changing prior migration checksums,
+terminal history, node identity, credentials or developer records/volumes.
+
+MySQL time now governs expiry, including real lock waits and final publication
+checks. Startup/serialized periodic maintenance recovers interrupted attempts in
+100-row transactions, preserves history and the three-attempt retry budget, and
+quarantines stale executors. Native/browser reconnect waits until prior execution
+settles. Persisted completed compiler results resume artifact generation after a
+crash; transient persistence loss is not mislabeled as compiler failure.
+
+Real isolated fault tests passed: process crash/restart, MySQL pause/resume and
+readiness 503, disconnect during normal DB and an actual paused-DB/row-lock
+intersection, stable reconnect, second compatible worker reassignment, native
+executor busy reconnect, CPython publication after process death and C publication
+after killing the owned coordinator SQL connection. Existing lease, history,
+replay, expiry, terminal retry and 101-task bounded-batch checks passed.
+
+Full Docker-enabled verification passed 175/175 tests in 31 files, 3/3 script
+tests and all 8 workspace typechecks/builds. All six integration scripts and
+original/repaired/invalid C/Python/Java execution/artifact cases, enrollment and
+reusable-link regressions passed. Two initial suite runs exposed an implicit
+five-second real-JDK test timeout; standalone Java tests passed and only that
+test's bound was aligned to the existing adjacent 30-second real-JDK test.
+Production limits/assertions are unchanged. Failures and fixes are recorded in
+`evidence/2026-10-13-task-recovery/RESULTS.md`.
+
+The requested five-item recovery scope is 5/5 (100%), not an invented global
+completion score. **Full master Phase 4 remains incomplete:** cancellation,
+broader scheduling/backoff/mobile policies and portable workload catalogue remain.
+Exact next task is cancellation contract + persisted cancellation + worker
+propagation + late-result/publication guards. Single-active restart recovery is
+not HA or exactly-once execution. No Windows installer, native Android APK or
+physical-device acceptance is claimed by these logical/native-process fixtures.
