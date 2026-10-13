@@ -37,7 +37,7 @@ and transformation counts are coordinator-derived. Final execution evidence come
 from the owned Docker controller, never a worker-supplied success claim. These
 checks do not independently validate every task kind or failed worker diagnostic.
 
-Authority: coordinator validates schema/version, enrollment on registration and each subsequent message, and task/node/attempt/network ownership through persistence. Revocation closes scope. Native and browser clients validate coordinator envelopes. Atomic task completion rejects stale/replayed attempts; asynchronous final publication does not block worker heartbeat handling. Broad result semantic verification, durable leases, cancel/pause/resource policy and additional portable catalogue remain open requirements; v1 does not falsely claim those implemented.
+Authority: coordinator validates schema/version, enrollment on registration and each subsequent message, and task/node/attempt/network ownership through persistence. Revocation closes scope. Native and browser clients validate coordinator envelopes. Atomic task completion rejects stale/replayed/expired attempts; asynchronous final publication does not block worker heartbeat handling. Broad result semantic verification, cancel/pause/resource policy and additional portable catalogue remain open requirements; v1 does not falsely claim those implemented.
 
 Compatibility policy: coordinated development upgrade from unversioned legacy to v1; no indefinite legacy admission or duplicate protocol. Future incompatible changes require a new version, explicit negotiation/upgrade path and fixture tests across all worker applications.
 
@@ -58,8 +58,47 @@ or a concurrent/completed submission is duplicated; it does not fail a newer
 attempt. Publication atomically rechecks task, attempt, node and active network.
 Portable verification runs outside the ordered socket heartbeat queue.
 
-These checks do not claim cancellation/leases, durable restart recovery or
-global recomputation admission control. See TASK_ENGINE_PHASE.md and its evidence.
+These checks do not claim cancellation or global recomputation admission control.
+See TASK_ENGINE_PHASE.md and its evidence; durable recovery is documented below.
+
+## Durable attempt leases and recovery
+
+Protocol v1 remains unchanged. The coordinator's MySQL `task_attempts` row owns
+an immutable `lease_expires_at` UTC deadline, set atomically on assignment from
+database time using `TASK_TIMEOUT_MS` (default 30000). Heartbeats establish worker
+health; they do not renew task leases. Authorized admin attempt detail exposes
+`leaseExpiresAt`. Worker-reported time cannot extend execution authorization.
+
+RUNNING transitions require a live matching lease. Publication locks the current
+task/attempt/node/network scope before evaluating fresh database time, rejects
+expired/superseded/replayed results, and rolls back result insertion if the lease
+expires during publication writes. Independent portable/IR checks remain intact.
+
+This is a **single-active-coordinator** deployment. Startup interrupts outstanding
+ASSIGNED/RUNNING attempts before accepting sockets; completed history remains.
+Recovery drains transactions of at most 100 attempts. Every second, a serialized
+maintenance pass expires persisted leases, quarantines old workers, closes their
+connections and dispatches eligible work. MySQL outages fail readiness and defer
+recovery until a later successful pass, not erase timers/history. Tasks requeue
+until the existing maximum of three attempts; the third failure is terminal.
+Attempt status/error/deadline history is retained. Historical NULL deadlines are
+not fabricated or renewed: active legacy attempts are interrupted on startup.
+
+An expired worker must re-register using its existing scoped credential and stable
+node identity. Native/browser executors postpone reconnect registration while old
+local work is still running, so that a stale executor cannot burn retries by
+accepting a second assignment. Its stale result is not published. This does not
+provide remote process cancellation; that is a separate pending phase gate.
+
+Completed, durably stored compiler results whose artifact publication was
+interrupted are retried from coordinator state. Transient MySQL connection loss
+does not become a false compiler failure. Actual compiler failures still fail the
+job. This can repeat bounded program execution after a crash; it is not an
+exactly-once execution or multi-active/HA guarantee.
+
+Run `npm run verify:recovery` for isolated lease/restart/database/disconnect
+fixtures; no production fault-injection endpoints exist. See TASK_RECOVERY_PHASE.md
+and evidence/2026-10-13-task-recovery/RESULTS.md for measured acceptance and limits.
 
 ## Admission and revocation
 

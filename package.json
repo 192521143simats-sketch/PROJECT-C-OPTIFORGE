@@ -17,6 +17,7 @@
     "verify:platform": "node scripts/Run-Isolated-Integration.mjs platform",
     "verify:integration": "node scripts/Run-Isolated-Integration.mjs all && node scripts/Run-Isolated-Integration.mjs enrollment && node scripts/Run-Isolated-Integration.mjs reusable",
     "verify:artifacts": "node scripts/Run-Isolated-Integration.mjs artifacts",
+    "verify:recovery": "node scripts/Run-Isolated-Integration.mjs leases && node scripts/Run-Isolated-Integration.mjs recovery",
     "sandbox:build": "docker build -t gridx-execution:1 infra/sandbox",
     "verify:execution": "node scripts/Run-Isolated-Integration.mjs execution"
   },

@@ -78,10 +78,11 @@ function browserProfile(){const ua=navigator.userAgent,mobile=/Android|iPhone|iP
 function BrowserNode({networkName,onLeave}:{networkName?:string;onLeave?:()=>void}){
   const[nodeId,setNodeId]=useState(""),[status,setStatus]=useState("CONNECTING"),[error,setError]=useState(""),socket=useRef<WebSocket|null>(null),leaving=useRef(false);
   useEffect(()=>{
-    let active=true,registeredNode="",reconnect:ReturnType<typeof setTimeout>|undefined;
+    let active=true,busy=false,registeredNode="",reconnect:ReturnType<typeof setTimeout>|undefined;
     const taskWorker=new Worker(new URL("./browser-worker.ts",import.meta.url),{type:"module"});
     function connect(){
       if(!active||leaving.current)return;
+      if(busy){reconnect=setTimeout(connect,250);return;}
       setStatus("CONNECTING");
       const protocol=location.protocol==="https:"?"wss:":"ws:",ws=new WebSocket(`${protocol}//${location.host}/ws/worker`);
       socket.current=ws;
@@ -90,13 +91,14 @@ function BrowserNode({networkName,onLeave}:{networkName?:string;onLeave?:()=>voi
         let message:CoordinatorMessage;
         try{message=parseCoordinatorMessage(JSON.parse(event.data));}catch{setError("Coordinator protocol is incompatible or invalid. Update this page before reconnecting.");ws.close(1008,"Protocol incompatible");return;}
         if(message.type==="registered"){registeredNode=message.nodeId;setNodeId(message.nodeId);setStatus("AVAILABLE");setError("");ws.send(encodeProtocolMessage({type:"heartbeat",resources:browserResources()}));}
-        else if(message.type==="task_assignment"){setStatus("BUSY");ws.send(encodeProtocolMessage({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"RUNNING"}));taskWorker.postMessage(message);}
+        else if(message.type==="task_assignment"){busy=true;setStatus("BUSY");ws.send(encodeProtocolMessage({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"RUNNING"}));taskWorker.postMessage(message);}
         else if(message.type==="error")setError(message.message);
       };
       ws.onclose=event=>{if(!active||leaving.current)return;registeredNode="";if(event.code===1008){setStatus("ERROR");setError("Enrollment is invalid/revoked or the worker protocol is incompatible. Request a new invitation or reload the updated app.");return;}setStatus(document.hidden?"BACKGROUND":"DISCONNECTED");reconnect=setTimeout(connect,2000);};
       ws.onerror=()=>setError("Worker connection interrupted. Reconnecting…");
     }
     taskWorker.onmessage=event=>{
+      busy=false;
       const message=event.data,ws=socket.current;
       if(ws?.readyState!==WebSocket.OPEN)return;
       if(message.type==="completed")ws.send(encodeProtocolMessage({type:"task_result",taskId:message.taskId,attempt:message.attempt,result:message.result,executionTimeMs:message.executionTimeMs,resources:browserResources()}));

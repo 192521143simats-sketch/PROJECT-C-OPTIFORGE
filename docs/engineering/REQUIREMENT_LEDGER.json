@@ -36457,10 +36457,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4187,
       "text": "- Lease expiration.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4188",
@@ -36493,10 +36495,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4190,
       "text": "- Completion.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4191",
@@ -36505,10 +36509,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4191,
       "text": "- Failure.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4192",
@@ -36529,10 +36535,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4193,
       "text": "- Retry.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4194",
@@ -36541,10 +36549,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4194,
       "text": "- Reassignment.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4195",
@@ -36553,10 +36563,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4195,
       "text": "- Stale-result rejection.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4196",
@@ -36565,10 +36577,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4196,
       "text": "- Coordinator restart recovery.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4197",
@@ -36577,10 +36591,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4197,
       "text": "- Worker restart recovery.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Actual native executor defers reconnect while busy after coordinator restart; packaged-worker restart/device acceptance remains pending.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4198",
@@ -36601,10 +36617,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4200,
       "text": "Use idempotent operations where repeated requests are possible.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Verified idempotent recovery/completion/migration replay; broader operations pending.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4202",
@@ -36613,10 +36631,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4202,
       "text": "Persist sufficient state to recover after coordinator restarts. A task must not be treated as complete solely because a worker sent a completion message before the result was durably stored and validated.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Durable deadlines, validated result transactions and completed compiler publication survive actual coordinator crashes; arbitrary-program exactly-once semantics not claimed.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4204",
@@ -36625,10 +36645,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4204,
       "text": "Prevent multiple attempts from corrupting job state. Define how duplicate results are handled.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Expiry/supersession/replay guards preserve task/attempt/result/node state and current job publication; cancellation and broader lifecycle pending.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4206",
@@ -36637,10 +36659,12 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4206,
       "text": "Use bounded retries and exponential backoff with jitter where appropriate. Prevent infinite retry loops.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Three-attempt terminal budget and bounded transaction retries verified; wider scheduling retry-backoff/jitter policy remains pending.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4208",
@@ -36892,10 +36916,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4235,
       "text": "- Worker disconnection during execution.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4236",
@@ -36904,10 +36930,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4236,
       "text": "- Worker process termination.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Actual native process terminated in owned fixture; full packaged-worker termination/reassignment acceptance remains pending.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4237",
@@ -36940,10 +36968,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4239,
       "text": "- Coordinator restart.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4240",
@@ -36952,10 +36982,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4240,
       "text": "- MySQL interruption.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/database.ts; compose.yaml; scripts/",
-      "verification": "isolated MySQL migration/backup/restore integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4241",
@@ -36964,10 +36996,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4241,
       "text": "- Slow worker responses.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4242",
@@ -36988,10 +37022,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4243,
       "text": "- Expired task leases.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4244",
@@ -37000,10 +37036,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4244,
       "text": "- Duplicate completion messages.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Real isolated MySQL leases/restart/outage/disconnect/reassignment and existing result/compiler regressions passed; single-active-coordinator scope.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4245",
@@ -37012,10 +37050,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4245,
       "text": "- Network interruptions.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/networks.ts; packages/contracts",
-      "verification": "atomic invitation, identity and network-isolation integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Actual socket loss/reconnect tested, including concurrent MySQL outage; broader platform/network scenarios pending.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4246",
@@ -37024,10 +37064,12 @@
       "heading": "6.7 Fault tolerance",
       "line": 4246,
       "text": "- Artifact storage failures.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/database.ts; apps/coordinator/src/task-recovery.ts; apps/coordinator/src/server.ts; migration 0004; scripts/Verify-Task-Leases.mjs; scripts/Verify-Task-Recovery.mjs",
+      "verification": "Actual coordinator SQL connection killed during blocked C publication; resumes without false compiler failure. Wider storage failure matrix pending.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-recovery/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4247",

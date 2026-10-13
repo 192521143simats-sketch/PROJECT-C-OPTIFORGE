@@ -17,6 +17,10 @@ let leaving=false;
 const send=(value:object)=>{if(socket?.readyState===WebSocket.OPEN)socket.send(encodeProtocolMessage(value));};
 
 function connect(){
+  // Socket loss does not stop native execution. Do not advertise availability
+  // on a new connection until the old executor has actually settled.
+  if(busy){reconnectTimer=setTimeout(connect,250);return;}
+  if(leaving)return;
   const url=new URL("/ws/worker",coordinator);url.protocol=url.protocol==="https:"?"wss:":"ws:";
   socket=new WebSocket(url,{headers:{Authorization:`Bearer ${credential}`}});
   socket.on("open",async()=>{
