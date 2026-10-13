@@ -26,6 +26,7 @@ export const config = {
   allowedOrigins: process.env.ALLOWED_ORIGINS,
   trustedProxies: trustedProxyPolicy(process.env.TRUSTED_PROXIES),
   testInstance: process.env.GRID_X_TEST_INSTANCE,
+  executionEnabled: (process.env.GRID_X_EXECUTION_MODE??"docker")==="docker",
   sessionTtlHours: integer("SESSION_TTL_HOURS", 12),
   resetTtlMinutes: integer("RESET_TTL_MINUTES", 20),
   database: {

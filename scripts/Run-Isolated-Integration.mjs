@@ -7,7 +7,7 @@ import mysql from 'mysql2/promise';
 import {assertIsolatedTarget,verifyIsolatedCoordinator} from './Integration-Target.mjs';
 
 const mode=process.argv[2]??'all';
-if(!['all','platform','artifacts','enrollment','reusable'].includes(mode)) throw new Error('Use all, platform, artifacts, enrollment or reusable.');
+if(!['all','platform','artifacts','enrollment','reusable','execution'].includes(mode)) throw new Error('Use all, platform, artifacts, enrollment, reusable or execution.');
 const root=process.cwd(),instance=randomBytes(8).toString('hex'),container=`gridx-test-${instance}`,database=`gridx_test_${instance}`;
 const password=randomBytes(32).toString('base64url'),rootPassword=randomBytes(32).toString('base64url');
 const startedAt=new Date().toISOString(),evidence=resolve(root,'.runtime','integration',instance);
@@ -41,12 +41,12 @@ try {
   if(!dbPort) throw new Error('Isolated MySQL port was not published on loopback.');
   await waitFor(async()=>{const connection=await mysql.createConnection({host:'127.0.0.1',port:dbPort,database,user:'gridx_test',password,connectTimeout:2000});try{await connection.query('SELECT 1');}finally{await connection.end();}},'isolated MySQL readiness');
   const port=await availablePort(),base=`http://127.0.0.1:${port}`;
-  const env={...process.env,NODE_ENV:'development',HOST:'127.0.0.1',PORT:String(port),PUBLIC_BASE_URL:'http://localhost:5173',COORDINATOR_PUBLIC_URL:base,ALLOWED_ORIGINS:'',TRUSTED_PROXIES:'',DB_HOST:'127.0.0.1',DB_PORT:String(dbPort),DB_NAME:database,DB_USER:'gridx_test',DB_PASSWORD:password,ADMIN_USERNAME:'integration-admin',ADMIN_PASSWORD:'IntegrationOnly!42',ADMIN_PASSWORD_HASH:'',GRID_X_TEST_BASE:base,GRID_X_TEST_INSTANCE:instance};
+  const env={...process.env,GRID_X_EXECUTION_MODE:process.env.GRID_X_EXECUTION_MODE??(mode==='execution'?'docker':'disabled'),NODE_ENV:'development',HOST:'127.0.0.1',PORT:String(port),PUBLIC_BASE_URL:'http://localhost:5173',COORDINATOR_PUBLIC_URL:base,ALLOWED_ORIGINS:'',TRUSTED_PROXIES:'',DB_HOST:'127.0.0.1',DB_PORT:String(dbPort),DB_NAME:database,DB_USER:'gridx_test',DB_PASSWORD:password,ADMIN_USERNAME:'integration-admin',ADMIN_PASSWORD:'IntegrationOnly!42',ADMIN_PASSWORD_HASH:'',GRID_X_TEST_BASE:base,GRID_X_TEST_INSTANCE:instance};
   coordinator=spawn(process.execPath,[resolve(root,'node_modules/tsx/dist/cli.mjs'),resolve(root,'apps/coordinator/src/server.ts')],{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});
   coordinator.stdout.on('data',chunk=>{coordinatorLog+=chunk.toString();});coordinator.stderr.on('data',chunk=>{coordinatorLog+=chunk.toString();});
   coordinator.on('error',error=>{coordinatorLog+=`Coordinator spawn failed: ${error.message}`;});
   await waitFor(()=>verifyIsolatedCoordinator(assertIsolatedTarget(env)),'isolated coordinator readiness',60_000);
-  const scripts=mode==='reusable'?['Verify-Reusable-Link.mjs']:mode==='enrollment'?['Verify-Migrations.mjs','Verify-Enrollment.mjs']:['Verify-Migrations.mjs','Verify-MySQL-Concurrency.mjs','Verify-Protocol.mjs',...(mode==='all'?['Verify-Platform.mjs','Verify-Artifacts.mjs']:[mode==='platform'?'Verify-Platform.mjs':'Verify-Artifacts.mjs'])];
+  const scripts=mode==='execution'?['Verify-Migrations.mjs','Verify-Execution.mjs']:mode==='reusable'?['Verify-Reusable-Link.mjs']:mode==='enrollment'?['Verify-Migrations.mjs','Verify-Enrollment.mjs']:['Verify-Migrations.mjs','Verify-MySQL-Concurrency.mjs','Verify-Protocol.mjs',...(mode==='all'?['Verify-Platform.mjs','Verify-Artifacts.mjs']:[mode==='platform'?'Verify-Platform.mjs':'Verify-Artifacts.mjs'])];
   for(const script of scripts){
     console.log(`Running ${script} against isolated test MySQL and coordinator...`);
     const result=await command(process.execPath,[resolve(root,'node_modules/tsx/dist/cli.mjs'),resolve(root,'scripts',script)],{env,timeout:300_000});

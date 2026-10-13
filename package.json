@@ -16,7 +16,9 @@
     "verify": "npm run typecheck && npm test -- --run && node --test scripts/*.test.mjs && npm run build",
     "verify:platform": "node scripts/Run-Isolated-Integration.mjs platform",
     "verify:integration": "node scripts/Run-Isolated-Integration.mjs all && node scripts/Run-Isolated-Integration.mjs enrollment && node scripts/Run-Isolated-Integration.mjs reusable",
-    "verify:artifacts": "node scripts/Run-Isolated-Integration.mjs artifacts"
+    "verify:artifacts": "node scripts/Run-Isolated-Integration.mjs artifacts",
+    "sandbox:build": "docker build -t gridx-execution:1 infra/sandbox",
+    "verify:execution": "node scripts/Run-Isolated-Integration.mjs execution"
   },
   "devDependencies": {
     "concurrently": "^9.2.5",

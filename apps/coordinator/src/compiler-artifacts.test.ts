@@ -1,6 +1,10 @@
 import {describe,it,expect} from "vitest";
-import {nativeArtifacts,artifactDisposition} from "./compiler-artifacts.js";
+import {nativeArtifacts,artifactDisposition,decodeCompilerOutput} from "./compiler-artifacts.js";
 describe("native compiler artifacts",()=>{
+  it("decodes bounded large artifacts without regex-stack failures and rejects malformed padding",()=>{
+    const bytes=Buffer.alloc(4000000,65);expect(decodeCompilerOutput(bytes.toString("base64")).equals(bytes)).toBe(true);
+    for(const encoded of ["A","AA=A","AAAA====","AB==","AA==\n"]){expect(()=>decodeCompilerOutput(encoded)).toThrow(/encoding/);}
+  });
   it("encodes Unicode download filenames without invalid HTTP header characters",()=>{
     expect(artifactDisposition("café/账单.class")).toBe("attachment; filename=\"__.class\"; filename*=UTF-8''%E8%B4%A6%E5%8D%95.class");
     expect(artifactDisposition("Main.class")).toContain('filename="Main.class"');
