@@ -47306,10 +47306,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5472,
       "text": "## PHASE 4 — Coordinator, MySQL, and fault tolerance",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/database.ts; compose.yaml; scripts/",
-      "verification": "isolated MySQL migration/backup/restore integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5474",
@@ -47318,10 +47321,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5474,
       "text": "- Complete persistent task orchestration.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5475",
@@ -47330,10 +47336,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5475,
       "text": "- Implement secure registration and enrollment.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/networks.ts; packages/contracts",
-      "verification": "atomic invitation, identity and network-isolation integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5476",
@@ -47342,10 +47351,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5476,
       "text": "- Complete scheduling and eligibility checks.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5477",
@@ -47354,10 +47366,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5477,
       "text": "- Implement leases, timeouts, retries, cancellation, and recovery.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5478",
@@ -47366,10 +47381,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5478,
       "text": "- Strengthen result validation.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5479",
@@ -47378,10 +47396,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5479,
       "text": "- Implement artifact integrity checks.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5480",
@@ -47390,10 +47411,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5480,
       "text": "- Test coordinator and database restarts.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/database.ts; compose.yaml; scripts/",
-      "verification": "isolated MySQL migration/backup/restore integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5481",
@@ -47402,10 +47426,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5481,
       "text": "- Verify ownership and role enforcement.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5483",
@@ -47414,10 +47441,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5483,
       "text": "**Exit criteria:** Real worker processes can register, receive eligible work, submit validated results, and recover from tested failures.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator; packages/contracts; packages/orchestration; apps/worker; scripts/; docs/engineering/PHASE4_ACCEPTANCE.md",
+      "verification": "Phase 4 v1: eight coordinator/MySQL/fault-tolerance exit obligations passed. Exact per-obligation behavioral evidence in PHASE4_ACCEPTANCE.md; later browser/device/package/release gates remain separate.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase4-seal/RESULTS.md",
+        "implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d (verified origin push)"
+      ]
     },
     {
       "id": "B:20:L5485",

@@ -19,7 +19,11 @@ Acceptance is versioned evidence against the master requirements, not a promise 
 3. [x] Persist task policy/retry state. Append 0006 for immutable task deadline/timeout/priority/max attempts and next eligible time, artifact digest. RED: failed task not immediately assignable; reopen preserves backoff. Exponential bounded jitter from stable identity, MySQL time owns eligibility, all timeout/disconnect paths consistent. No-compatible policy has persisted absolute deadline, not reset-on-restart JS state.
 4. [x] Portable catalogue. RED: matrix/benchmark unsupported or forged result accepted. Add schema-bounded exact integer matrix and deterministic benchmark to existing worker/browser/verifier. Export actual catalogue requirements, costs as estimates, limits and schemas. Gate new operations by advertised capability; independent reference verification, no shell workloads.
 5. [x] Artifact integrity and fault acceptance. RED: altered blob/length/digest must not download; failed publication rolls back. Existing artifacts gain SHA256 and size validation. Owned persistent MySQL fixture tests actual database restart, coordinator restart, cancellation intersecting outage, leases/reassignment/corruption/ownership. Do not mutate developer database or remove any developer volume.
-6. [ ] Full type checks/tests/builds, isolated compiler/protocol/recovery/enrollment regressions, one fresh whole-change review and fix pass. Map all Phase4 obligations to exact acceptance evidence, then commit/push and verify remote hashes/clean tree. Issue seal only if every gate is genuinely green.
+6. [x] Full type checks/tests/builds, isolated compiler/protocol/recovery/enrollment regressions, one fresh whole-change review and fix pass. Map all Phase4 obligations to exact acceptance evidence, then commit/push and verify remote hashes/clean tree. Issue seal only if every gate is genuinely green.
+
+## Closure
+
+All six gates passed. Phase 4 v1 sealed on 2026-10-14 against implementation commit 01f3bd4397613b37e9e894106691113e7dd0ea4d, verified at the requested GitHub origin. See PHASE4_ACCEPTANCE.md and evidence/2026-10-14-phase4-seal/RESULTS.md. Next is Phase 5 web-product implementation/actual browser acceptance, followed by Phase 6 browser lifecycle acceptance.
 
 ## Review focus
 

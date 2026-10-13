@@ -1,5 +1,15 @@
 # GRID-X master implementation status
 
+## Current authoritative milestone — 2026-10-14
+
+**Phase 4 v1 is SEALED: 8/8 master Phase 4 exit obligations, 6/6 closure gates (100% of defined Phase 4 acceptance).** Prior incomplete-Phase-4 paragraphs below are historical snapshots superseded by this section, not the current backlog.
+
+Implementation commit `01f3bd4397613b37e9e894106691113e7dd0ea4d` is pushed to the requested origin on `engineering/grid-x-release-foundation`, with matching remote hash. Added durable task admission/priority/retry policy, jitter/backoff, policy/reliability eligibility, matrix/benchmark catalogue, cancellable coordinator native finalization and parent-loss cleanup, artifact digests/rollback and failure attribution. Fixed actual network-expiry assignment and result-publication races using post-lock MySQL time. Migrations 0001–0005 remain unchanged; appended 0006/0007.
+
+Fresh final checks: 252/252 Docker-enabled tests in 36 files, 3/3 script safety tests, all eight workspace type checks/builds; isolated all-language artifact/protocol/InnoDB, durable leases, real coordinator/MySQL restart/outage, cancellation, execution, enrollment and reusable-admission suites passed. Actual native worker execution and isolated dump/restore passed. No developer records/volumes/secrets reset or changed. Details, failures and exact commands: PHASE4_ACCEPTANCE.md and evidence/2026-10-14-phase4-seal/RESULTS.md.
+
+**Exact next phase: Phase 5 — web product.** Inspect and finish real landing/auth/user/admin/Compute Tasks journeys, details/history/downloads/pagination/live state, accessibility and responsive behavior; verify browser-to-API-to-MySQL flows. Preserve explicit user UI overrides. **Phase 6 — browser worker** then verifies actual bounded execution, pause/background/reconnect/tab closure and cancellation in real browsers/mobile where available. Windows packaging, native Android APK, physical-device/heterogeneous and release/security gates remain later; this Phase 4 seal does not claim them.
+
 ## Verified baseline — 2026-10-12
 
 Repository: existing C-OPTIFORGE workspace, origin `192521143simats-sketch/PROJECT-C-OPTIFORGE`. Baseline `c099807a384a036deebc6f8a4f99963ba52710c4`, clean `main`; implementation branch `engineering/grid-x-release-foundation`.

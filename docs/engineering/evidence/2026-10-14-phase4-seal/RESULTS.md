@@ -1,6 +1,6 @@
 # Phase 4 closure — verification evidence
 
-Verification date: 13–14 October 2026 (Asia/Calcutta). Existing branch: engineering/grid-x-release-foundation. Baseline: c7458d1255672688041a7938414305456c77fd33. Implementation acceptance passed; Git publication/seal pending at this record's initial commit.
+Verification date: 13–14 October 2026 (Asia/Calcutta). Existing branch: engineering/grid-x-release-foundation. Baseline: c7458d1255672688041a7938414305456c77fd33. **Phase 4 v1 sealed: eight master exit obligations and six closure gates passed.**
 
 ## Exact commands and final results
 
@@ -62,4 +62,12 @@ Original migrations 0001–0005 are unchanged; only 0006/0007 are appended. Exis
 
 Single-active-coordinator recovery is not HA/exactly-once execution. Worker resource estimates/claims are not hardware attestation or OS quota enforcement; host compiler containment and physical Windows/Android/browser acceptance have later phase gates. Nothing in this evidence claims an installer, APK, signed release, physical phone test or public deployment.
 
-See ../../PHASE4_ACCEPTANCE.md for the eight master exit obligations and the exact next Phase 5/6 scope. Publication hash and final seal are appended only after successful Git push verification.
+See ../../PHASE4_ACCEPTANCE.md for the eight master exit obligations and the exact next Phase 5/6 scope.
+
+## Verified Git publication
+
+- Implementation: `01f3bd4397613b37e9e894106691113e7dd0ea4d`, `feat: harden task policies, cancellation, and durable recovery`.
+- 48 legitimate source/test/config/acceptance files committed; staged diff reviewed and whitespace check passed. No environment credentials, SQL dumps, runtime logs, dependencies, volumes or generated binaries staged.
+- `git push origin engineering/grid-x-release-foundation` succeeded without force to `https://github.com/192521143simats-sketch/PROJECT-C-OPTIFORGE.git`.
+- `git ls-remote origin refs/heads/engineering/grid-x-release-foundation` matched the exact implementation hash. Tracked/untracked non-ignored tree was clean after implementation push.
+- This seal/ledger update is a separate documentation commit; its remote hash is checked after publication. Phase 5 is the next implementation phase, not a claim that later product/package/device/release gates passed.
