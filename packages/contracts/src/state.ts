@@ -10,12 +10,13 @@ const nodeTransitions: Record<NodeStatus, readonly NodeStatus[]> = {
 };
 
 const taskTransitions: Record<TaskStatus, readonly TaskStatus[]> = {
-  QUEUED: ["ASSIGNED", "FAILED"],
-  ASSIGNED: ["RUNNING", "REQUEUED", "FAILED"],
-  RUNNING: ["COMPLETED", "REQUEUED", "FAILED"],
+  QUEUED: ["ASSIGNED", "FAILED", "CANCELLED"],
+  ASSIGNED: ["RUNNING", "REQUEUED", "FAILED", "CANCELLED"],
+  RUNNING: ["COMPLETED", "REQUEUED", "FAILED", "CANCELLED"],
   COMPLETED: [],
   FAILED: ["REQUEUED"],
-  REQUEUED: ["ASSIGNED", "FAILED"]
+  REQUEUED: ["ASSIGNED", "FAILED", "CANCELLED"],
+  CANCELLED: []
 };
 
 export function assertNodeTransition(from: NodeStatus, to: NodeStatus): void {

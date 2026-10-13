@@ -11,7 +11,7 @@ export function encodeProtocolMessage<T extends object>(message:T){return JSON.s
 
 export const nodeStatuses = ["REGISTERING", "ONLINE", "AVAILABLE", "BUSY", "UNAVAILABLE", "OFFLINE"] as const;
 export type NodeStatus = (typeof nodeStatuses)[number];
-export const taskStatuses = ["QUEUED", "ASSIGNED", "RUNNING", "COMPLETED", "FAILED", "REQUEUED"] as const;
+export const taskStatuses = ["QUEUED", "ASSIGNED", "RUNNING", "COMPLETED", "FAILED", "REQUEUED", "CANCELLED"] as const;
 export type TaskStatus = (typeof taskStatuses)[number];
 
 export const capabilitySchema = z.object({
@@ -28,7 +28,7 @@ export const capabilitySchema = z.object({
     python: z.object({ available: z.boolean(), version: z.string().max(300).optional() }),
     java: z.object({ available: z.boolean(), version: z.string().max(300).optional() })
   }),
-  operations: z.object({irOptimization:z.boolean(),staticAnalysis:z.boolean(),browserCompute:z.boolean(),nativeCompilation:z.boolean(),nativeCSource:z.boolean().optional()})
+  operations: z.object({irOptimization:z.boolean(),staticAnalysis:z.boolean(),browserCompute:z.boolean(),nativeCompilation:z.boolean(),nativeCSource:z.boolean().optional(),taskCancellation:z.boolean().optional()})
 });
 export type CapabilityProfile = z.infer<typeof capabilitySchema>;
 
@@ -103,6 +103,7 @@ export const workPayloadSchema=z.union([testTaskSchema,cOptimizationTaskSchema,c
 export type WorkPayload=z.infer<typeof workPayloadSchema>;
 
 export const coordinatorMessageSchema=z.discriminatedUnion("type",[
+  z.object({protocolVersion,type:z.literal("task_cancel"),taskId:z.string().min(1).max(64),attempt:z.number().int().positive()}),
   z.object({protocolVersion,type:z.literal("registered"),nodeId:z.string().min(1).max(64),heartbeatIntervalMs:z.number().int().min(1000).max(60_000)}),
   z.object({protocolVersion,type:z.literal("task_assignment"),taskId:z.string().min(1).max(64),attempt:z.number().int().positive(),taskKind:z.enum(["TEST_COMPUTE","C_OPTIMIZE_IR","C_COMPILE","PYTHON_COMPILE","JAVA_COMPILE"]),payload:workPayloadSchema}),
   z.object({protocolVersion,type:z.literal("error"),code:z.string().min(1).max(100),message:z.string().max(2000)})

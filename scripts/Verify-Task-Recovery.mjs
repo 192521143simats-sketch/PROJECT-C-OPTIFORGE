@@ -81,12 +81,16 @@ try{
   let nativeLog='';native=spawn(process.execPath,['--import','tsx',resolve('apps/worker/src/index.ts')],{cwd:process.cwd(),env:{...process.env,COORDINATOR_URL:target.base,WORKER_CREDENTIAL:nativeEnrollment.workerCredential},windowsHide:true,stdio:['ignore','pipe','pipe']});native.stdout.on('data',chunk=>{nativeLog+=chunk.toString();});native.stderr.on('data',chunk=>{nativeLog+=chunk.toString();});
   await poll(async()=>{const response=await request('/api/admin/nodes?page=1&pageSize=100');return response.body.items;},items=>items.some(item=>item.networkId===nativeNetwork.id&&item.status==='AVAILABLE'),30000);
   const longId=(await request('/api/admin/tasks/test',{networkId:nativeNetwork.id,payload:{operation:'sha256_chain',input:'real native reconnect',iterations:10000000}})).body.id;
-  await running(longId);await fault('restartCoordinator');
-  const nativeEnd=Date.now()+45000;
-  while(!nativeLog.includes(`Completed ${longId}`)){
-    assert.ok(Date.now()<nativeEnd,'Actual native computation did not settle within fixture bound');
-    const state=await detail(longId);assert.equal(state.attempt,1,'A still-busy native executor must not reconnect and consume retry attempts');assert.ok(!state.attempts.some(item=>item.error?.includes('already busy')));await pause(150);
-  }
+  const originalNative=await running(longId);await fault('restartCoordinator');
+  // Updated workers abort owned execution on socket loss. A subsequent attempt
+  // is legitimate only after termination; the old attempt cannot publish.
+  const retriedNative=await poll(()=>detail(longId),state=>state.attempt===2&&state.status==='RUNNING',30000);
+  assert.equal(retriedNative.attempts[0].status,'INTERRUPTED');assert.equal(retriedNative.attempts[0].leaseExpiresAt,originalNative.attempts[0].leaseExpiresAt);
+  assert.ok(!retriedNative.attempts.some(item=>item.error?.includes('already busy')));
+  await request(`/api/admin/tasks/${longId}/cancel`,{});assert.equal((await detail(longId)).status,'CANCELLED');
+  const [cancelledNativeResults]=await pool.execute('SELECT id FROM results WHERE task_id=?',[longId]);assert.equal(cancelledNativeResults.length,0);
+  assert.ok(!nativeLog.includes(`Completed ${longId}`),'Cancelled native work must not advertise successful completion');
+  const nativeFollowup=await submit(nativeNetwork);await complete(nativeFollowup);
   native.kill();await request(`/api/admin/networks/${nativeNetwork.id}/disable`,{});
   // Real compilation result durably stored before process death, but no final
   // artifact transaction yet. Recovery must finish from that persisted result.

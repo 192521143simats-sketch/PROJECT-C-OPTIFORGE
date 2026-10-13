@@ -3,6 +3,11 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {describe,it,expect} from "vitest";
 import {CompilationFeedback,needsCompilationUpdate} from "./compilation-feedback.js";
 describe("compiler result panel",()=>{
+  it("does not keep polling a cancelled job for artifacts that must never be published",()=>{
+    expect(needsCompilationUpdate({status:"CANCELLED",artifacts:[]})).toBe(false);
+    const html=renderToStaticMarkup(<CompilationFeedback job={{status:"CANCELLED"}} report={null} error="" onCancel={async()=>{}}/>);
+    expect(html).toContain("Compilation cancelled");expect(html).not.toContain("Cancel compilation</button>");
+  });
   it("continues fetching a failed job until its diagnostic artifact is available",()=>{
     expect(needsCompilationUpdate({status:"FAILED",artifacts:[]})).toBe(true);
     expect(needsCompilationUpdate({status:"FAILED",artifacts:[{artifactType:"BUILD_REPORT_JSON"}]})).toBe(false);

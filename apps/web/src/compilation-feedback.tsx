@@ -1,13 +1,17 @@
 import React from "react";
 
 export function needsCompilationUpdate(job:any):boolean {
+  if(job?.status==="CANCELLED")return false;
   return Boolean(job&&(!["COMPLETED","FAILED"].includes(job.status)||!job.artifacts?.some((item:any)=>item.artifactType==="BUILD_REPORT_JSON")));
 }
 
 /** Show the same persisted diagnostics as the downloadable report. */
-export function CompilationFeedback({job,report,error}:{job:any;report:any;error:string}) {
+export function CompilationFeedback({job,report,error,onCancel}:{job:any;report:any;error:string;onCancel?:()=>Promise<void>}) {
+  const [cancelling,setCancelling]=React.useState(false);
   const execution=job?.metrics?.execution??report?.programExecution;
   return <section aria-live="polite" aria-label="Compilation and execution results">
+    {onCancel&&job&&!["COMPLETED","FAILED","CANCELLED"].includes(job.status)&&<button disabled={cancelling} onClick={()=>{setCancelling(true);void onCancel().finally(()=>setCancelling(false));}}>{cancelling?"Cancelling…":"Cancel compilation"}</button>}
+    {job?.status==="CANCELLED"&&<p role="status">Compilation cancelled. No new output will be published for this job.</p>}
     {error&&<div role="alert" className="error"><h3>Submission rejected</h3><p>{error}</p><p>Correct the source or selected language before submitting again. No execution was started for this submission.</p></div>}
     {job?.status==="FAILED"&&<div role="alert" className="error"><h3>Compilation failed — execution not performed</h3><pre style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{job.error}</pre></div>}
     {report&&<><h3>Diagnostic summary</h3><p>Compilation errors: {report.programInformation.compilationErrors??report.programInformation.errors} · Execution failures: {report.programInformation.executionErrors??0} · Warnings: {report.programInformation.warnings}</p>

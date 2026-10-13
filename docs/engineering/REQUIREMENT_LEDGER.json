@@ -36523,10 +36523,10 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4192,
       "text": "- Cancellation.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "migration 0005; task-cancellation.ts; task-process-controller.ts; protocol v1; compiler cancel control",
+      "verification": "Durable cancellation/API/native process tree verified; coordinator native finalization remains bounded, not immediately abortable; physical browser acceptance pending.",
+      "evidence": ["docs/engineering/evidence/2026-10-13-task-cancellation/RESULTS.md"]
     },
     {
       "id": "B:6.5:L4193",
@@ -36605,10 +36605,10 @@
       "heading": "6.5 Leases, timeouts, retries, and recovery",
       "line": 4198,
       "text": "- Job cancellation propagation.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "migration 0005; task-cancellation.ts; task-process-controller.ts; protocol v1; compiler cancel control",
+      "verification": "Durable cancellation/API/native process tree verified; coordinator native finalization remains bounded, not immediately abortable; physical browser acceptance pending.",
+      "evidence": ["docs/engineering/evidence/2026-10-13-task-cancellation/RESULTS.md"]
     },
     {
       "id": "B:6.5:L4200",

@@ -87,8 +87,9 @@ not fabricated or renewed: active legacy attempts are interrupted on startup.
 An expired worker must re-register using its existing scoped credential and stable
 node identity. Native/browser executors postpone reconnect registration while old
 local work is still running, so that a stale executor cannot burn retries by
-accepting a second assignment. Its stale result is not published. This does not
-provide remote process cancellation; that is a separate pending phase gate.
+accepting a second assignment. Its stale result is not published. Updated workers
+now cancel local execution on socket loss; see the cancellation extension below
+for capability negotiation and legacy-client limitations.
 
 Completed, durably stored compiler results whose artifact publication was
 interrupted are retried from coordinator state. Transient MySQL connection loss
@@ -100,7 +101,37 @@ Run `npm run verify:recovery` for isolated lease/restart/database/disconnect
 fixtures; no production fault-injection endpoints exist. See TASK_RECOVERY_PHASE.md
 and evidence/2026-10-13-task-recovery/RESULTS.md for measured acceptance and limits.
 
-## Admission and revocation
+## Cancellation extension (v1, capability negotiated)
+
+An updated native/browser worker advertises `operations.taskCancellation=true`.
+Only such workers receive `{protocolVersion:1,type:"task_cancel",taskId,attempt}`.
+The worker validates both identity fields before aborting. The coordinator first
+commits terminal CANCELLED task/job/active-attempt state and an audit event, then
+quarantines the node and closes transport with 1012. Reconnect requires actual
+local termination/cleanup, not merely a new heartbeat. Older clients receive
+connection closure without an unknown envelope; durable result/publication guards
+still apply, but instant local cancellation is not claimed for older executors.
+
+Native task execution uses an owned child process and per-task temporary tree,
+with only system/toolchain settings in its environment. Windows uses the explicit
+System32 taskkill executable with /T; Unix uses its owned process group. Failure
+to establish tree termination or cleanup stops the worker instead of reconnecting
+as available. This is process lifecycle control, NOT an OS security sandbox.
+Browser workers terminate their dedicated Web Worker and replace it before
+reconnecting; physical-browser lifecycle acceptance remains Phase 6 work.
+
+Owner/admin `POST /api/compilations/:jobId/cancel` is idempotent for CANCELLED,
+returns 404 for absent/foreign jobs and 409 for completed/failed jobs. Admin-only
+`POST /api/admin/tasks/:taskId/cancel` cancels standalone portable tasks, not a
+single constituent of a compilation. Completed attempt history is preserved.
+Late results, failure messages, restart recovery, task creation and final artifact
+publication cannot revive cancelled jobs. The compiler screen stops polling and
+allows a new submission. Owned Docker execution is abortable; coordinator native
+verification/code generation remains bounded but not yet process-abortable.
+
+Run `npm run verify:cancellation` against an owned isolated MySQL fixture.
+
+## Admission endpoints
 
 Admin creates a network with `POST /api/admin/networks`, which supplies its reusable default `joinUrl`, enabled by default. `GET /api/admin/networks/:networkId/join-link` retrieves it; `POST` to that endpoint with `{enabled:true|false}` invokes/revokes admission without revoking enrolled workers. These endpoints are admin-only and audited without tokens. The default token is stored recoverably so the admin can retrieve the same link; it is a public admission token, never a worker/admin credential. Never log URLs or persist them in analytics. Network expiration/disable overrides admission. This explicitly supersedes master M2 R03 per USER_REQUIREMENT_OVERRIDES.md.
 

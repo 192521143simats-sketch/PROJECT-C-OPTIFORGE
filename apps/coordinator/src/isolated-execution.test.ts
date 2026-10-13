@@ -3,6 +3,10 @@ import {executeIsolated} from "./isolated-execution.js";
 import {compileJava} from "@c-optiforge/compiler-java";
 
 describe.skipIf(process.env.GRID_X_SANDBOX_TEST!=="1")("real isolated execution",()=>{
+  it("does not publish output from explicitly cancelled program execution",async()=>{
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),1000);
+    try{const result=await executeIsolated({language:"python",sourceName:"cancel.py",generatedSource:"while True: pass",artifact:null,signal:controller.signal});expect(controller.signal.aborted).toBe(true);expect(result.execution.status).not.toBe("SUCCEEDED");expect(result.artifact).toBeUndefined();}finally{clearTimeout(timer);}
+  },60000);
   it("keeps dotted C filenames usable and refuses oversized Linux artifacts",async()=>{
     const dotted=await executeIsolated({language:"c",sourceName:"invoice.v1.c",generatedSource:"int main(void){return 0;}",artifact:null});expect(dotted.execution.status).toBe("SUCCEEDED");expect(dotted.artifact?.fileName).toBe("invoice_v1-linux");
     const bounded=await executeIsolated({language:"c",sourceName:"bounded.c",generatedSource:"const char payload[4000000] = {[0]=1,[3999999]=2}; int main(void){return payload[0]==1?0:1;}",artifact:null});expect(bounded.execution.status).toBe("SUCCEEDED");expect(bounded.artifact!.bytes.length).toBeGreaterThan(4000000);

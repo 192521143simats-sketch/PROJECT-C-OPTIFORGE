@@ -172,3 +172,35 @@ Exact next task is cancellation contract + persisted cancellation + worker
 propagation + late-result/publication guards. Single-active restart recovery is
 not HA or exactly-once execution. No Windows installer, native Android APK or
 physical-device acceptance is claimed by these logical/native-process fixtures.
+
+## 2026-10-13 — Phase 4 durable cancellation subset
+
+Append-only migration 0005 and owner/admin cancellation APIs preserve MySQL task
+attempt history and block late results, decomposition, retry resurrection and
+artifact publication. Capability-negotiated protocol v1 task_cancel reaches
+updated native/browser workers; native execution is an owned process tree with
+restricted environment and cancellation/cleanup before reconnect. Unconfirmed
+Windows tree termination stops the worker instead of advertising availability.
+The compiler UI has a real cancel control and recognizes cancelled jobs.
+
+Fresh review's important descendant-termination finding was reproduced with an
+actual GCC-built process tree and fixed. All 182 tests in 32 files, three script
+tests, eight workspace type checks and builds passed. Isolated cancellation and
+lease fixtures passed. Recovery initially failed an obsolete run-to-completion
+expectation after disconnect; updated cancellation-aware recovery passed actual
+coordinator crash/restart, MySQL pause/resume, disconnect/outage intersection,
+safe native reconnect/reassignment and C/Python publication recovery.
+See TASK_CANCELLATION_PHASE.md and its evidence report for final integration/Git
+results and every failed run, rather than treating this paragraph as release proof.
+
+Full master Phase 4 is NOT complete. Immediate coordinator-native finalization
+abort, cancellation/DB-outage intersections, actual database restart, durable
+retry backoff/jitter, broader policy and portable catalogue/integrity gates remain.
+Exact next stage: extend existing native finalization process control, test
+cancellation there and during actual isolated database faults, then durable retry
+policy. Phase 5 is web product acceptance; Phase 6 is browser lifecycle acceptance.
+Physical devices and Windows/Android packages are separate unachieved gates.
+
+Cleanup is project-only per user scope. Reproducible preview removal was blocked
+by execution policy; no such files were deleted or disk saving claimed. Keep all
+tests, samples, credentials, backups, developer records and MySQL volumes.
