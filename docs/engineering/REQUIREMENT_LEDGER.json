@@ -11209,10 +11209,12 @@
       "heading": "24. RESULT INTEGRITY",
       "line": 1265,
       "text": "Do not blindly trust workers.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "A:24:L1267",
@@ -11281,10 +11283,12 @@
       "heading": "24. RESULT INTEGRITY",
       "line": 1275,
       "text": "deterministic recomputation",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "A:24:L1276",
@@ -11293,10 +11297,12 @@
       "heading": "24. RESULT INTEGRITY",
       "line": 1276,
       "text": "reference implementation",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "A:24:L1277",
@@ -11317,10 +11323,12 @@
       "heading": "24. RESULT INTEGRITY",
       "line": 1278,
       "text": "schema validation",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "A:24:L1279",
@@ -11329,10 +11337,12 @@
       "heading": "24. RESULT INTEGRITY",
       "line": 1279,
       "text": "range validation",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "A:24:L1280",
@@ -36663,11 +36673,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4212,
       "text": "Implement result verification appropriate to each task type.",
-      "status": "IN_PROGRESS",
-      "implementation": "apps/coordinator/src/compilation-verification.ts; database.ts (native publication and C IR verified; other task kinds and failed worker diagnostics remain open)",
-      "verification": "Real isolated MySQL/native worker/runtime/download cases; bounded Docker and diagnostic-specific report tests. Scope and remaining gaps recorded in evidence.",
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
       "evidence": [
-        "docs/engineering/evidence/2026-10-13-execution/RESULTS.md"
+        "docs/engineering/evidence/2026-10-13-execution/RESULTS.md",
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
       ]
     },
     {
@@ -36677,10 +36688,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4214,
       "text": "- Validate schema and payload size.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4215",
@@ -36689,10 +36702,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4215,
       "text": "- Validate task and attempt identity.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/networks.ts; packages/contracts",
-      "verification": "atomic invitation, identity and network-isolation integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4216",
@@ -36701,10 +36716,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4216,
       "text": "- Validate worker authorization.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4217",
@@ -36713,10 +36730,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4217,
       "text": "- Reject stale or duplicate attempts where inappropriate.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4218",
@@ -36725,10 +36744,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4218,
       "text": "- Validate output digests.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4219",
@@ -36749,10 +36770,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4220,
       "text": "- Verify deterministic transformations against coordinator-known expectations when possible.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4221",
@@ -36761,10 +36784,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4221,
       "text": "- Use independent recomputation, reference outputs, or redundant execution for selected high-risk operations where practical.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4222",
@@ -36773,10 +36798,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4222,
       "text": "- Distinguish structural validity from semantic correctness.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4223",
@@ -36785,10 +36812,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4223,
       "text": "- Record verification status and the reason for rejection.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4225",
@@ -36797,10 +36826,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4225,
       "text": "A checksum proves byte integrity, not that a computation is correct. A matching result from two workers is evidence of agreement, not proof against coordinated malicious behavior.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "docs/engineering/TASK_ENGINE_PHASE.md; WORKER_PROTOCOL.md",
+      "verification": "Explicitly documents reference recomputation limits; no Byzantine tolerance, cryptographic computation proof, universal equivalence or independently proved worker performance claim.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4227",
@@ -36809,10 +36840,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4227,
       "text": "Do not claim Byzantine fault tolerance, cryptographic proof of computation, or mathematical equivalence unless a corresponding mechanism has actually been implemented and tested.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "docs/engineering/TASK_ENGINE_PHASE.md; WORKER_PROTOCOL.md",
+      "verification": "Explicitly documents reference recomputation limits; no Byzantine tolerance, cryptographic computation proof, universal equivalence or independently proved worker performance claim.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4229",
@@ -36821,10 +36854,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4229,
       "text": "Implement practical correctness checks appropriate to the project, and document their limits.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/coordinator/src/portable-verification.ts; database.ts; server.ts; existing compiler verification retained",
+      "verification": "Verified scoped portable SHA-256/chain/prime results, active task/node/attempt/network guards, retry/replay/revocation, atomic heartbeat and actual MySQL rollback. Broader task catalogue, failed-worker compiler diagnostics and universal claims remain open.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-portable-results/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.7:L4231",

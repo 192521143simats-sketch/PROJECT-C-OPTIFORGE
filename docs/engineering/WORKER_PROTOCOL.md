@@ -41,6 +41,26 @@ Authority: coordinator validates schema/version, enrollment on registration and 
 
 Compatibility policy: coordinated development upgrade from unversioned legacy to v1; no indefinite legacy admission or duplicate protocol. Future incompatible changes require a new version, explicit negotiation/upgrade path and fixture tests across all worker applications.
 
+## Portable result acceptance (Phase 4 subset)
+
+Protocol v1 envelopes and operation fields are unchanged. For TEST_COMPUTE,
+the coordinator independently recomputes sha256, sha256_chain and prime_count
+from its stored bounded input. Result fields must match the operation exactly;
+worker-supplied verification metadata is rejected. Accepted results retain the
+operation fields plus coordinator-generated verification status/method/version,
+timestamp and measured verification time. Worker execution time/resources remain
+reported observations, not an independent performance proof.
+
+RESULT_VERIFICATION_FAILED means schema/value verification failed. The existing
+attempt is failed and requeued up to the existing three-attempt limit; no forged
+result is saved. STALE_TASK_RESULT means the node/attempt is no longer authorized
+or a concurrent/completed submission is duplicated; it does not fail a newer
+attempt. Publication atomically rechecks task, attempt, node and active network.
+Portable verification runs outside the ordered socket heartbeat queue.
+
+These checks do not claim cancellation/leases, durable restart recovery or
+global recomputation admission control. See TASK_ENGINE_PHASE.md and its evidence.
+
 ## Admission and revocation
 
 Admin creates a network with `POST /api/admin/networks`, which supplies its reusable default `joinUrl`, enabled by default. `GET /api/admin/networks/:networkId/join-link` retrieves it; `POST` to that endpoint with `{enabled:true|false}` invokes/revokes admission without revoking enrolled workers. These endpoints are admin-only and audited without tokens. The default token is stored recoverably so the admin can retrieve the same link; it is a public admission token, never a worker/admin credential. Never log URLs or persist them in analytics. Network expiration/disable overrides admission. This explicitly supersedes master M2 R03 per USER_REQUIREMENT_OVERRIDES.md.

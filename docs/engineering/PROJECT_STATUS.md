@@ -105,3 +105,31 @@ the transient C test timeout/retry and remaining boundaries. No developer data,
 volumes, sample files, secrets or migrations were reset/changed. Historical saved
 reports are not rewritten; resubmit to generate corrected reports. Next remains
 Phase 4 and the separately tracked native packaging/device/release gates.
+
+## 2026-10-13 — Phase 4 portable result-integrity subset
+
+The prior report/language stage was completed and pushed as 825e595. Continued
+with independent reference recomputation of the existing SHA-256, SHA-256 chain
+and prime-count results. Incorrect/malformed results cannot create result rows;
+retries preserve attempts and verification outcomes are persisted/audited.
+Stale/foreign/concurrent submissions cannot overwrite newer attempts.
+
+Fresh review found two genuine concurrency defects. Both were reproduced against
+isolated MySQL before fixing: heartbeat cached BUSY after completion; a task-wide
+verification lock rejected the next authorized attempt. Atomic heartbeat updates
+and per-attempt reservations now pass those same regressions, including real
+transaction rollback, in-flight heartbeat and revocation tests.
+
+Full Docker-enabled npm run verify passed 175 tests in 31 files, three script
+tests and all eight workspace type checks/builds. Fixture a77840909d2a5d72 passed
+migrations, real InnoDB contention, protocol, expanded portable results, platform
+and C/Python/Java artifacts. Further regressions passed: execution
+20045cccf084a6c9 (original/repaired/invalid samples and actual report/execution
+evidence), enrollment 909fd8c05b2e8806 and reusable links 9d496bc66898337d.
+All owned fixtures were cleaned. See evidence/2026-10-13-portable-results/RESULTS.md.
+
+This does not complete all Phase 4 or release gates. Exact next task: durable
+attempt leases and restart/MySQL-interruption recovery, proved with isolated
+fault-injection tests. No developer records, volumes, credentials or compiler
+pipelines were reset/replaced. Windows installer, native Android APK and physical
+device acceptance remain pending, not achieved by logical protocol fixtures.
