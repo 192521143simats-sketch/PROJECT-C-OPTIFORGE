@@ -1,5 +1,29 @@
 # GRID-X master implementation status
 
+## Phase 5 web foundation — 2026-10-14
+
+Phase 4 v1 remains sealed; its isolated closure fixture passed again in instance
+`01a5f49cbddc11a0` (real MySQL/coordinator restarts, pause/cancellation,
+backoff/deadline/history, native catalogue execution and isolated backup restore).
+
+Phase 5 is **IN PROGRESS, not sealed**. Repaired empty/large table pagination,
+accessible feedback and malformed/unavailable HTTP response handling. Independent
+review found stale owning page state after totals shrink; an actual React-DOM
+regression failed before the fix and passed afterward. Existing route targets,
+authorization, MySQL model, compiler and worker behavior are preserved. Removed
+only the two unused legacy admin/user dashboard components.
+
+Fresh verification: 269/269 tests in 40 files with Docker tests enabled,
+3/3 script checks, all eight workspace typechecks/builds and zero npm advisories.
+Details and red/green failures: evidence/2026-10-14-phase5-web-foundation/RESULTS.md.
+
+Exact next task: complete auth pending/error behavior and keyboard onboarding,
+then existing-engine owner-scoped Compute Tasks UI/API, administrator detail/live
+state, settings and configurable privacy-safe Resend/PostHog adapters. Actual
+browser-to-MySQL user/admin acceptance must pass before a Phase 5 seal. See
+PHASE5_IMPLEMENTATION_PLAN.md. No physical device, provider delivery, package or
+public deployment acceptance is claimed.
+
 ## Current authoritative milestone — 2026-10-14
 
 **Phase 4 v1 is SEALED: 8/8 master Phase 4 exit obligations, 6/6 closure gates (100% of defined Phase 4 acceptance).** Prior incomplete-Phase-4 paragraphs below are historical snapshots superseded by this section, not the current backlog.
