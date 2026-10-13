@@ -34175,10 +34175,12 @@
       "heading": "4. CORE PRODUCT WORKFLOW",
       "line": 3920,
       "text": "20. GRID-X generates genuine output artifacts and a truthful build report.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/build-report.ts; server.ts; language pipelines",
+      "verification": "Real isolated MySQL/native worker/runtime/download cases; bounded Docker and diagnostic-specific report tests. Scope and remaining gaps recorded in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-execution/RESULTS.md"
+      ]
     },
     {
       "id": "B:4:L3921",
@@ -34883,10 +34885,12 @@
       "heading": "5.2 Python pipeline",
       "line": 4001,
       "text": "- Accurate build report.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/coordinator/src/build-report.ts; server.ts; language pipelines",
+      "verification": "Real isolated MySQL/native worker/runtime/download cases; bounded Docker and diagnostic-specific report tests. Scope and remaining gaps recorded in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-execution/RESULTS.md"
+      ]
     },
     {
       "id": "B:5.2:L4002",
@@ -36647,10 +36651,12 @@
       "heading": "6.6 Distributed correctness and result verification",
       "line": 4212,
       "text": "Implement result verification appropriate to each task type.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "IN_PROGRESS",
+      "implementation": "apps/coordinator/src/compilation-verification.ts; database.ts (native publication and C IR verified; other task kinds and failed worker diagnostics remain open)",
+      "verification": "Real isolated MySQL/native worker/runtime/download cases; bounded Docker and diagnostic-specific report tests. Scope and remaining gaps recorded in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-execution/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.6:L4214",
@@ -41927,10 +41933,12 @@
       "heading": "12.3 Untrusted source code and worker isolation",
       "line": 4832,
       "text": "Evaluate OS-level process restrictions, filesystem isolation, network restrictions, memory and CPU limits, execution timeouts, process-tree termination, output limits, and permissions appropriate to each worker platform.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/networks.ts; packages/contracts",
-      "verification": "atomic invitation, identity and network-isolation integration",
-      "evidence": []
+      "status": "IN_PROGRESS",
+      "implementation": "infra/sandbox; apps/coordinator/src/isolated-execution.ts (Linux execution only; other worker OS and host compiler containment remain open)",
+      "verification": "Real isolated MySQL/native worker/runtime/download cases; bounded Docker and diagnostic-specific report tests. Scope and remaining gaps recorded in evidence.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-execution/RESULTS.md"
+      ]
     },
     {
       "id": "B:12.3:L4834",

@@ -32,5 +32,6 @@ Iterate implementation → unit tests → isolated integration → build → evi
 - [x] Adopt existing schema under a migration ledger; verify concurrent startup, interrupted DDL recovery and incompatible history rejection in isolated MySQL.
 - [x] Atomic single-use invitations, append-only migration and identity/capacity concurrency, with real isolated admission/reconnect/revocation tests. Native installation/device and broader lifecycle acceptance remain separate gates.
 - [x] Compiler correctness iteration: real GCC/CPython/JDK outputs, semantic differential cases, program-specific diagnostics/reports and authorized artifact downloads. See COMPILER_PHASE.md; this is not arbitrary-program sandboxing or independent malicious-worker result verification.
-- [ ] Remaining task/browser/web phases, compiler sandbox/execution gates, installer/core and native Kotlin/Compose Android.
+- [x] Genuine bounded Linux Docker execution and evidence-backed reports, independent native publication and C IR checks, responsive heartbeat during finalization. See EXECUTION_PHASE.md. This is not a host compiler sandbox or all-task semantic verification.
+- [ ] Remaining task/browser/web phases, host compiler containment, installer/core and native Kotlin/Compose Android.
 - [ ] Native builds, connected-device installation/testing, heterogeneous integration, signed packages and full release gates.

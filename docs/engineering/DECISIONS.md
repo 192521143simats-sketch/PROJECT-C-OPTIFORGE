@@ -24,3 +24,15 @@ M2 in the preserved master is authoritative; this table indexes all 18 resolutio
 | R18 | Document newly conflicting quotations and narrow resolution; ask only material unresolved decisions. |
 
 2026-10-12: Keep existing architecture and volume. Dedicated branch in the actual project (not replacement Codex workspace). Restrict verification concurrency based on observed baseline timeout and low free RAM, without changing production compiler timeouts or assertions. Existing historical completion docs remain historical, not current release acceptance.
+
+2026-10-13: User requests genuine compilation/analysis/optimization/execution.
+Extend existing finalization and MySQL artifact bytes, without a second database or
+worker protocol. `COMPLETED` remains the existing compilation terminal state;
+report/metrics distinguish `SUCCESS` and `PARTIAL_SUCCESS` when execution fails or
+is unavailable. Preserve native Windows C output and expose a separately rebuilt
+Linux executable for actual Linux execution. No relabelled binary or host execution
+fallback. Coordinator rebuilds native output and rederives C IR before publication;
+this additional compilation cost is real, not claimed distributed acceleration.
+Docker execution uses bounded nonprivileged children with a separate trusted
+controller identity. Host compiler containment and broad task verification remain
+incomplete; Docker shared-kernel controls are not a universal security guarantee.

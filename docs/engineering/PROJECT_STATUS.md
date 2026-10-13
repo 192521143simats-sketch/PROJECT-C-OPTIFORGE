@@ -50,3 +50,30 @@ Explicit user override subsequently implemented: reusable default link per netwo
 Phase 3 compiler correctness iteration implemented with separate C/Python/Java agents. Existing C IR optimization remains; unsupported custom-frontend constructs use actual GCC on explicitly capable native workers. CPython transformations preserve assertions, binding and annotations; Java uses actual javac/javap/jar with real entry-point detection. Reports contain program-specific diagnostics and genuine output artifacts; failed jobs expose reports only. Full verification passed 115 unit tests, three script tests and all eight workspace typechecks/builds. Isolated artifact verification includes real downloaded fixture execution, invalid programs and authorization checks. See evidence/2026-10-12-compiler/RESULTS.md for acceptance scope and remaining limitations.
 
 Exact next task: Phase 4 task leases/cancellation/independent result verification and durable recovery, followed by Windows/Android implementations in dependency order. Append new migration IDs; do not edit adopted artifacts. ADB last detected no device (2026-10-12); earlier Redmi detection does not establish availability now. No APK/package/device installation test or public deployment has occurred. Full platform/release gates remain incomplete.
+
+## Compiler execution extension - 2026-10-13
+
+Implemented and verified genuine bounded Docker Linux execution for final C,
+Python and Java output; standard input, stdout/stderr, actual exit/time/peak child
+RSS, runtime-specific advice and honest partial-success reports. Windows C output
+is retained alongside the real Linux output used for execution. Java libraries
+remain explicitly not run. Native final publication is independently rebuilt from
+stored source; C distributed transformations/counts are checked and rederived.
+Finalization runs outside the worker-message queue so heartbeats remain responsive.
+No schema migration, developer DB reset, secret rotation or volume deletion.
+
+Final `npm run verify` under portable Node 24.21.0 with Docker tests enabled passed
+all eight typechecks/builds, 133 tests and three script safety tests. Final isolated
+execution fixture `4e3d70a892bdde8e` passed successful language execution/input,
+C IR aggregation, runtime errors, timeout/heartbeat, library handling, compiler
+errors, artifact identity and download ownership. General isolated regressions
+passed `3d83ebf810c47858`, `f6f6f786ca4ab9bb`, `1dc66ce5179939c2`. Read-only review
+findings and real red/green failures are recorded in
+`evidence/2026-10-13-execution/RESULTS.md`; actual PDFs were rendered/inspected.
+
+Next remains Phase 4: immutable leases/cancellation/durable recovery and independent
+verification of other task kinds/failed worker diagnostics. Full host compiler
+containment is still required; Docker execution is not a universal sandbox or
+correctness guarantee. Windows installer/native Android APK and physical acceptance
+are not built/tested. ADB found no device on 2026-10-13. Web was built; physical
+browser/mobile UI acceptance and public deployment are not claimed.

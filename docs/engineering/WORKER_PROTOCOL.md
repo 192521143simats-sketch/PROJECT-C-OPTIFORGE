@@ -30,9 +30,14 @@ bytes as base64, generated source, diagnostics and truthful transformation evide
 The coordinator checks language/operation, file names, bounds, bytecode/executable
 headers and nonempty bytes before committing artifacts. WebSocket payload limit is
 32 MB to accommodate bounded class/JAR outputs; source HTTP limits are unchanged.
-These are integrity screens, not independent verification of an adversarial worker.
+Native final artifacts are now rebuilt independently from stored source on the
+coordinator; C/Java generated source must match stored source and Python must match
+the authoritative optimizer. C IR results are independently rederived and checked,
+and transformation counts are coordinator-derived. Final execution evidence comes
+from the owned Docker controller, never a worker-supplied success claim. These
+checks do not independently validate every task kind or failed worker diagnostic.
 
-Authority: coordinator validates schema/version, enrollment on registration and each subsequent message, and task/node/attempt/network ownership through persistence. Revocation closes scope. Native and browser clients now validate coordinator envelopes, not unchecked casts. Existing result semantic verification, durable leases, cancel/pause/resource policy and additional portable catalogue are still open requirements; v1 does not falsely claim those implemented.
+Authority: coordinator validates schema/version, enrollment on registration and each subsequent message, and task/node/attempt/network ownership through persistence. Revocation closes scope. Native and browser clients validate coordinator envelopes. Atomic task completion rejects stale/replayed attempts; asynchronous final publication does not block worker heartbeat handling. Broad result semantic verification, durable leases, cancel/pause/resource policy and additional portable catalogue remain open requirements; v1 does not falsely claim those implemented.
 
 Compatibility policy: coordinated development upgrade from unversioned legacy to v1; no indefinite legacy admission or duplicate protocol. Future incompatible changes require a new version, explicit negotiation/upgrade path and fixture tests across all worker applications.
 
