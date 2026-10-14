@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
 import {createRoot} from "react-dom/client";
-import {encodeProtocolMessage,parseCoordinatorMessage,type CoordinatorMessage} from "@c-optiforge/contracts";
+import {BrowserNode} from "./browser-node.js";
 import "./styles.css";import "./compiler.css";import "./platform.css";
 import {CompilationFeedback,needsCompilationUpdate} from "./compilation-feedback.js";
 import {Pagination} from "./pagination.js";
@@ -81,50 +81,10 @@ function DashboardV2(){
   return <Shell user={user} title="Compiler workspace" subtitle="Supply source code; GRID-X automatically selects a compatible network using current resources and measured execution history."><Notice error={error}/><div className="grid two"><div className="card compiler-form"><label>Language<select aria-label="Language" value={language} disabled={running} onChange={e=>changeLanguage(e.target.value as keyof typeof samples)}><option value="c">C</option><option value="python">Python</option><option value="java">Java</option></select></label><label>Upload source file<input type="file" accept={extension} disabled={running} onChange={readFile}/></label><label>Source filename<input value={sourceName} disabled={running} onChange={e=>setSourceName(e.target.value)}/></label><label>Source code<textarea ref={sourceBox} value={source} disabled={running} onChange={e=>setSource(e.target.value)} spellCheck={false}/></label><label>Standard input (optional, 16 KB maximum)<textarea rows={3} style={{minHeight:70,height:70}} value={executionInput} maxLength={16384} disabled={running} onChange={e=>setExecutionInput(e.target.value)}/></label><small>Execution uses the isolated Linux environment. Windows artifacts are preserved; C may also provide a separately built Linux executable.</small><button disabled={running||submitting||!source.trim()||!sourceName.trim()} onClick={submit}>{submitting?"Selecting network…":running?"Compilation in progress…":"Compile and optimize"}</button></div><div className="card"><h2>Current compilation</h2>{job&&<dl><dt>ID</dt><dd><code>{job.id}</code></dd><dt>Status</dt><dd><span className={statusClass(job.status)}>{job.status==="COMPLETED"?job.metrics?.outcome??"SUCCESS":job.status==="FAILED"?"FAILED":job.status==="CANCELLED"?"CANCELLED":stageDescriptions[job.stage]??job.status}</span></dd></dl>}<CompilationStages job={job} language={language}/><CompilationFeedback job={job} report={report} error={submissionError} onCancel={async()=>{try{setJob(await api(`/api/compilations/${job.id}/cancel`,{method:"POST"}));}catch(cause){setError(cause instanceof Error?cause.message:"Cancellation failed");}}}/> {["COMPLETED","FAILED"].includes(job?.status)&&job.artifacts?.length>0&&<ArtifactDownloads artifacts={job.artifacts}/>}</div></div></Shell>;
 }
 
-function browserProfile(){const ua=navigator.userAgent,mobile=/Android|iPhone|iPad|Mobile/i.test(ua),phone=/Android|iPhone|Mobile/i.test(ua);return{workerType:"BROWSER",deviceType:phone?"PHONE":mobile?"TABLET":"DESKTOP",cpuModel:"Browser-reported device",logicalCores:navigator.hardwareConcurrency||1,totalMemoryBytes:Number((navigator as any).deviceMemory??0)*1024**3,operatingSystem:navigator.platform||"Browser",architecture:"browser",runtimes:{c:false,python:false,java:false},toolchains:{c:{available:false},python:{available:false},java:{available:false}},operations:{irOptimization:true,staticAnalysis:true,browserCompute:true,nativeCompilation:false}}}
-function BrowserNode({networkName,onLeave}:{networkName?:string;onLeave?:()=>void}){
-  const[nodeId,setNodeId]=useState(""),[status,setStatus]=useState("CONNECTING"),[error,setError]=useState(""),socket=useRef<WebSocket|null>(null),leaving=useRef(false);
-  useEffect(()=>{
-    let active=true,busy=false,currentTask:{taskId:string;attempt:number}|undefined,registeredNode="",reconnect:ReturnType<typeof setTimeout>|undefined;
-    let taskWorker=new Worker(new URL("./browser-worker.ts",import.meta.url),{type:"module"});
-    function connect(){
-      if(!active||leaving.current)return;
-      if(busy){reconnect=setTimeout(connect,250);return;}
-      setStatus("CONNECTING");
-      const protocol=location.protocol==="https:"?"wss:":"ws:",ws=new WebSocket(`${protocol}//${location.host}/ws/worker`);
-      socket.current=ws;
-      ws.onopen=()=>ws.send(encodeProtocolMessage({type:"register",profile:{...browserProfile(),operations:{...browserProfile().operations,taskCancellation:true,portableMatrix:true,portableBenchmark:true}}}));
-      ws.onmessage=event=>{
-        let message:CoordinatorMessage;
-        try{message=parseCoordinatorMessage(JSON.parse(event.data));}catch{setError("Coordinator protocol is incompatible or invalid. Update this page before reconnecting.");ws.close(1008,"Protocol incompatible");return;}
-        if(message.type==="registered"){registeredNode=message.nodeId;setNodeId(message.nodeId);setStatus("AVAILABLE");setError("");ws.send(encodeProtocolMessage({type:"heartbeat",resources:browserResources()}));}
-        else if(message.type==="task_cancel"){if(currentTask?.taskId===message.taskId&&currentTask.attempt===message.attempt)stopTask();} else if(message.type==="task_assignment"){currentTask={taskId:message.taskId,attempt:message.attempt};busy=true;setStatus("BUSY");ws.send(encodeProtocolMessage({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"RUNNING"}));taskWorker.postMessage(message);}
-        else if(message.type==="error")setError(message.message);
-      };
-      ws.onclose=event=>{if(!active||leaving.current)return;stopTask();registeredNode="";if(event.code===1008){setStatus("ERROR");setError("Enrollment is invalid/revoked or the worker protocol is incompatible. Request a new invitation or reload the updated app.");return;}setStatus(document.hidden?"BACKGROUND":"DISCONNECTED");reconnect=setTimeout(connect,2000);};
-      ws.onerror=()=>setError("Worker connection interrupted. Reconnecting…");
-    }
-    const handleResult=(event:MessageEvent)=>{
-      busy=false;
-      const message=event.data,ws=socket.current;if(!currentTask||currentTask.taskId!==message.taskId||currentTask.attempt!==message.attempt)return;currentTask=undefined;
-      if(ws?.readyState!==WebSocket.OPEN)return;
-      if(message.type==="completed")ws.send(encodeProtocolMessage({type:"task_result",taskId:message.taskId,attempt:message.attempt,result:message.result,executionTimeMs:message.executionTimeMs,resources:browserResources()}));
-      else ws.send(encodeProtocolMessage({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"FAILED",error:message.error}));
-      setStatus("AVAILABLE");
-    };
-    taskWorker.onmessage=handleResult;function stopTask(){taskWorker.terminate();busy=false;currentTask=undefined;if(active){taskWorker=new Worker(new URL("./browser-worker.ts",import.meta.url),{type:"module"});taskWorker.onmessage=handleResult;}}const heartbeat=setInterval(()=>{if(socket.current?.readyState===WebSocket.OPEN&&registeredNode)socket.current.send(encodeProtocolMessage({type:"heartbeat",resources:browserResources()}));},5000);
-    const visibility=()=>{if(document.hidden)setStatus("BACKGROUND");else if(socket.current?.readyState!==WebSocket.OPEN)setStatus("CONNECTING");};
-    document.addEventListener("visibilitychange",visibility);connect();
-    return()=>{active=false;clearInterval(heartbeat);clearTimeout(reconnect);document.removeEventListener("visibilitychange",visibility);taskWorker.terminate();socket.current?.close();};
-  },[]);
-  async function leave(){leaving.current=true;await api("/api/worker/leave",{method:"POST"});socket.current?.close();setStatus("DISCONNECTED");onLeave?.();}
-  return <div className="card"><span className={statusClass(status)}>{status}</span><h2>Browser worker</h2><dl><dt>Node</dt><dd><code>{nodeId||"Registering…"}</code></dd><dt>Network</dt><dd>{networkName??"Enrolled network"}</dd><dt>Capabilities</dt><dd>IR optimization · static analysis · browser-safe compute</dd></dl><p className="muted">Keep this page open. Mobile operating systems may suspend background tabs; interrupted tasks are requeued.</p><Notice error={error}/><button className="danger" onClick={leave}>Leave network</button></div>;
-}
-function browserResources(){const memory=(performance as any).memory;return{cpuUtilizationPercent:0,cpuMeasurementAvailable:false,freeMemoryBytes:memory?Math.max(0,memory.jsHeapSizeLimit-memory.usedJSHeapSize):0,memoryUtilizationPercent:memory?memory.usedJSHeapSize/memory.jsHeapSizeLimit*100:0,memoryMeasurementAvailable:Boolean(memory),observedAt:new Date().toISOString()}}
 function deviceNonce(){const values=new Uint32Array(4);if(globalThis.crypto?.getRandomValues){globalThis.crypto.getRandomValues(values);return Array.from(values,value=>value.toString(16).padStart(8,"0")).join("");}return`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;}
 function Join({token}:{token:string}){
   const[network,setNetwork]=useState<any>(null),[joined,setJoined]=useState(false),[joining,setJoining]=useState(false),[error,setError]=useState("");
-  async function load(){try{const result=await api(`/api/join/${token}`);setNetwork(result.network);if(result.network.accepting)setError("");}catch(cause){setNetwork(null);setError(cause instanceof Error?cause.message:String(cause));}}
+  async function load(){try{const result=await api(`/api/join/${token}`);setNetwork(result.network);if(result.network.accepting)setError("");try{const existing=await api("/api/worker/me");if(existing.networkId===result.network.id)setJoined(true);}catch{/* No enrolled browser cookie: explicit consent remains required. */}}catch(cause){setNetwork(null);setError(cause instanceof Error?cause.message:String(cause));}}
   useEffect(()=>{if(joined)return;void load();const timer=setInterval(()=>void load(),5000);return()=>clearInterval(timer)},[token,joined]);
   async function accept(){setJoining(true);try{await api(`/api/join/${token}/accept`,{method:"POST",body:JSON.stringify({consent:true,workerType:"BROWSER",deviceIdentity:`${navigator.userAgent}|${deviceNonce()}`})});setJoined(true);}catch(cause){setError(cause instanceof Error?cause.message:String(cause));void load();}finally{setJoining(false);}}
   const expired=network?.joinLinkStatus==="REVOKED"||network?.joinLinkStatus==="EXPIRED";

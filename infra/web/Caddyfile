@@ -1,0 +1,20 @@
+# Optional production edge; does not change the MySQL Compose configuration.
+# Explicit domain and built-web directory are required. No access logs containing
+# network admission URLs are enabled here.
+{$GRID_X_DOMAIN} {
+	encode zstd gzip
+	header {
+		Referrer-Policy no-referrer
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+	}
+	@coordinator path /api/* /ws/* /health /ready
+	handle @coordinator {
+		reverse_proxy 127.0.0.1:4100
+	}
+	handle {
+		root * {$GRID_X_WEB_ROOT}
+		try_files {path} /index.html
+		file_server
+	}
+}

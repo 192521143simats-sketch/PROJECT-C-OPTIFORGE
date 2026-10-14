@@ -1,5 +1,16 @@
 # GRID-X master implementation status
 
+## Phase 6 browser core sealed v1 — 2026-10-14
+
+Seven B20 browser-core obligations passed real desktop and mobile-emulated
+HTTPS/WSS integration with isolated MySQL. Fresh verification: 318 tests, five
+script tests, eight workspace builds/typechecks and compiler/Phase 4/web
+regressions. See PHASE6_ACCEPTANCE.md and its linked evidence. Physical Android
+acceptance passed (836139ed765adc44, exit 0), using manual taps and independent
+persisted-result assertions. Public-internet deployment is not configured or
+claimed. This external deployment gate
+is not hidden by the browser-core acceptance; native packages remain later phases.
+
 ## Phase 5 web product sealed v1 — 2026-10-14
 
 Eleven B20 web obligations and its actual browser-to-backend exit gate passed.

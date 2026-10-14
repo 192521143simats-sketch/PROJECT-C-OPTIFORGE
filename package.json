@@ -22,6 +22,8 @@
     "verify:compute": "node scripts/Run-Isolated-Integration.mjs compute",
     "verify:settings": "node scripts/Run-Isolated-Integration.mjs settings",
     "verify:web": "node scripts/Run-Isolated-Integration.mjs web",
+    "verify:browser": "node scripts/Run-Isolated-Integration.mjs browser",
+    "verify:android-browser": "node scripts/Run-Isolated-Integration.mjs android-browser",
     "verify:cancellation": "node scripts/Run-Isolated-Integration.mjs cancellation",
     "sandbox:build": "docker build -t gridx-execution:1 infra/sandbox",
     "verify:execution": "node scripts/Run-Isolated-Integration.mjs execution"

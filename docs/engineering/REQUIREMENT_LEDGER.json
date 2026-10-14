@@ -47665,10 +47665,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5503,
       "text": "- Complete browser enrollment.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/networks.ts; packages/contracts",
-      "verification": "atomic invitation, identity and network-isolation integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Preserved protocol browser core extended with enrollment scope, bounded Web Workers and lifecycle fences; obligation-specific evidence in acceptance table.",
+      "verification": "318 tests; real desktop/mobile-emulated HTTPS/WSS 5f1f7ee02da0cdec and physical Android manual-tap acceptance 836139ed765adc44 passed. Public deployment remains a separate external gate.",
+      "evidence": [
+        "docs/engineering/PHASE6_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5504",
@@ -47677,10 +47679,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5504,
       "text": "- Implement protocol compatibility.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Preserved protocol browser core extended with enrollment scope, bounded Web Workers and lifecycle fences; obligation-specific evidence in acceptance table.",
+      "verification": "318 tests; real desktop/mobile-emulated HTTPS/WSS 5f1f7ee02da0cdec and physical Android manual-tap acceptance 836139ed765adc44 passed. Public deployment remains a separate external gate.",
+      "evidence": [
+        "docs/engineering/PHASE6_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5505",
@@ -47689,10 +47693,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5505,
       "text": "- Implement bounded execution.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Preserved protocol browser core extended with enrollment scope, bounded Web Workers and lifecycle fences; obligation-specific evidence in acceptance table.",
+      "verification": "318 tests; real desktop/mobile-emulated HTTPS/WSS 5f1f7ee02da0cdec and physical Android manual-tap acceptance 836139ed765adc44 passed. Public deployment remains a separate external gate.",
+      "evidence": [
+        "docs/engineering/PHASE6_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5506",
@@ -47701,10 +47707,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5506,
       "text": "- Implement worker lifecycle and cancellation.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Preserved protocol browser core extended with enrollment scope, bounded Web Workers and lifecycle fences; obligation-specific evidence in acceptance table.",
+      "verification": "318 tests; real desktop/mobile-emulated HTTPS/WSS 5f1f7ee02da0cdec and physical Android manual-tap acceptance 836139ed765adc44 passed. Public deployment remains a separate external gate.",
+      "evidence": [
+        "docs/engineering/PHASE6_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5507",
@@ -47713,10 +47721,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5507,
       "text": "- Implement progress and result submission.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Preserved protocol browser core extended with enrollment scope, bounded Web Workers and lifecycle fences; obligation-specific evidence in acceptance table.",
+      "verification": "318 tests; real desktop/mobile-emulated HTTPS/WSS 5f1f7ee02da0cdec and physical Android manual-tap acceptance 836139ed765adc44 passed. Public deployment remains a separate external gate.",
+      "evidence": [
+        "docs/engineering/PHASE6_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5508",
@@ -47725,10 +47735,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5508,
       "text": "- Handle tab closure and reconnection.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Preserved protocol browser core extended with enrollment scope, bounded Web Workers and lifecycle fences; obligation-specific evidence in acceptance table.",
+      "verification": "318 tests; real desktop/mobile-emulated HTTPS/WSS 5f1f7ee02da0cdec and physical Android manual-tap acceptance 836139ed765adc44 passed. Public deployment remains a separate external gate.",
+      "evidence": [
+        "docs/engineering/PHASE6_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5509",
@@ -47737,10 +47749,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5509,
       "text": "- Verify task eligibility and limitations.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Preserved protocol browser core extended with enrollment scope, bounded Web Workers and lifecycle fences; obligation-specific evidence in acceptance table.",
+      "verification": "318 tests; real desktop/mobile-emulated HTTPS/WSS 5f1f7ee02da0cdec and physical Android manual-tap acceptance 836139ed765adc44 passed. Public deployment remains a separate external gate.",
+      "evidence": [
+        "docs/engineering/PHASE6_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5511",
@@ -47749,10 +47763,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5511,
       "text": "**Exit criteria:** A browser worker can contribute genuine supported computation and the coordinator correctly records its results.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Preserved protocol browser core extended with enrollment scope, bounded Web Workers and lifecycle fences; obligation-specific evidence in acceptance table.",
+      "verification": "318 tests; real desktop/mobile-emulated HTTPS/WSS 5f1f7ee02da0cdec and physical Android manual-tap acceptance 836139ed765adc44 passed. Public deployment remains a separate external gate.",
+      "evidence": [
+        "docs/engineering/PHASE6_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5513",

@@ -1,19 +1,19 @@
 import {spawn} from 'node:child_process';
 import {randomBytes} from 'node:crypto';
 import {mkdir,writeFile} from 'node:fs/promises';
-import {createServer} from 'node:net';
+import {createServer,createConnection} from 'node:net';
 import {resolve} from 'node:path';
 import mysql from 'mysql2/promise';
 import {assertIsolatedTarget,verifyIsolatedCoordinator} from './Integration-Target.mjs';
 import {terminateOwnedTestProcess} from './Owned-Test-Process.mjs';
 
 const mode=process.argv[2]??'all';
-if(!['all','platform','artifacts','enrollment','reusable','execution','results','leases','recovery','cancellation','phase4','compute','web','settings'].includes(mode)) throw new Error('Unknown isolated integration mode.');
+if(!['all','platform','artifacts','enrollment','reusable','execution','results','leases','recovery','cancellation','phase4','compute','web','settings','browser','android-browser'].includes(mode)) throw new Error('Unknown isolated integration mode.');
 const root=process.cwd(),instance=randomBytes(8).toString('hex'),container=`gridx-test-${instance}`,database=`gridx_test_${instance}`;
 const password=randomBytes(32).toString('base64url'),rootPassword=randomBytes(32).toString('base64url');
 const startedAt=new Date().toISOString(),evidence=resolve(root,'.runtime','integration',instance);
 await mkdir(evidence,{recursive:true});
-let created=false,coordinator,web,native,coordinatorLog='',exitCode=1;
+let created=false,coordinator,web,tls,native,coordinatorLog='',exitCode=1;
 const results=[];
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 function command(executable,args,{env=process.env,timeout=30_000,onControl,input}={}) {
@@ -24,7 +24,7 @@ function command(executable,args,{env=process.env,timeout=30_000,onControl,input
     const finish=(error,code)=>{if(settled)return;settled=true;clearTimeout(timer);error?reject(error):resolve({code,output});};
     const stop=async(error)=>{forcedError=error;try{await terminateOwnedTestProcess(child);}catch(cause){forcedError=cause;}finish(forcedError);};
     const timer=setTimeout(()=>void stop(new Error(`${executable} timed out after ${timeout} ms`)),timeout);
-    child.stdout.on('data',chunk=>{output+=chunk.toString();if(output.length>2_000_000&&!forcedError)void stop(new Error('Integration command output limit exceeded'));});
+    child.stdout.on('data',chunk=>{const value=chunk.toString();output+=value;if(mode==='android-browser'&&env.GRID_X_ANDROID_MANUAL==='1'&&value.includes('MANUAL ACTION:'))console.log(value.trim().replaceAll(password,'[REDACTED]').replaceAll(rootPassword,'[REDACTED]'));if(output.length>2_000_000&&!forcedError)void stop(new Error('Integration command output limit exceeded'));});
     child.stderr.on('data',chunk=>{output+=chunk.toString();});
     child.on('error',error=>finish(error));child.on('close',code=>finish(forcedError,code??-1));
     if(onControl)child.on("message",message=>{void onControl(message.recoveryAction,message).then(()=>child.send({id:message.id}),error=>{const safe=String(error.message).replaceAll(password,'[REDACTED]').replaceAll(rootPassword,'[REDACTED]');results.push({fault:message.recoveryAction,error:safe});console.error(`Owned fault ${message.recoveryAction}: ${safe}`);child.send({id:message.id,error:"Isolated fault control failed; inspect runner logs"});}).catch(()=>{});});
@@ -45,8 +45,11 @@ try {
   const dbPort=Number(published.match(/127\.0\.0\.1:(\d+)/)?.[1]);
   if(!dbPort) throw new Error('Isolated MySQL port was not published on loopback.');
   await waitFor(async()=>{const connection=await mysql.createConnection({host:'127.0.0.1',port:dbPort,database,user:'gridx_test',password,connectTimeout:2000});try{await connection.query('SELECT 1');}finally{await connection.end();}},'isolated MySQL readiness');
-  const port=await availablePort(),base=`http://127.0.0.1:${port}`,webPort=mode==='web'?await availablePort():null;
+  const port=await availablePort(),base=`http://127.0.0.1:${port}`,webPort=['web','browser','android-browser'].includes(mode)?await availablePort():null;
+  const tlsPort=mode==='browser'&&process.env.GRID_X_TEST_TLS==='1'?await availablePort():null;
   const env={...process.env,GRID_X_EXECUTION_MODE:process.env.GRID_X_EXECUTION_MODE??(mode==='execution'?'docker':'disabled'),TASK_TIMEOUT_MS:mode==='recovery'?'6000':(process.env.TASK_TIMEOUT_MS??'30000'),HEARTBEAT_STALE_MS:mode==='recovery'?'60000':(process.env.HEARTBEAT_STALE_MS??'15000'),HEARTBEAT_OFFLINE_MS:mode==='recovery'?'120000':(process.env.HEARTBEAT_OFFLINE_MS??'30000'),RESEND_ENABLED:'false',POSTHOG_ENABLED:'false',RESEND_API_KEY:'',POSTHOG_PROJECT_KEY:'',NODE_ENV:'development',HOST:'127.0.0.1',PORT:String(port),PUBLIC_BASE_URL:webPort?`http://127.0.0.1:${webPort}`:'http://localhost:5173',COORDINATOR_PUBLIC_URL:base,ALLOWED_ORIGINS:'',TRUSTED_PROXIES:'',DB_HOST:'127.0.0.1',DB_PORT:String(dbPort),DB_NAME:database,DB_USER:'gridx_test',DB_PASSWORD:password,ADMIN_USERNAME:'integration-admin',ADMIN_PASSWORD:'IntegrationOnly!42',ADMIN_PASSWORD_HASH:'',GRID_X_TEST_BASE:base,GRID_X_TEST_INSTANCE:instance,GRID_X_TEST_WEB_BASE:webPort?`http://127.0.0.1:${webPort}`:'',GRID_X_TEST_EVIDENCE:evidence};
+  if(tlsPort){env.PUBLIC_BASE_URL=`https://127.0.0.1:${tlsPort}`;env.GRID_X_TEST_WEB_BASE=env.PUBLIC_BASE_URL;}
+  if(mode==='android-browser'){env.PUBLIC_BASE_URL=`http://gridx-test-${instance}.localhost:${webPort}`;env.GRID_X_TEST_WEB_BASE=env.PUBLIC_BASE_URL;}
   function startCoordinator(){coordinator=spawn(process.execPath,['--import','tsx',resolve(root,'apps/coordinator/src/server.ts')],{cwd:root,env,windowsHide:true,stdio:['ignore','pipe','pipe']});
   coordinator.stdout.on('data',chunk=>{coordinatorLog+=chunk.toString();});coordinator.stderr.on('data',chunk=>{coordinatorLog+=chunk.toString();});
   coordinator.on('error',error=>{coordinatorLog+=`Coordinator spawn failed: ${error.message}`;});}
@@ -90,12 +93,19 @@ try {
   if(webPort){
     web=spawn(process.execPath,[resolve(root,'node_modules/vite/bin/vite.js'),'--host','127.0.0.1'],{cwd:resolve(root,'apps/web'),env:{...env,GRID_X_WEB_PORT:String(webPort),GRID_X_API_TARGET:base},windowsHide:true,stdio:['ignore','pipe','pipe']});
     web.stdout.on('data',chunk=>{coordinatorLog+=chunk.toString();});web.stderr.on('data',chunk=>{coordinatorLog+=chunk.toString();});
-    await waitFor(async()=>{const response=await fetch(env.GRID_X_TEST_WEB_BASE);if(!response.ok)throw new Error('Web not ready');},'isolated Vite web',30000);
+    const viteBase=`http://127.0.0.1:${webPort}`;
+    await waitFor(async()=>{const response=await fetch(viteBase);if(!response.ok)throw new Error('Web not ready');},'isolated Vite web',30000);
+    if(tlsPort){
+      const key=resolve(evidence,'fixture-key.pem'),cert=resolve(evidence,'fixture-cert.pem'),openssl=process.platform==='win32'?'C:/Program Files/Git/usr/bin/openssl.exe':'openssl';
+      await checked(openssl,['req','-x509','-newkey','rsa:2048','-nodes','-keyout',key,'-out',cert,'-days','1','-subj','/CN=127.0.0.1','-addext','subjectAltName=IP:127.0.0.1'],{timeout:30000});
+      tls=spawn(process.execPath,[resolve(root,'scripts/Isolated-TLS-Proxy.mjs')],{cwd:root,env:{...env,GRID_X_TEST_TLS_PORT:String(tlsPort),GRID_X_TEST_VITE_BASE:viteBase,GRID_X_TEST_TLS_KEY:key,GRID_X_TEST_TLS_CERT:cert},windowsHide:true,stdio:['ignore','pipe','pipe']});tls.stdout.on('data',chunk=>{coordinatorLog+=chunk.toString();});tls.stderr.on('data',chunk=>{coordinatorLog+=chunk.toString();});
+      await waitFor(()=>new Promise((resolve,reject)=>{const socket=createConnection({host:'127.0.0.1',port:tlsPort});socket.setTimeout(2000);socket.once('connect',()=>{socket.destroy();resolve();});socket.once('error',reject);socket.once('timeout',()=>{socket.destroy();reject(new Error('TLS fixture not ready'));});}),'owned TLS proxy',30000);
+    }
   }
-  const scripts=mode==='settings'?['Verify-Settings.mjs']:mode==='web'?['Verify-Web-Product.mjs']:mode==='compute'?['Verify-Compute-Tasks.mjs']:mode==='phase4'?['Verify-Phase4-Closure.mjs']:mode==='cancellation'?['Verify-Task-Cancellation.mjs']:mode==='recovery'?['Verify-Task-Recovery.mjs']:mode==='leases'?['Verify-Task-Leases.mjs']:mode==='results'?['Verify-Migrations.mjs','Verify-Task-Results.mjs']:mode==='execution'?['Verify-Migrations.mjs','Verify-Execution.mjs']:mode==='reusable'?['Verify-Reusable-Link.mjs']:mode==='enrollment'?['Verify-Migrations.mjs','Verify-Enrollment.mjs']:['Verify-Migrations.mjs','Verify-MySQL-Concurrency.mjs','Verify-Protocol.mjs',...(mode==='all'?['Verify-Task-Results.mjs','Verify-Platform.mjs','Verify-Artifacts.mjs']:[mode==='platform'?'Verify-Platform.mjs':'Verify-Artifacts.mjs'])];
+  const scripts=mode==='android-browser'?['Verify-Android-Browser.mjs']:mode==='browser'?['Verify-Browser-Worker.mjs']:mode==='settings'?['Verify-Settings.mjs']:mode==='web'?['Verify-Web-Product.mjs']:mode==='compute'?['Verify-Compute-Tasks.mjs']:mode==='phase4'?['Verify-Phase4-Closure.mjs']:mode==='cancellation'?['Verify-Task-Cancellation.mjs']:mode==='recovery'?['Verify-Task-Recovery.mjs']:mode==='leases'?['Verify-Task-Leases.mjs']:mode==='results'?['Verify-Migrations.mjs','Verify-Task-Results.mjs']:mode==='execution'?['Verify-Migrations.mjs','Verify-Execution.mjs']:mode==='reusable'?['Verify-Reusable-Link.mjs']:mode==='enrollment'?['Verify-Migrations.mjs','Verify-Enrollment.mjs']:['Verify-Migrations.mjs','Verify-MySQL-Concurrency.mjs','Verify-Protocol.mjs',...(mode==='all'?['Verify-Task-Results.mjs','Verify-Platform.mjs','Verify-Artifacts.mjs']:[mode==='platform'?'Verify-Platform.mjs':'Verify-Artifacts.mjs'])];
   for(const script of scripts){
     console.log(`Running ${script} against isolated test MySQL and coordinator...`);
-    const result=await command(process.execPath,['--import','tsx',resolve(root,'scripts',script)],{env,timeout:300_000,...(['Verify-Task-Recovery.mjs','Verify-Phase4-Closure.mjs','Verify-Web-Product.mjs'].includes(script)?{onControl:control}:{})});
+    const result=await command(process.execPath,['--import','tsx',resolve(root,'scripts',script)],{env,timeout:mode==='android-browser'&&env.GRID_X_ANDROID_MANUAL==='1'?900_000:300_000,...(['Verify-Task-Recovery.mjs','Verify-Phase4-Closure.mjs','Verify-Web-Product.mjs','Verify-Browser-Worker.mjs'].includes(script)?{onControl:control}:{})});
     await writeFile(resolve(evidence,`${script}.log`),result.output);
     results.push({script,exitCode:result.code});
     if(result.code!==0) throw new Error(`${script} failed; inspect ${evidence}`);
@@ -104,6 +114,7 @@ try {
   exitCode=0;
 }catch(error){console.error(error.message);results.push({error:error.message});}
 finally {
+  if(tls)try{await terminateOwnedTestProcess(tls);}catch(error){exitCode=1;results.push({cleanupError:error.message});}
   if(native)try{await terminateOwnedTestProcess(native);}catch(error){exitCode=1;results.push({cleanupError:error.message});}
   if(web&&web.exitCode===null){web.kill();await Promise.race([new Promise(resolve=>web.once('exit',resolve)),pause(5000)]);}
   if(coordinator && coordinator.exitCode===null){coordinator.kill();await Promise.race([new Promise(resolve=>coordinator.once('exit',resolve)),pause(5000)]);}

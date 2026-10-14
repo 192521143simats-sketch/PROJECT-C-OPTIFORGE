@@ -21,6 +21,12 @@ Iterate implementation → unit tests → isolated integration → build → evi
 
 ## Current execution checklist
 
+- [x] Phase 6 browser core: bounded real Web Workers, lifecycle/progress/reconnect,
+  cancellation fences and narrow coordinator connection-race repair. Desktop and
+  mobile-emulated HTTPS/WSS, compiler/web/Phase 4 regressions passed. See
+  PHASE6_ACCEPTANCE.md; physical Android passed with manual taps and independently
+  verified results. Public-host deployment remains a separate external gate.
+
 - [x] Read both complete prompts and M2 resolutions; inspect existing workspace and toolchains.
 - [x] Preserve developer DB/volume/secrets; establish engineering branch and granular ledger.
 - [x] Diagnose concurrency-sensitive baseline; bounded verification and dependency-backed readiness.
