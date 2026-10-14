@@ -1,0 +1,125 @@
+import {chromium,expect} from '@playwright/test';
+import {resolve} from 'node:path';
+import {readFile} from 'node:fs/promises';
+import {assertIsolatedTarget,verifyIsolatedCoordinator} from './Integration-Target.mjs';
+
+const target=assertIsolatedTarget();await verifyIsolatedCoordinator(target);
+const base=process.env.GRID_X_TEST_WEB_BASE;
+if(!base||!/^http:\/\/127\.0\.0\.1:\d+$/.test(base)||[4100,5173].includes(Number(new URL(base).port)))throw new Error('Refusing non-isolated web target');
+const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'msedge'}:{})});
+const context=await browser.newContext({baseURL:base}),page=await context.newPage();
+async function startNative(credential){
+ if(typeof process.send!=="function")throw new Error("Web acceptance must run under its owned isolated runner.");
+ const id=crypto.randomUUID();await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{process.off('message',received);reject(new Error("Native fixture start timed out"));},15000);function received(message){if(message.id!==id)return;clearTimeout(timer);process.off('message',received);message.error?reject(new Error(message.error)):resolve();}process.on('message',received);process.send({id,recoveryAction:'startNativeWorker',credential});});
+}
+const failures=[];page.on('pageerror',error=>failures.push(error.message));
+try{
+  await page.goto('/');await expect(page.getByRole('heading',{name:'Hardware-adaptive distributed compilation.'})).toBeVisible();
+  await page.keyboard.press('Tab');await expect(page.getByRole('link',{name:'Skip to content'})).toBeFocused();await page.keyboard.press('Enter');await expect(page.locator('#main-content')).toBeFocused();
+  await page.goto('/signup');
+  await page.getByLabel('Name',{exact:true}).fill('Web Acceptance');
+  await page.getByLabel('Email',{exact:true}).fill('web-acceptance@example.test');
+  await page.getByLabel('Password',{exact:true}).fill('WebAcceptance!42');
+  await page.getByLabel('Confirm password',{exact:true}).fill('WebAcceptance!42');
+  await page.getByRole('button',{name:'Create account',exact:true}).click();
+  await expect(page).toHaveURL(/\/login\?created=1/);
+  await page.getByLabel('Username or email').fill('web-acceptance@example.test');
+  await page.getByLabel('Password',{exact:true}).fill('WebAcceptance!42');
+  await page.getByRole('button',{name:'Sign in',exact:true}).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto('/compute');
+  await expect(page.getByRole('heading',{name:'Compute Tasks',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Submit compute task',exact:true}).click();
+  await expect(page.getByRole('alert')).toContainText('No compatible connected worker');
+  await page.goto('/settings');
+  await page.getByLabel('Reduce motion').check();
+  await page.getByRole('button',{name:'Save preferences'}).click();
+  await expect(page.getByRole('status')).toContainText('Preferences saved');
+  expect((await (await context.request.get('/api/user/settings')).json()).reducedMotion).toBe(true);
+  await page.goto('/compute');await expect(page.locator('html')).toHaveAttribute('data-reduced-motion','true');
+  const sessions=await (await context.request.get('/api/user/settings/sessions')).json();
+  expect(sessions.items.some(item=>item.current)).toBe(true);
+  expect(JSON.stringify(sessions)).not.toContain('tokenHash');
+  expect((await context.cookies()).find(cookie=>cookie.name==='gridx_session')?.httpOnly).toBe(true);
+  const adminContext=await browser.newContext({baseURL:base}),admin=await adminContext.newPage();
+  try{
+    await admin.goto('/login');
+    await admin.getByLabel('Username or email').fill(process.env.ADMIN_USERNAME);
+    await admin.getByLabel('Password',{exact:true}).fill(process.env.ADMIN_PASSWORD);
+    await admin.getByRole('button',{name:'Sign in',exact:true}).click();
+    await expect(admin).toHaveURL(/\/admin$/);
+    expect((await context.request.get('/api/admin/overview')).status()).toBe(403);
+    await admin.getByLabel('Name',{exact:true}).fill('Browser Acceptance Alpha');
+    await admin.getByRole('button',{name:'Create network',exact:true}).click();
+    await expect(admin.getByText('Default network join link',{exact:true})).toBeVisible();
+    await admin.getByRole('button',{name:'Copy',exact:true}).click();
+    await expect(admin.getByRole('button',{name:'✓ Copied',exact:true})).toBeVisible();
+    const network=(await (await adminContext.request.get('/api/admin/networks?page=1&pageSize=10')).json()).items[0];
+    expect((await adminContext.request.get(`/api/admin/networks/${network.id}/policy`)).status()).toBe(200);
+    await admin.getByRole('button',{name:'Scheduling policy',exact:true}).click();
+    await expect(admin.getByRole('heading',{name:'Network details'})).toBeVisible();
+    await admin.getByLabel('Scheduling policy (JSON)').fill('{}');
+    await admin.getByRole('button',{name:'Save scheduling policy'}).click();
+    await expect(admin.getByRole('status').filter({hasText:'Network scheduling policy saved.'})).toBeVisible();
+    await admin.getByRole('button',{name:'Close details'}).click();
+    const joinURL=await admin.locator('.copy code').textContent();
+    const workerContext=await browser.newContext({baseURL:base}),workerPage=await workerContext.newPage();
+    try{
+      workerPage.on('pageerror',error=>failures.push(error.message));
+      await workerPage.goto(joinURL);await workerPage.getByRole('button',{name:'Become a Worker'}).click();
+      await expect(workerPage.getByText('NODE-A001',{exact:true})).toBeVisible();
+      await expect(workerPage.locator('.status-available')).toBeVisible({timeout:30000});
+      await admin.getByRole('switch',{name:'Admission for Browser Acceptance Alpha'}).click();
+      const revokedContext=await browser.newContext({baseURL:base}),revokedPage=await revokedContext.newPage();
+      await revokedPage.goto(joinURL);await expect(revokedPage.getByRole('heading',{name:'Network link expired',exact:true})).toBeVisible();await revokedContext.close();
+      await admin.getByRole('switch',{name:'Admission for Browser Acceptance Alpha'}).click();
+      const mobileContext=await browser.newContext({baseURL:base,viewport:{width:390,height:844},isMobile:true,hasTouch:true}),mobile=await mobileContext.newPage();
+      try{
+        await mobile.goto(joinURL);await mobile.getByRole('button',{name:'Become a Worker'}).click();await expect(mobile.getByText('NODE-A002',{exact:true})).toBeVisible();
+        expect(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+        await page.goto('/compute');await page.getByLabel('Workload parameters (JSON)').fill(JSON.stringify({operation:'sha256',input:'abc'}));
+        await page.getByRole('button',{name:'Submit compute task',exact:true}).click();
+        await expect(page.locator('.result-json')).toContainText('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',{timeout:30000});
+        const previousTask=await page.getByRole('heading',{name:'Current compute task'}).locator('..').locator('dd').first().textContent();
+        await page.getByRole('button',{name:'Submit compute task',exact:true}).click();
+        await expect(page.getByRole('heading',{name:'Current compute task'}).locator('..').locator('dd').first()).not.toHaveText(previousTask);
+        const credentialResponse=await fetch(target.base+'/api'+new URL(joinURL).pathname+'/accept',{method:'POST',headers:{origin:base,'content-type':'application/json'},body:JSON.stringify({consent:true,workerType:'NATIVE',deviceIdentity:'web-native-toolchain-fixture'})});
+        expect(credentialResponse.status).toBe(201);const enrollment=await credentialResponse.json();
+        await startNative(enrollment.workerCredential);
+        await expect.poll(async()=>{const nodes=await (await adminContext.request.get('/api/admin/nodes?page=1&pageSize=10')).json();return nodes.items.some(node=>node.workerType==='NATIVE'&&node.status==='AVAILABLE');},{timeout:30000}).toBe(true);
+        await mobile.getByRole('button',{name:'Leave network'}).click();await expect(mobile.getByRole('heading',{name:'Join distributed network',exact:true})).toBeVisible();await mobileContext.close();await workerContext.close();
+        console.log('Browser/mobile-layout enrollment, reusable link toggle and real portable task verified; native pipeline checks starting.');
+        for(const item of [{language:'c',file:'sample-c-easy.c'},{language:'python',file:'sample-python-easy.py'},{language:'java',file:'sample-java-easy.java'}]){
+          await expect.poll(async()=>{const nodes=await (await adminContext.request.get('/api/admin/nodes?page=1&pageSize=10')).json();return nodes.items.some(node=>node.workerType==='NATIVE'&&node.status==='AVAILABLE'&&node.profile.runtimes[item.language]&&node.resources?.freeMemoryBytes>=536870912);},{timeout:30000}).toBe(true);
+          await page.goto('/dashboard');await page.getByLabel('Language',{exact:true}).selectOption(item.language);
+          await page.getByLabel('Upload source file').setInputFiles(resolve(item.file));
+          await page.getByRole('button',{name:'Compile and optimize',exact:true}).click();
+          await expect(page.getByRole('heading',{name:'Generated artifacts'})).toBeVisible({timeout:120000});
+          const reports=page.locator('.artifact-list li').filter({hasText:'Build report (JSON)'});
+          const downloading=page.waitForEvent('download');await reports.getByRole('link',{name:'Download',exact:true}).click();const download=await downloading;
+          expect(download.suggestedFilename()).toBe('build-report.json');const report=JSON.parse(await readFile(await download.path(),'utf8'));
+          expect(report.compilationSummary.sourceFile).toBe(item.file);expect(report.finalResult.status).toBe('SUCCESS');
+          console.log(`Actual ${item.language} source upload, native compilation, report and download passed.`);
+        }
+        await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.setViewportSize({width:1280,height:720});
+        await admin.getByRole('button',{name:'Tasks & jobs'}).click();await admin.getByRole('button',{name:'Inspect job'}).first().click();await expect(admin.getByRole('heading',{name:'Job details'})).toBeVisible();await admin.getByRole('button',{name:'Close details'}).click();
+        await admin.getByRole('button',{name:'Inspect task'}).first().click();await expect(admin.getByRole('heading',{name:'Task details'})).toBeVisible();await admin.getByRole('button',{name:'Close details'}).click();
+        await admin.getByRole('button',{name:'Overview',exact:true}).click();await admin.getByRole('button',{name:'Inspect node'}).first().click();await expect(admin.getByRole('heading',{name:'Node details'})).toBeVisible();await admin.getByRole('button',{name:'Close details'}).click();
+        await admin.getByRole('button',{name:'Disable',exact:true}).click();
+        await expect.poll(async()=>{const snapshot=await (await adminContext.request.get('/api/admin/overview')).json();return snapshot.summary.onlineWorkers;},{timeout:3000}).toBe(0);
+        await expect(admin.getByText('Browser Acceptance Alpha',{exact:true})).toHaveCount(0);
+      }finally{await mobileContext.close();}
+    }finally{await workerContext.close();}
+  }finally{await adminContext.close();}
+  expect(failures).toEqual([]);
+  await page.goto('/forgot-password');await page.getByLabel('Email',{exact:true}).fill('web-acceptance@example.test');await page.getByRole('button',{name:'Request reset',exact:true}).click();
+  const resetURL=await page.getByRole('link',{name:'Open local development reset link'}).getAttribute('href');
+  await page.goto(resetURL);await page.getByLabel('New password',{exact:true}).fill('UpdatedAcceptance!42');await page.getByLabel('Confirm password',{exact:true}).fill('UpdatedAcceptance!42');
+  await page.getByRole('button',{name:'Update password',exact:true}).click();await expect(page).toHaveURL(/\/login\?reset=1/);
+  expect((await context.request.get('/api/user/settings')).status()).toBe(401);
+  await page.getByLabel('Username or email').fill('web-acceptance@example.test');await page.getByLabel('Password',{exact:true}).fill('UpdatedAcceptance!42');await page.getByRole('button',{name:'Show password',exact:true}).click();await expect(page.getByLabel('Password',{exact:true})).toHaveAttribute('type','text');await page.getByRole('button',{name:'Hide password',exact:true}).click();
+  await page.getByRole('button',{name:'Sign in',exact:true}).click();await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto('/settings');await page.getByRole('button',{name:'Sign out this session'}).click();await expect(page).toHaveURL(/\/login$/);
+  expect((await context.request.get('/api/user/settings')).status()).toBe(401);
+  console.log('Actual Edge user signup/login/routing, safe task admission, persisted preferences, HttpOnly sessions, admin RBAC and network copy passed.');
+}finally{await context.close();await browser.close();if(process.connected)process.disconnect();}

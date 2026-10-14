@@ -19,11 +19,15 @@
     "verify:artifacts": "node scripts/Run-Isolated-Integration.mjs artifacts",
     "verify:recovery": "node scripts/Run-Isolated-Integration.mjs leases && node scripts/Run-Isolated-Integration.mjs recovery",
     "verify:phase4": "node scripts/Run-Isolated-Integration.mjs phase4",
+    "verify:compute": "node scripts/Run-Isolated-Integration.mjs compute",
+    "verify:settings": "node scripts/Run-Isolated-Integration.mjs settings",
+    "verify:web": "node scripts/Run-Isolated-Integration.mjs web",
     "verify:cancellation": "node scripts/Run-Isolated-Integration.mjs cancellation",
     "sandbox:build": "docker build -t gridx-execution:1 infra/sandbox",
     "verify:execution": "node scripts/Run-Isolated-Integration.mjs execution"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "concurrently": "^9.2.5",
     "jsdom": "^30.1.2",
     "typescript": "^5.9.3",

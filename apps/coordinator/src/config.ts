@@ -29,6 +29,10 @@ export const config = {
   executionEnabled: (process.env.GRID_X_EXECUTION_MODE??"docker")==="docker",
   sessionTtlHours: integer("SESSION_TTL_HOURS", 12),
   resetTtlMinutes: integer("RESET_TTL_MINUTES", 20),
+  integrations: {
+    email: {enabled:process.env.RESEND_ENABLED==="true",apiKey:process.env.RESEND_API_KEY,from:process.env.RESEND_FROM,publicBaseUrl:process.env.PUBLIC_BASE_URL,timeoutMs:integer("INTEGRATION_TIMEOUT_MS",1500)},
+    analytics: {enabled:process.env.POSTHOG_ENABLED==="true",apiKey:process.env.POSTHOG_PROJECT_KEY,host:process.env.POSTHOG_HOST,timeoutMs:integer("INTEGRATION_TIMEOUT_MS",1500)}
+  },
   database: {
     host: process.env.DB_HOST ?? "127.0.0.1",
     port: integer("DB_PORT", 3307),

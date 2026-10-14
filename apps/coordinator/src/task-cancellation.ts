@@ -34,12 +34,12 @@ export async function cancelCompilationJob(pool:Pool,jobId:string,actorId:string
     return{status:'CANCELLED',tasks};
   });
 }
-export async function cancelPortableTask(pool:Pool,taskId:string,actorId:string){
+export async function cancelPortableTask(pool:Pool,taskId:string,actorId:string,actorType:'ADMIN'|'USER'='ADMIN'){
   return retryTransaction(pool,async connection=>{
     const [rows]=await connection.execute<RowDataPacket[]>("SELECT * FROM tasks WHERE id=? AND kind='TEST_COMPUTE' AND job_id IS NULL FOR UPDATE",[taskId]);
     if(!rows[0])return undefined;
     const now=new Date().toISOString(),tasks=await cancelRows(connection,rows,now);
-    if(tasks.length)await connection.execute("INSERT INTO audit_events(id,actor_type,actor_id,event_type,target_type,target_id,metadata_json,created_at) VALUES(?,'ADMIN',?,'TASK_CANCELLED','TASK',?,'{}',?)",[`AUDIT-${randomUUID()}`,actorId,taskId,now]);
+    if(tasks.length)await connection.execute("INSERT INTO audit_events(id,actor_type,actor_id,event_type,target_type,target_id,metadata_json,created_at) VALUES(?,?,?,'TASK_CANCELLED','TASK',?,'{}',?)",[`AUDIT-${randomUUID()}`,actorType,actorId,taskId,now]);
     return{status:tasks.length?'CANCELLED':String(rows[0].status),tasks};
   });
 }

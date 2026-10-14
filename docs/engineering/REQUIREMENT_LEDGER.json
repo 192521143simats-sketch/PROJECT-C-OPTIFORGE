@@ -508,7 +508,10 @@
       "status": "SUPERSEDED_BY_USER",
       "implementation": "apps/coordinator/src/networks.ts; apps/coordinator/src/migrations/0002-worker-invitations.mjs; apps/coordinator/src/server.ts; apps/web/src/main.tsx",
       "verification": "2026-10-12 explicit user override requires reusable default admission with invoke/revoke; preserved historical evidence, see USER_REQUIREMENT_OVERRIDES.md",
-      "evidence": ["docs/engineering/evidence/2026-10-12-invitations/RESULTS.md", "docs/engineering/USER_REQUIREMENT_OVERRIDES.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-invitations/RESULTS.md",
+        "docs/engineering/USER_REQUIREMENT_OVERRIDES.md"
+      ]
     },
     {
       "id": "M:M2:L71",
@@ -520,7 +523,10 @@
       "status": "SUPERSEDED_BY_USER",
       "implementation": "apps/coordinator/src/networks.ts; apps/coordinator/src/server.ts; apps/web/index.html; apps/web/src/main.tsx; scripts/Verify-Enrollment.mjs",
       "verification": "2026-10-12 explicit user override supersedes single-use-only clause; explicit consent, private scoped credentials and capacity guarantees retained. See USER_REQUIREMENT_OVERRIDES.md",
-      "evidence": ["docs/engineering/evidence/2026-10-12-invitations/RESULTS.md", "docs/engineering/USER_REQUIREMENT_OVERRIDES.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-invitations/RESULTS.md",
+        "docs/engineering/USER_REQUIREMENT_OVERRIDES.md"
+      ]
     },
     {
       "id": "M:M2:L73",
@@ -12194,7 +12200,9 @@
       "status": "VERIFIED",
       "implementation": "packages/compiler-python; apps/worker; coordinator artifact flow",
       "verification": "Actual CPython bytecode generation, semantic tests and authorized downloaded artifacts in isolated MySQL integration",
-      "evidence": ["docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"
+      ]
     },
     {
       "id": "A:27:L1376",
@@ -12206,7 +12214,9 @@
       "status": "IMPLEMENTED",
       "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
       "verification": "Structural headers, source relationship and authorized downloads tested; independent malicious-worker correctness verification remains open",
-      "evidence": ["docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"
+      ]
     },
     {
       "id": "A:27:L1377",
@@ -12374,7 +12384,9 @@
       "status": "IMPLEMENTED",
       "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
       "verification": "Actual javac classes/JAR, entry points, structural validation and downloads tested; independent malicious-worker correctness verification remains open",
-      "evidence": ["docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-12-compiler/RESULTS.md"
+      ]
     },
     {
       "id": "A:28:L1397",
@@ -36526,7 +36538,9 @@
       "status": "PARTIAL",
       "implementation": "migration 0005; task-cancellation.ts; task-process-controller.ts; protocol v1; compiler cancel control",
       "verification": "Durable cancellation/API/native process tree verified; coordinator native finalization remains bounded, not immediately abortable; physical browser acceptance pending.",
-      "evidence": ["docs/engineering/evidence/2026-10-13-task-cancellation/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-cancellation/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4193",
@@ -36608,7 +36622,9 @@
       "status": "PARTIAL",
       "implementation": "migration 0005; task-cancellation.ts; task-process-controller.ts; protocol v1; compiler cancel control",
       "verification": "Durable cancellation/API/native process tree verified; coordinator native finalization remains bounded, not immediately abortable; physical browser acceptance pending.",
-      "evidence": ["docs/engineering/evidence/2026-10-13-task-cancellation/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-13-task-cancellation/RESULTS.md"
+      ]
     },
     {
       "id": "B:6.5:L4200",
@@ -47468,10 +47484,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5487,
       "text": "- Complete landing page and routing.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/web; apps/coordinator",
-      "verification": "browser end-to-end, accessibility and isolated provider tests",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5488",
@@ -47480,10 +47498,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5488,
       "text": "- Complete authentication.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/auth.ts; apps/coordinator/src/server.ts",
-      "verification": "auth/API security integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5489",
@@ -47492,10 +47512,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5489,
       "text": "- Complete user dashboard.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/web; apps/coordinator",
-      "verification": "browser end-to-end, accessibility and isolated provider tests",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5490",
@@ -47504,10 +47526,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5490,
       "text": "- Complete compiler workspace.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5491",
@@ -47516,10 +47540,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5491,
       "text": "- Complete job history and reports.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5492",
@@ -47528,10 +47554,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5492,
       "text": "- Complete artifact downloads.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5493",
@@ -47540,10 +47568,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5493,
       "text": "- Complete worker enrollment and management.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/networks.ts; packages/contracts",
-      "verification": "atomic invitation, identity and network-isolation integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5494",
@@ -47552,10 +47582,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5494,
       "text": "- Complete administrator console.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5495",
@@ -47564,10 +47596,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5495,
       "text": "- Implement real-time state updates.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5496",
@@ -47576,10 +47610,13 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5496,
       "text": "- Complete responsive layouts and accessibility.",
-      "status": "IN_PROGRESS",
-      "implementation": "apps/web/src/pagination.tsx; apps/web/src/notice.tsx; apps/web/src/main.tsx",
-      "verification": "17 web HTTP/rendering/React-DOM tests; full browser end-to-end, responsive and keyboard acceptance still required",
-      "evidence": ["docs/engineering/evidence/2026-10-14-phase5-web-foundation/RESULTS.md"]
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/evidence/2026-10-14-phase5-web-foundation/RESULTS.md",
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5497",
@@ -47588,10 +47625,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5497,
       "text": "- Remove fake metrics and nonfunctional controls.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Existing web product integrated; scope and individual obligation mapping in acceptance matrix.",
+      "verification": "Actual Edge/MySQL journeys plus 302 tests and compiler regressions; RESULTS.md records commands and limits.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5499",
@@ -47600,10 +47639,12 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5499,
       "text": "**Exit criteria:** The core user and administrator journeys pass browser end-to-end tests against the actual backend.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "Core user/admin journeys integrated against actual coordinator.",
+      "verification": "Repeated isolated Edge end-to-end passes; final fixture 734efbd297eaf082.",
+      "evidence": [
+        "docs/engineering/PHASE5_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5501",

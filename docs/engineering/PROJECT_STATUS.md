@@ -1,5 +1,14 @@
 # GRID-X master implementation status
 
+## Phase 5 web product sealed v1 — 2026-10-14
+
+Eleven B20 web obligations and its actual browser-to-backend exit gate passed.
+Authoritative scope: PHASE5_ACCEPTANCE.md and evidence/2026-10-14-phase5-seal/RESULTS.md.
+302 tests, five script tests, eight builds/typechecks, isolated compiler and
+Phase 4 failure regressions passed. Optional provider live delivery, physical
+devices and native packages are not inferred from this seal. Next is Phase 6.
+The foundation entry below is historical, superseded by this acceptance.
+
 ## Phase 5 web foundation — 2026-10-14
 
 Phase 4 v1 remains sealed; its isolated closure fixture passed again in instance

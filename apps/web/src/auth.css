@@ -1,0 +1,12 @@
+.auth-card{width:100%;max-width:480px;display:grid;gap:16px}
+.auth-card label,.auth-password{display:block}
+.auth-card .password-field{position:relative;display:flex;align-items:center}
+.auth-card .password-field input{padding-right:54px}
+.auth-card .password-toggle{position:absolute;right:4px;top:8px;display:grid;place-items:center;min-height:40px;min-width:44px;background:transparent;color:#34424c;padding:6px}
+.auth-card .password-toggle:hover{background:#e8edef}
+.auth-card :is(input,button,a,[role="alert"]):focus-visible{outline:3px solid #168856;outline-offset:3px}
+.auth-card p{margin:0}
+.auth-card [role="alert"],.auth-card [role="status"]{margin:0;overflow-wrap:anywhere}
+.auth-card [type="submit"]{min-height:44px}
+.auth-card a{display:inline-block;padding-block:4px}
+@media(max-width:600px){.auth-card{padding:20px}}

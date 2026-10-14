@@ -13,6 +13,8 @@ import {workerInvitationMigration} from "./migrations/0002-worker-invitations.mj
 import {reusableNetworkLinkMigration} from "./migrations/0003-reusable-network-links.mjs";
 import {taskAttemptLeaseMigration} from "./migrations/0004-task-attempt-leases.mjs";
 import {attemptFailureReasonMigration} from './migrations/0007-attempt-failure-reasons.mjs';
+import {computeOwnershipMigration} from './migrations/0008-compute-ownership.mjs';
+import {userPreferencesMigration} from './migrations/0009-user-preferences.mjs';
 import {taskPolicyIntegrityMigration} from './migrations/0006-task-policy-integrity.mjs';
 import {verifyArtifactIntegrity} from './task-policy.js';
 import {recoverTaskAttempts} from "./task-recovery.js";
@@ -25,11 +27,11 @@ export type StoredArtifact={artifactType:"SOURCE"|"GENERATED_SOURCE"|"EXECUTABLE
 export class Store {
   private readonly verifyingTasks=new Set<string>();
   private constructor(readonly pool:Pool){}
-  static async connect(config:DatabaseConfig){const pool=mysql.createPool({host:config.host,port:config.port,database:config.name,user:config.user,password:config.password,waitForConnections:true,connectionLimit:10,queueLimit:0,timezone:"Z",decimalNumbers:true});const store=new Store(pool);try{await applyMigrations(pool,config.name,[existingSchemaMigration(),workerInvitationMigration(),reusableNetworkLinkMigration(),taskAttemptLeaseMigration(),taskCancellationMigration(),taskPolicyIntegrityMigration(),attemptFailureReasonMigration()]);return store;}catch(error){await pool.end();throw error;}}
+  static async connect(config:DatabaseConfig){const pool=mysql.createPool({host:config.host,port:config.port,database:config.name,user:config.user,password:config.password,waitForConnections:true,connectionLimit:10,queueLimit:0,timezone:"Z",decimalNumbers:true});const store=new Store(pool);try{await applyMigrations(pool,config.name,[existingSchemaMigration(),workerInvitationMigration(),reusableNetworkLinkMigration(),taskAttemptLeaseMigration(),taskCancellationMigration(),taskPolicyIntegrityMigration(),attemptFailureReasonMigration(),computeOwnershipMigration(),userPreferencesMigration()]);return store;}catch(error){await pool.end();throw error;}}
   async close(){await this.pool.end();}
   async recoverTaskAttempts(restart=false,serverInterrupted=false){return recoverTaskAttempts(this.pool,restart,serverInterrupted);}
   async cancelCompilationJob(jobId:string,actorId:string,admin=false){return cancelCompilationJob(this.pool,jobId,actorId,admin);}
-  async cancelPortableTask(taskId:string,actorId:string){return cancelPortableTask(this.pool,taskId,actorId);}
+  async cancelPortableTask(taskId:string,actorId:string,actorType:'ADMIN'|'USER'='ADMIN'){return cancelPortableTask(this.pool,taskId,actorId,actorType);}
   now(){return new Date().toISOString();} hash(token:string){return createHash("sha256").update(token).digest("hex");} token(){return randomBytes(32).toString("base64url");} id(prefix:string){return `${prefix}-${randomUUID()}`;}
   private transaction<T>(work:(connection:PoolConnection)=>Promise<T>){return retryTransaction(this.pool,work);}
 

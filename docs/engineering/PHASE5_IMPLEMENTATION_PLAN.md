@@ -1,6 +1,6 @@
 # Phase 5 — existing web product implementation checklist
 
-**Status: IN PROGRESS, not sealed.** Phase 4 v1 remains sealed at 4b75df2.
+**Status: SEALED v1 against the B20 web acceptance scope.** Phase 4 v1 remains sealed at 4b75df2. See PHASE5_ACCEPTANCE.md for evidence and explicit external verification gates.
 
 Goal: finish the existing GRID-X web product against the actual coordinator and
 MySQL, without replacing working authentication, compilers, worker protocol or
@@ -18,17 +18,17 @@ M2 R12/R16, and later user UI overrides.
   preserve cookies, server authorization messages and actual successful JSON.
 - [x] Remove only the unused legacy Admin and Dashboard implementations. App
   already routes to AdminV2 and DashboardV2; neither live screen is replaced.
-- [ ] Complete authentication operation pending/error behavior and keyboard
+- [x] Complete authentication operation pending/error behavior and keyboard
   onboarding; test signup/reset redirects, eye controls, invalid/expired sessions.
-- [ ] Implement authorized generic Compute Tasks submission/history/details using
+- [x] Implement authorized generic Compute Tasks submission/history/details using
   the existing task engine and catalogue, with owner-scoped APIs and real results.
-- [ ] Finish admin task/job/node details, independent table paging, policies and
+- [x] Finish admin task/job/node details, independent table paging, policies and
   live state/error recovery; preserve consolidated overview and Audit-only events.
-- [ ] Implement required settings/onboarding and configurable privacy-safe
+- [x] Implement required settings/onboarding and configurable privacy-safe
   Resend/PostHog adapters. Core operation must not depend on external availability.
-- [ ] Run actual browser user/admin journeys against isolated MySQL/coordinator,
+- [x] Run actual browser user/admin journeys against isolated MySQL/coordinator,
   including downloads, admission toggles, failure states and responsive keyboard UX.
-- [ ] Review, fix/retest, run complete workspace/compiler regressions, update
+- [x] Review, fix/retest, run complete workspace/compiler regressions, update
   granular requirements/evidence, then seal only the verified acceptance scope.
 
 ## Constraints and rulings
@@ -54,6 +54,7 @@ repair (missing alert/status semantics); 4 passed afterward.
 Review-driven page-shrink recovery: 1 React-DOM failure before fix; 2/2 DOM tests
 passed afterward. Full suite: 269/269, all workspace checks/builds passed.
 
-These component/HTTP checks are not actual browser-to-MySQL end-to-end acceptance.
-This checklist deliberately does not convert a partial implementation into a
-Phase 5 seal.
+The foundation checks above are historical. Fresh acceptance now includes actual
+Edge-to-MySQL journeys, 302 workspace tests, five script tests, all eight builds
+and typechecks, compiler execution regressions and repeated Phase 4 fault tests.
+See evidence/2026-10-14-phase5-seal/RESULTS.md.
