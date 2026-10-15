@@ -24,6 +24,7 @@ workspaces/
 *.dylib
 *.class
 *.jar
+!apps/android-worker/gradle/wrapper/gradle-wrapper.jar
 .DS_Store
 Thumbs.db
 # Native packaging: local SDK configuration, signing secrets and generated packages.
@@ -33,6 +34,7 @@ local.properties
 *.p12
 *.pfx
 .gradle/
+apps/android-worker/**/build/
 *.apk
 *.aab
 *.msi

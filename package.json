@@ -24,6 +24,7 @@
     "verify:web": "node scripts/Run-Isolated-Integration.mjs web",
     "verify:browser": "node scripts/Run-Isolated-Integration.mjs browser",
     "verify:android-browser": "node scripts/Run-Isolated-Integration.mjs android-browser",
+    "verify:android-native": "node scripts/Run-Isolated-Integration.mjs android-native",
     "package:windows": "node scripts/Build-Windows-Worker.mjs",
     "verify:windows": "node scripts/Run-Isolated-Integration.mjs windows",
     "verify:windows-install": "node scripts/Run-Isolated-Integration.mjs windows-install",
