@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>GRID-X Worker</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><h1>GRID-X Worker</h1><span id="status" role="status">DISCONNECTED</span></header>
+<main>
+  <p id="error" role="alert"></p>
+  <section>
+    <h2>Join a distributed network</h2>
+    <label>Network invitation<input id="invitation" type="url" placeholder="https://grid.example/join/…" autocomplete="off"></label>
+    <label class="check"><input id="consent" type="checkbox">I consent to authorized resource contribution. I can pause, disconnect, or leave at any time.</label>
+    <button id="enroll">Become a Worker</button>
+  </section>
+  <section>
+    <h2>Contribution</h2>
+    <div class="actions"><button id="connect">Connect / Resume</button><button id="pause">Pause</button><button id="disconnect">Disconnect</button><button id="leave">Leave network</button></div>
+    <dl id="details"></dl>
+    <p>Local submissions and coordinator-accepted results are shown separately. Reliability uses attributable coordinator attempt history; excluded user/server interruptions are not worker failures.</p>
+  </section>
+  <section>
+    <h2>Settings</h2>
+    <div class="settings">
+      <label>CPU contribution cap (%)<input id="cpu" type="number" min="1" max="100" value="80"></label>
+      <label>Worker-process budget (MB)<input id="memory" type="number" min="64" max="4096" value="256"></label>
+      <label>Task deadline (seconds)<input id="duration" type="number" min="1" max="120" value="30"></label>
+    </div>
+    <label class="check"><input id="native" type="checkbox">Allow configured native toolchains on this trusted development machine.</label>
+    <p>Portable work is enabled by default. A Windows Job Object enforces worker-process CPU and committed-memory limits before contribution starts. Desktop UI memory is separate. Deadlines and owned-process cleanup apply; native compilers are not a full filesystem/network sandbox. Production untrusted compilation requires stronger containment.</p>
+    <button id="save">Save settings (disconnect first)</button>
+  </section>
+  <section><h2>Recent activity / diagnostics</h2><button id="logs">Read persisted activity</button><pre id="activity"></pre></section>
+  <section><h2>About / updates</h2><p id="version"></p><p>Updates are installed manually from verified installer artifacts. This app never downloads or executes an unverified update. Unsigned development packages are not production-signed releases.</p></section>
+</main>
+<script src="renderer.js"></script>
+</body>
+</html>

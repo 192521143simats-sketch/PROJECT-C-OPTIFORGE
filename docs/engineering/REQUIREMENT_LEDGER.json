@@ -47777,10 +47777,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5513,
       "text": "## PHASE 7 — Windows worker and packaging",
-      "status": "NOT_STARTED",
-      "implementation": "apps/windows-worker (required; absent at baseline)",
-      "verification": "packaging, signature, clean Windows install/upgrade/uninstall",
-      "evidence": []
+      "status": "IN_PROGRESS",
+      "implementation": "apps/windows-worker; apps/worker/src/session.ts; scripts/Build-Windows-Worker.mjs",
+      "verification": "Real developer-host package and lifecycle verified; clean Windows, compiler bundles, containment and signing remain gates",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5515",
@@ -47789,10 +47789,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5515,
       "text": "- Complete the native worker lifecycle.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/worker/src/session.ts; apps/windows-worker/worker-bridge.ts; existing versioned contracts",
+      "verification": "Actual installed desktop register/task/result/pause/reconnect, coordinator-restart recovery, encrypted identity and revocation; retained CLI compiler and recovery regressions",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5516",
@@ -47801,10 +47801,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5516,
       "text": "- Implement secure enrollment and persistent identity.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/networks.ts; packages/contracts",
-      "verification": "atomic invitation, identity and network-isolation integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/windows-worker/main.cjs; settings.cjs; existing coordinator enrollment",
+      "verification": "Actual packaged consent, Windows DPAPI restart/upgrade identity, revocation and re-enrollment; corrupt identity preserved",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5517",
@@ -47813,10 +47813,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5517,
       "text": "- Improve resource monitoring and contribution controls.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/windows-worker/JobGuard.cs; main.cjs; renderer.js; apps/coordinator/src/worker-status.ts",
+      "verification": "Actual kernel CPU/memory queries and child termination; live packaged measured state and scoped MySQL counters",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5518",
@@ -47825,10 +47825,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5518,
       "text": "- Implement execution isolation and limits.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/windows-worker/JobGuard.cs; existing owned task execution",
+      "verification": "CPU/memory/lifetime and timeout verified; Job Objects are not filesystem/network isolation for untrusted compiler workloads",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5519",
@@ -47837,10 +47837,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5519,
       "text": "- Implement logs, diagnostics, pause, resume, and revocation.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/windows-worker/main.cjs; renderer.js; apps/worker/src/session.ts",
+      "verification": "Actual packaged controls, persisted credential-free activity, server rejection/revocation, safe-stop failure unit coverage",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5520",
@@ -47849,10 +47849,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5520,
       "text": "- Build the distributable package or installer.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/windows-worker (required; absent at baseline)",
-      "verification": "packaging, signature, clean Windows install/upgrade/uninstall",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "scripts/Build-Windows-Worker.mjs; scripts/Windows-Runtime.mjs; apps/windows-worker/runtime-lock.json",
+      "verification": "Actual unsigned NSIS installer/private runtime, real developer-host install, 0.1.0-to-0.1.1 upgrade and uninstall; not signed release certification",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5521",
@@ -47861,10 +47861,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5521,
       "text": "- Test clean installation and upgrades.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "scripts/Verify-Windows-Installation.mjs; scripts/Windows-Install-Fixture.mjs",
+      "verification": "Fresh profile and actual NSIS upgrade/uninstall on developer host passed; clean supported-Windows machine evidence remains required",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5523",
@@ -47873,10 +47873,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5523,
       "text": "**Exit criteria:** A packaged Windows worker can be installed, registered, execute permitted tasks, submit results, recover from interruptions, and be removed cleanly.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/windows-worker (required; absent at baseline)",
-      "verification": "packaging, signature, clean Windows install/upgrade/uninstall",
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": "apps/windows-worker; scripts/Verify-Windows-Installation.mjs; scripts/Verify-Windows-Worker.mjs",
+      "verification": "Full developer-host lifecycle including upgrade, coordinator restart and three native compiler paths passed; clean Windows, bundled compiler toolchains, complete containment and release signature gates remain",
+      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
     },
     {
       "id": "B:20:L5525",

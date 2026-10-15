@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {assertRuntimeIntegrity} from './Windows-Runtime.mjs';
+test('private runtime integrity rejects changed bytes and accepts an independent known digest',()=>{assert.throws(()=>assertRuntimeIntegrity(Buffer.from('tampered'),'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'));assert.doesNotThrow(()=>assertRuntimeIntegrity(Buffer.from('abc'),'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'));assert.throws(()=>assertRuntimeIntegrity(Buffer.from('abc'),'invalid'));});

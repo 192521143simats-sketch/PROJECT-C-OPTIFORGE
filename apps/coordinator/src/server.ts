@@ -28,6 +28,7 @@ import {ComputeTasks,ComputeAdmissionError,computeSubmissionSchema,computePageSc
 import {ProductIntegrations} from "./product-integrations.js";
 import {registerSettingsRoutes,UserSettingsStore} from "./user-settings.js";
 import {WorkerConnections} from "./worker-connections.js";
+import {registerWorkerStatus} from './worker-status.js';
 
 const SESSION_COOKIE="gridx_session",WORKER_COOKIE="gridx_worker";
 type AuthRequest=FastifyRequest&{auth?:AuthUser};
@@ -79,6 +80,7 @@ await app.register(cookie);await app.register(helmet);await app.register(cors,{o
   app.post("/api/auth/forgot-password",{config:{rateLimit:{max:5,timeWindow:"15 minutes"}}},async(request,reply)=>{const parsed=z.object({email:z.email().max(320)}).safeParse(request.body);if(!parsed.success)return reply.code(400).send(apiError("INVALID_EMAIL","Enter a valid email address."));const reset=await auth.createReset(parsed.data.email),response:{message:string;developmentResetUrl?:string}={message:"If the account exists, reset instructions are available."};if(reset){const outcome=await integrations.sendPasswordReset(parsed.data.email,reset.token);if(!['accepted','disabled'].includes(outcome))app.log.warn({outcome},'Password reset provider did not accept email');}if(reset&&config.nodeEnv!=="production")response.developmentResetUrl=`${config.publicBaseUrl}/reset-password?token=${encodeURIComponent(reset.token)}`;return response;});
   app.post("/api/auth/reset-password",{config:{rateLimit:{max:8,timeWindow:"15 minutes"}}},async(request,reply)=>{const parsed=z.object({token:z.string().min(20).max(200),password:z.string().max(200),confirmPassword:z.string().max(200)}).safeParse(request.body);if(!parsed.success||parsed.data.password!==parsed.data.confirmPassword||!passwordPolicy(parsed.data.password))return reply.code(400).send(apiError("INVALID_RESET","The reset token or password is invalid."));if(!await auth.resetPassword(parsed.data.token,parsed.data.password))return reply.code(410).send(apiError("RESET_EXPIRED","The reset link is invalid, expired, or already used."));const [owners]=await store.pool.execute<any[]>("SELECT u.id,u.email FROM users u JOIN password_reset_tokens t ON t.user_id=u.id WHERE t.token_hash=?",[store.hash(parsed.data.token)]);if(owners[0]){await auth.audit("USER",owners[0].id,"PASSWORD_RESET_COMPLETED","USER",owners[0].id);runBackground(async()=>{if((await settings.get(owners[0].id)).notificationOptIn)await integrations.sendSecurityNotification(owners[0].email,"PASSWORD_RESET_COMPLETED");},logBackgroundFailure);}return{message:"Password updated. Sign in with the new password."};});
 
+  registerWorkerStatus(app,{pool:store.pool,authenticate:credential=>networks.authenticateCredential(credential)});
   const workerConnections=new WorkerConnections();
   const admins=new Map<WebSocket,string>(),workers=new Map<string,WebSocket>(),cancellableWorkers=new Set<string>(),jobAbortControllers=new Map<string,AbortController>();let dispatching=false;
   const send=(socket:WebSocket,message:CoordinatorMessage|object)=>{if(socket.readyState===socket.OPEN)socket.send(encodeProtocolMessage(message));};

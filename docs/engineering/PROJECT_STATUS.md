@@ -1,5 +1,22 @@
 # GRID-X master implementation status
 
+## Phase 7 Windows worker — in progress, 2026-10-15
+
+Added a real Electron desktop consuming the existing native protocol/session,
+DPAPI-protected identity, explicit controls, measured monitoring, scoped persisted
+coordinator statistics, Windows Job Object CPU/memory/lifetime enforcement and
+an unsigned NSIS package with a checksum-pinned private Node runtime. Actual
+packaged desktop/MySQL acceptance passed in fixture `6e34af04f6be459d`.
+Final Docker-enabled verification passed all nine workspace builds/typechecks,
+327 tests with none skipped, and twelve script/settings tests. Installation/upgrade/
+uninstall passed, including coordinator-restart recovery and C/Python/Java
+compilation on the installed worker. Compiler-artifact, Phase4 recovery and
+desktop/Android-emulated browser regressions passed; all eleven Docker isolation
+cases also passed separately.
+See evidence/2026-10-15-phase7-windows/RESULTS.md. This entry does not seal Phase 7:
+clean supported-Windows evidence, bundled compiler toolchains, full untrusted
+native containment and production signatures are not inferred from developer tests.
+
 ## Phase 6 browser core sealed v1 — 2026-10-14
 
 Seven B20 browser-core obligations passed real desktop and mobile-emulated

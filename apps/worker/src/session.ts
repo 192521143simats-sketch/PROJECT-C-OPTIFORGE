@@ -1,0 +1,45 @@
+import WebSocket from 'ws';
+import {encodeProtocolMessage,parseCoordinatorMessage,type CapabilityProfile,type ContributionPolicy,type ResourceSnapshot,type WorkPayload} from '@c-optiforge/contracts';
+import {profile,resources} from './profiler.js';
+import {runTaskProcess,TaskTerminationUnconfirmedError} from './task-process-controller.js';
+export type NativeState={status:string;nodeId:string;submitted:number;failed:number;lastHeartbeat:string|null;currentTask:string|null;error:string;profile:CapabilityProfile|null;resources:ResourceSnapshot|null};
+type Options={coordinator:string;credential:string;onState:(state:NativeState)=>void;policy?:ContributionPolicy;cpuAdmissionPercent?:number;profile?:()=>Promise<CapabilityProfile>;resources?:()=>ResourceSnapshot;execute?:typeof runTaskProcess};
+/** One session/core shared by developer CLI and packaged Windows bridge. */
+export class NativeWorkerSession{
+  private state:NativeState={status:'DISCONNECTED',nodeId:'',submitted:0,failed:0,lastHeartbeat:null,currentTask:null,error:'',profile:null,resources:null};
+  private socket:WebSocket|undefined;private heartbeat:NodeJS.Timeout|undefined;private retry:NodeJS.Timeout|undefined;private registration:NodeJS.Timeout|undefined;
+  private desired=false;private revoked=false;private failures=0;private generation=0;
+  private fatal:TaskTerminationUnconfirmedError|undefined;
+  private work:Promise<void>|undefined;private task:{id:string;attempt:number;abort:AbortController}|undefined;
+  constructor(private readonly options:Options){const url=new URL(options.coordinator);if(!['https:','http:'].includes(url.protocol)||url.username||url.password||url.search||url.hash)throw new Error('Invalid coordinator origin');}
+  snapshot():NativeState{return structuredClone(this.state);}
+  private update(patch:Partial<NativeState>){this.state={...this.state,...patch};this.options.onState(this.snapshot());}
+  start(){if(this.revoked||this.desired)return;this.desired=true;void this.connect();}
+  async pause(){await this.stop();this.update({status:'PAUSED'});}
+  async stop(){this.desired=false;this.generation++;if(this.retry)clearTimeout(this.retry);this.retry=undefined;this.clearTimers();this.task?.abort.abort();const socket=this.socket;this.socket=undefined;if(socket?.readyState===WebSocket.OPEN)socket.send(encodeProtocolMessage({type:'disconnect'}));socket?.close(1000,'Worker stopped');await this.work;if(this.fatal)throw this.fatal;this.update({status:this.revoked?'REVOKED':'DISCONNECTED',currentTask:null});}
+  private clearTimers(){if(this.heartbeat)clearInterval(this.heartbeat);if(this.registration)clearTimeout(this.registration);this.heartbeat=undefined;this.registration=undefined;}
+  private send(socket:WebSocket,value:object){if(this.socket===socket&&socket.readyState===WebSocket.OPEN)socket.send(encodeProtocolMessage(value));}
+  private async connect(){
+    if(!this.desired||this.revoked)return;if(this.work){await this.work;if(!this.desired||this.revoked)return;}
+    const generation=++this.generation;this.update({status:'CONNECTING',error:''});const url=new URL('/ws/worker',this.options.coordinator);url.protocol=url.protocol==='https:'?'wss:':'ws:';
+    const socket=new WebSocket(url,{headers:{Authorization:`Bearer ${this.options.credential}`},handshakeTimeout:10000,maxPayload:16_000_000});this.socket=socket;this.registration=setTimeout(()=>{if(this.socket===socket)socket.terminate();},10000);
+    socket.on('open',()=>{void (async()=>{const detected=await (this.options.profile??profile)();if(this.socket!==socket||generation!==this.generation)return;const capabilities={...detected,operations:{...detected.operations,taskCancellation:true,portableMatrix:true,portableBenchmark:true},...(this.options.policy?{contributionPolicy:this.options.policy}:{})};this.update({profile:capabilities});this.send(socket,{type:'register',profile:capabilities});})().catch(()=>{if(this.socket!==socket||generation!==this.generation)return;this.update({error:'Capability detection failed.'});socket.close(1008,'Capability detection failed');});});
+    socket.on('message',raw=>{
+      if(this.socket!==socket||generation!==this.generation)return;
+      try{const message=parseCoordinatorMessage(JSON.parse(raw.toString()));
+        if(message.type==='registered'){if(this.registration)clearTimeout(this.registration);this.registration=undefined;this.failures=0;this.update({nodeId:message.nodeId,status:'AVAILABLE',error:''});const beat=()=>{try{const measured=(this.options.resources??resources)();this.send(socket,{type:'heartbeat',resources:measured});this.update({resources:measured,lastHeartbeat:measured.observedAt});}catch{this.update({error:'Resource measurement failed.'});}};beat();if(this.heartbeat)clearInterval(this.heartbeat);this.heartbeat=setInterval(beat,message.heartbeatIntervalMs);}
+        else if(message.type==='task_assignment'){if(this.work){if(this.task?.id===message.taskId&&this.task.attempt===message.attempt)return;this.send(socket,{type:'task_state',taskId:message.taskId,attempt:message.attempt,status:'FAILED',error:'Worker is already busy'});return;}const abort=new AbortController();this.task={id:message.taskId,attempt:message.attempt,abort};this.update({status:'BUSY',currentTask:message.taskId});this.work=this.execute(socket,message.taskId,message.attempt,message.payload,abort).finally(()=>{this.task=undefined;this.work=undefined;if(this.desired&&this.socket===socket&&!this.revoked)this.update({status:'AVAILABLE',currentTask:null});});}
+        else if(message.type==='task_cancel'){if(this.task?.id===message.taskId&&this.task.attempt===message.attempt)this.task.abort.abort();}
+        else if(message.type==='error')this.update({error:'The coordinator rejected this worker operation.'});
+      }catch{this.update({error:'Coordinator protocol is incompatible or malformed.'});socket.close(1008,'Protocol incompatible');}
+    });
+    socket.on('error',()=>{if(this.socket===socket)this.update({error:'Coordinator connection unavailable. Check the configured address and network.'});});
+    socket.on('close',(code,reason)=>{if(this.socket!==socket)return;this.socket=undefined;this.clearTimers();this.task?.abort.abort();if(this.fatal){this.update({status:'ERROR'});return;}if(code===1008){this.revoked=true;this.desired=false;this.update({status:'REVOKED',error:'Enrollment revoked, expired, or protocol unavailable. Explicitly enroll again.'});return;}if(code===1012&&reason.toString()==='Reconnected elsewhere'){this.desired=false;this.update({status:'DISCONNECTED',error:'This enrollment is connected elsewhere. Use Connect to take control explicitly.'});return;}if(!this.desired)return;this.update({status:'RECONNECTING'});const delay=Math.min(30000,1000*2**Math.min(this.failures++,5))*(.8+Math.random()*.4);this.retry=setTimeout(()=>{this.retry=undefined;void this.connect();},delay);});
+  }
+  private async execute(socket:WebSocket,id:string,attempt:number,payload:WorkPayload,abort:AbortController){
+    const timer=setTimeout(()=>abort.abort(),Math.min(120000,this.options.policy?.maxTaskDurationMs??120000));
+    try{const detected=this.state.profile;if(this.options.cpuAdmissionPercent!==undefined&&(this.options.resources??resources)().cpuUtilizationPercent>this.options.cpuAdmissionPercent)throw new Error('Host CPU exceeds the configured admission threshold.');if(payload.operation.endsWith('_compile')&&(!detected?.operations.nativeCompilation||!detected.runtimes[payload.operation==='c_compile'?'c':payload.operation==='python_compile'?'python':'java']))throw new Error('This worker lacks the required native toolchain capability.');const completed=await (this.options.execute??runTaskProcess)(payload,{signal:abort.signal,onStarted:()=>this.send(socket,{type:'task_state',taskId:id,attempt,status:'RUNNING'})});if(!abort.signal.aborted&&this.desired&&this.socket===socket){this.send(socket,{type:'task_result',taskId:id,attempt,...completed,resources:(this.options.resources??resources)()});this.update({submitted:this.state.submitted+1});}}
+    catch(error){if(error instanceof TaskTerminationUnconfirmedError){this.fatal=error;this.revoked=true;this.desired=false;this.update({status:'ERROR',error:error.message});socket.close(1008,'Native termination unconfirmed');}else if(!abort.signal.aborted&&this.desired&&this.socket===socket){const diagnostics=(error as {diagnostics?:any[]})?.diagnostics;this.send(socket,{type:'task_state',taskId:id,attempt,status:'FAILED',error:(error instanceof Error?error.message:'Execution failed').slice(0,2000),...(Array.isArray(diagnostics)?{diagnostics:diagnostics.slice(0,100).map(item=>({severity:item.severity,message:String(item.message).slice(0,2000),line:item.line??null,column:item.column??null}))}:{})});this.update({failed:this.state.failed+1,error:'The assigned task failed. See coordinator diagnostics.'});}else if(abort.signal.aborted&&this.desired&&this.socket===socket)this.send(socket,{type:'task_state',taskId:id,attempt,status:'FAILED',error:'Task stopped by cancellation or contribution deadline.'});}
+    finally{clearTimeout(timer);}
+  }
+}
