@@ -47777,10 +47777,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5513,
       "text": "## PHASE 7 — Windows worker and packaging",
-      "status": "IN_PROGRESS",
+      "status": "VERIFIED",
       "implementation": "apps/windows-worker; apps/worker/src/session.ts; scripts/Build-Windows-Worker.mjs",
-      "verification": "Real developer-host package and lifecycle verified; clean Windows, compiler bundles, containment and signing remain gates",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "verification": "Functional v1 sealed under explicit 2026-10-15 user override; real installed native-node lifecycle and reinstall passed; production certification excluded, not passed",
+      "evidence": ["docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md", "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"]
     },
     {
       "id": "B:20:L5515",
@@ -47825,10 +47825,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5518,
       "text": "- Implement execution isolation and limits.",
-      "status": "PARTIAL",
+      "status": "SUPERSEDED_BY_USER",
       "implementation": "apps/windows-worker/JobGuard.cs; existing owned task execution",
-      "verification": "CPU/memory/lifetime and timeout verified; Job Objects are not filesystem/network isolation for untrusted compiler workloads",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "verification": "Existing CPU/memory/lifetime/timeout limits verified and preserved; full arbitrary-untrusted-code containment excluded by functional scope override, not claimed implemented",
+      "evidence": ["docs/engineering/USER_REQUIREMENT_OVERRIDES.md", "docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md"]
     },
     {
       "id": "B:20:L5519",
@@ -47861,10 +47861,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5521,
       "text": "- Test clean installation and upgrades.",
-      "status": "PARTIAL",
+      "status": "SUPERSEDED_BY_USER",
       "implementation": "scripts/Verify-Windows-Installation.mjs; scripts/Windows-Install-Fixture.mjs",
-      "verification": "Fresh profile and actual NSIS upgrade/uninstall on developer host passed; clean supported-Windows machine evidence remains required",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "verification": "Actual install/upgrade/uninstall/reinstall passed; fresh-OS/VM certification explicitly excluded by revised functional acceptance, not falsely claimed",
+      "evidence": ["docs/engineering/USER_REQUIREMENT_OVERRIDES.md", "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"]
     },
     {
       "id": "B:20:L5523",
@@ -47873,10 +47873,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5523,
       "text": "**Exit criteria:** A packaged Windows worker can be installed, registered, execute permitted tasks, submit results, recover from interruptions, and be removed cleanly.",
-      "status": "PARTIAL",
+      "status": "VERIFIED",
       "implementation": "apps/windows-worker; scripts/Verify-Windows-Installation.mjs; scripts/Verify-Windows-Worker.mjs",
-      "verification": "Full developer-host lifecycle including upgrade, coordinator restart and three native compiler paths passed; clean Windows, bundled compiler toolchains, complete containment and release signature gates remain",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "verification": "Real install/register/tasks/results/coordinator restart/recovery/leave/upgrade/uninstall/reinstall verified; functional v1 accepted under the explicit user scope override",
+      "evidence": ["docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md", "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"]
     },
     {
       "id": "B:20:L5525",

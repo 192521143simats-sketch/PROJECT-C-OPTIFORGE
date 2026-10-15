@@ -1,5 +1,29 @@
 # Explicit user requirement overrides
 
+## 2026-10-15 — Phase7 functional acceptance, not production certification
+
+The user explicitly sets the acceptance bar to the installable Windows app
+running and joining as a genuine native node, and requests completion of any
+remaining functional requirements without production-only installations or
+development. Do not require a new VM, OS features, signing service, compiler
+bundle or arbitrary-untrusted-code execution platform to accept this functional
+milestone. Stop additional compiler-bundling work and preserve the verified
+0.1.1 application; no new system software is installed.
+
+Functional Phase7 acceptance covers installation/upgrade/reinstallation/uninstall,
+explicit enrollment and persistent protected identity, protocol-v1 registration,
+real supported tasks/results, heartbeat/reconnect/recovery, resource controls,
+pause/disconnect/leave/revocation, truthful monitoring and diagnostics. Supported
+native C/Python/Java work continues to require compatible installed toolchains
+and the existing explicit trusted-development setting. Portable tasks do not.
+
+This is a scope override, not evidence that original production gates passed.
+Preserve existing security controls and truthful capability checks. The installer
+remains unsigned; fresh-OS certification, bundled native compilers and full
+filesystem/network containment remain unclaimed production/extended work. A
+functional seal must say "Phase7 functional v1", not imply that the entire
+production platform or every Windows machine is certified.
+
 ## 2026-10-12 — Reusable default network admission
 
 The user explicitly superseded master M2 R03's single-use-only admission: multiple devices must explicitly consent and join through the same network link while admission is open, subject to the network node limit. Every network has one default link, invoked by default. Admin can revoke/invoke it using a toggle. A revoked link must not enroll and must show an apt expired/unavailable page. Invoking restores the same default URL. Existing enrolled workers remain authenticated; the admission toggle is not node revocation or network disable.

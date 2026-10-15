@@ -57,10 +57,10 @@ Consumes private Node runtime plus built application; produces ignored NSIS
 installer/uninstaller, version, integrity manifest and independent evidence.
 - [x] Build executable package; test isolated install/start/enroll/task/pause/
   restart/recovery/revoke/upgrade/uninstall, never developer database by default.
-- [ ] Verify signatures honestly; record unavailable clean VM/toolchains/signing
-  as blocked, not completed. Continue every independent build/test task.
-- [ ] Run compiler, Phase4 and browser regressions, fresh review, evidence and
-  commit/push. Seal only when all mapped Phase7 acceptance actually passes.
+- [x] Verify signatures honestly; record unsigned output and original production
+  gates without claiming they passed. Later functional scope excludes those gates.
+- [x] Run compiler, Phase4/browser baseline regressions, fresh review, functional
+  reruns, evidence and commit/push. Seal only the user-accepted functional scope.
 
 ## Progress ledger
 
@@ -76,13 +76,35 @@ compiler attempts on the packaged worker with authorized artifact downloads.
 Phase4/compiler/browser regressions and all eleven real Docker isolation cases
 passed. This is a verified Windows development-host milestone, not a Phase7 seal.
 
-## Remaining Phase7 acceptance work
+## User-directed functional acceptance — baseline 80090d2
 
-- Bundle pinned, redistributable GCC/CPython/JDK distributions with licenses and
-  validate them without host toolchain PATH dependencies. Only Node is bundled.
-- Provide and adversarially verify filesystem/network containment for untrusted
-  native compiler workloads. Job Object limits alone do not satisfy that gate.
-- Repeat install/upgrade/uninstall on a clean supported Windows host or VM.
-  Windows Sandbox is not installed on the current host; no OS features were changed.
-- Supply actual approved signing credentials for production release verification;
-  the development installer is explicitly unsigned, not falsely certified.
+The 2026-10-15 instruction in USER_REQUIREMENT_OVERRIDES.md supersedes the
+production-only blocking scope above. The accepted bar is a working installable
+Windows native node, with every supported functional control backed by real
+execution. The existing private Node runtime is retained; compiler workloads
+continue to require actual compatible host toolchains and explicit trusted-host
+consent. No extra OS features, VM, signing service or compiler distribution is
+installed. The briefly started additional bundling work was stopped and its
+uncommitted source changes removed; the verified application remains 0.1.1.
+
+Ruling: apply the explicit functional scope override, not redefine a developer
+test as production certification. Cost/qualification: this acceptance does not
+authorize arbitrary untrusted native execution or certify every Windows machine.
+
+- [x] Preserve the tested desktop/runtime, protocol, security controls and compiler behavior.
+- [x] Run the full installed-node flow again and verify uninstall/reinstall
+  preserves protected settings and the cleared-after-leave enrollment without autostarting work.
+- [x] Run fresh existing tests/builds, review the bounded test/documentation changes,
+  record functional acceptance and commit/push the result.
+
+Production/extended requirements are excluded from this functional milestone,
+not falsely passed: native compiler bundling, arbitrary-untrusted-code filesystem/
+network containment, fresh-OS certification and production signatures. The
+unsigned warning and current supported-capability behavior remain visible.
+
+Final: functional v1 accepted in PHASE7_FUNCTIONAL_ACCEPTANCE.md. Fixture
+cb241f55ee0a452e passed, followed by 327/327 tests, 15/15 script/settings checks
+and all nine builds/typechecks. Review's two important fixture-cleanup findings
+were fixed with RED-to-GREEN tests; reinstall wording was narrowed to the actual
+cleared-after-leave scenario. No unresolved functional requirement was identified
+against the explicit revised scope; production certification is not inferred.

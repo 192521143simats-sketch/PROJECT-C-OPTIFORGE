@@ -1,5 +1,23 @@
 # GRID-X master implementation status
 
+## Phase7 functional v1 sealed — 2026-10-15
+
+The user explicitly accepts the functional Windows native-node scope and excludes
+production-only installations/development. PHASE7_FUNCTIONAL_ACCEPTANCE.md is the
+current acceptance record; USER_REQUIREMENT_OVERRIDES.md preserves the exact scope.
+Fresh actual install/upgrade, native tasks and C/Python/Java compiler attempts,
+coordinator restart/recovery, revoke/leave, uninstall/reinstall and final uninstall
+passed (`cb241f55ee0a452e`). Reinstall preserved encrypted settings and the cleared
+enrollment without automatic contribution. Review-driven failure-cleanup and
+bounded-close tests passed. Fresh full verification: 327/327 tests, 15/15 script/
+settings checks and all nine builds/typechecks passed. The application remains
+the verified 0.1.1 build; no new OS software or compiler distributions were installed.
+
+This is a functional seal, not a production certificate: unsigned installer,
+compatible host-toolchain requirements and trusted-native-execution boundaries
+remain truthful. Original stricter production entries below are historical, not
+failed functional gates under the later user override. Next is Phase8 native Android.
+
 ## Phase 7 Windows worker — in progress, 2026-10-15
 
 Added a real Electron desktop consuming the existing native protocol/session,

@@ -21,6 +21,13 @@ Iterate implementation → unit tests → isolated integration → build → evi
 
 ## Current execution checklist
 
+- [x] Phase7 functional Windows native worker: actual installer, protected identity,
+  native tasks/results and C/Python/Java attempts, controls/recovery/diagnostics,
+  upgrade/uninstall/reinstall passed. User explicitly excludes production-only
+  installations/development; see PHASE7_FUNCTIONAL_ACCEPTANCE.md. Fresh 327 tests,
+  15 script/settings checks and all nine builds/typechecks passed. Next: Phase8
+  native Android worker/APK; production certification is not inferred from this seal.
+
 - [x] Phase 6 browser core: bounded real Web Workers, lifecycle/progress/reconnect,
   cancellation fences and narrow coordinator connection-race repair. Desktop and
   mobile-emulated HTTPS/WSS, compiler/web/Phase 4 regressions passed. See
