@@ -47885,10 +47885,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5525,
       "text": "## PHASE 8 — Android worker and APK",
-      "status": "NOT_STARTED",
-      "implementation": "apps/android-worker (required; absent at baseline)",
-      "verification": "Android unit, instrumentation, physical-device acceptance",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker; scripts/Verify-Android-Native.mjs",
+      "verification": "Nine functional B20 obligations accepted on physical API29; unsigned release and broader production gates remain separate",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5527",
@@ -47897,10 +47897,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5527,
       "text": "- Configure the native Android module.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/android-worker (required; absent at baseline)",
-      "verification": "Android unit, instrumentation, physical-device acceptance",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker",
+      "verification": "Native Kotlin/Compose module built and installed on physical API29 phone",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5528",
@@ -47909,10 +47909,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5528,
       "text": "- Establish compatible Gradle, JDK, SDK, and build-tool versions.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker/gradle/wrapper; build.gradle.kts",
+      "verification": "JDK21, Gradle8.13, SDK36 and buildtools36 actual builds",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5529",
@@ -47921,10 +47921,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5529,
       "text": "- Implement the native UI.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker/app/src/main/java/org/gridx/worker/MainActivity.kt",
+      "verification": "Physical Compose consent and contribution controls passed",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5530",
@@ -47933,10 +47933,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5530,
       "text": "- Implement secure enrollment and protocol compatibility.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/coordinator/src/networks.ts; packages/contracts",
-      "verification": "atomic invitation, identity and network-isolation integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker; existing coordinator protocol v1 and enrollment",
+      "verification": "Physical Keystore and actual isolated consent/enrollment/registration/results/leave",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5531",
@@ -47945,10 +47945,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5531,
       "text": "- Implement capability-aware task execution.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker/PortableExecutor.kt; IrOptimizer.kt; DeviceResources.kt",
+      "verification": "Five portable task results and C IR optimization accepted from physical Android; desktop toolchains not advertised",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5532",
@@ -47957,10 +47957,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5532,
       "text": "- Implement lifecycle, cancellation, and resource limits.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/contracts; packages/orchestration; apps/coordinator; apps/worker; apps/web/src/browser-worker.ts",
-      "verification": "protocol, lifecycle, correctness and failure integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker/WorkerConnection.kt; WorkerService.kt; ContributionPolicy.kt",
+      "verification": "Physical cancellation/reconnect/pause/recreation/resume/disconnect; bounded input and cooperative deadlines, not hard OS heap isolation",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5533",
@@ -47969,10 +47969,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5533,
       "text": "- Build debug and release artifacts.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker/app/build/outputs",
+      "verification": "Debug APK, unsigned release APK and AAB built; production signing explicitly remains unfulfilled",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5534",
@@ -47981,10 +47981,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5534,
       "text": "- Install and test on a physical device when available.",
-      "status": "NOT_STARTED",
-      "implementation": "docs/engineering; relevant implementation selected during phase refinement",
-      "verification": "requirement-specific review/acceptance evidence before marking verified",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker/app/src/androidTest; scripts/Verify-Android-Native.mjs",
+      "verification": "Installed and verified Xiaomi M2004J19C API29; isolated MySQL/coordinator acceptance passed",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5535",
@@ -47993,10 +47993,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5535,
       "text": "- Verify the Android worker actually contributes tasks.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/android-worker (required; absent at baseline)",
-      "verification": "Android unit, instrumentation, physical-device acceptance",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "scripts/Verify-Android-Native.mjs; native PortableExecutor and IrOptimizer",
+      "verification": "Persisted actual phone attempts/results, restart recovery and authorized compiler artifact download",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5537",
@@ -48005,10 +48005,10 @@
       "heading": "20. PHASED IMPLEMENTATION PLAN",
       "line": 5537,
       "text": "**Exit criteria:** A genuine Android APK can be installed, enrolled, participate in supported computation, report results, and recover from tested lifecycle changes.",
-      "status": "NOT_STARTED",
-      "implementation": "apps/android-worker (required; absent at baseline)",
-      "verification": "Android unit, instrumentation, physical-device acceptance",
-      "evidence": []
+      "status": "VERIFIED",
+      "implementation": "apps/android-worker; scripts/Verify-Android-Native.mjs",
+      "verification": "Physical API29 actual APK enrollment, supported results, coordinator restart, cancellation, pause/recreation/resume/disconnect/leave; final theme build fixture 6f90f70b244a9fa2",
+      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
     },
     {
       "id": "B:20:L5539",

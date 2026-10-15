@@ -1,5 +1,50 @@
 # Native Android verification — 15 October 2026
 
+## Final functional acceptance and theme correction
+
+All nine B:20 Phase8 implementation/functional exit obligations passed on the
+available Xiaomi API29 device. This is functional v1 acceptance, not a production
+signature or universal Android certification.
+
+The app now automatically selects light/dark Material palettes using the device
+configuration. Native launch/status/navigation colors follow night resources;
+Android force-dark is disabled on API29+ to prevent double inversion. API-specific
+attributes live in versioned resource folders. No manual app theme setup needed.
+
+Fresh verification of the final APK:
+
+- `:app:testDebugUnitTest`: 25 tests, zero failures.
+- `:app:assembleDebug :app:assembleDebugAndroidTest :app:assembleRelease
+  :app:bundleRelease :app:lintDebug`: passed. Lint has warnings, zero errors;
+  pinned dependency updates and wider platform checks are not silently claimed.
+- Both APKs updated successfully using `adb install -r`, retaining app data.
+- Physical instrumentation: 5 tests passed. Actual dark-mode screen rendering,
+  controlled light-mode composition rendering, Keystore, compute and consent.
+  Xiaomi reports night-mode locked; a shell request did not switch the system
+  theme. Light rendering was therefore tested with an isolated configuration,
+  not falsely reported as a successful global theme switch. Device remains dark.
+- Exact rebuilt APK end-to-end acceptance passed: fixture `6f90f70b244a9fa2`,
+  five real portable results, verified C IR optimization, coordinator restart,
+  cancellation/reconnect, pause/recreation/resume/disconnect/leave and downloads.
+- Fresh `GRID_X_SANDBOX_TEST=1 npm run verify`: 327 tests, 16 script checks,
+  nine workspace typechecks and builds passed.
+- Debug `apksigner verify --print-certs` passed; debug certificate only.
+
+Final debug APK SHA256:
+`974493bf8c88231e9b74957260cbb77508cf3340f4192ae7fd242aedd47c4f8f`.
+Instrumentation APK SHA256:
+`2126bc2fc517532751ec199974372c0ddab2fb70f3ab15679a4712d040a362ef`.
+
+Failures retained: initial theme test exposed absent automatic palette selection;
+the first palette implementation missed the stronger foreground brightness check;
+initial lint rejected unversioned API27/29 attributes. All were corrected and the
+full Android command rerun successfully, without suppressing lint errors.
+
+Next: Phase9 heterogeneous integration (browser-only, Windows-only, Android-only,
+pairwise and all-worker combinations, failure/reassignment, database interruption,
+cancellation, capability filtering and final artifact verification). No Phase9
+seal is inferred from this Android-only acceptance.
+
 ## Verified checkpoint
 
 Native Kotlin/Compose worker, not a WebView. Uses existing coordinator protocol v1

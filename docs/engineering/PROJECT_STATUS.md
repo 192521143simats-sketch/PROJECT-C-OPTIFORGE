@@ -1,5 +1,21 @@
 # GRID-X master implementation status
 
+## Phase8 native Android functional checkpoint — 2026-10-15
+
+Implementation 5a831c3 is pushed to origin. Native Kotlin/Compose debug APK is
+installed on Xiaomi M2004J19C/API29. Physical Keystore/compute/consent tests and
+isolated MySQL/coordinator acceptance passed: real portable results, C IR work,
+restart recovery, cancellation, pause/recreation/resume/disconnect/leave and
+authorized final artifact downloads. Compiler artifact regressions also passed.
+See PHASE8_VERIFICATION.md for exact scope and unclaimed release boundaries.
+
+Final theme follow-up passed: automatic paired light/dark palettes, native system
+bars and OEM force-dark opt-out; 25 JVM tests, 5 physical tests, build/lint and
+fresh isolated Android integration `6f90f70b244a9fa2`. Phase8 functional v1 is
+accepted against all nine B20 exit obligations. Production signatures/newer-Android certification are not
+claimed. Next dependency-ordered phase is Phase9 cross-platform integration,
+not another compiler rewrite.
+
 ## Phase7 functional v1 sealed — 2026-10-15
 
 The user explicitly accepts the functional Windows native-node scope and excludes

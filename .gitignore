@@ -34,6 +34,7 @@ local.properties
 *.p12
 *.pfx
 .gradle/
+.kotlin/
 apps/android-worker/**/build/
 *.apk
 *.aab

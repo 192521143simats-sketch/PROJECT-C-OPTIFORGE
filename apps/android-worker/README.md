@@ -4,6 +4,10 @@ Native task contribution has passed physical Android 10 acceptance against an
 isolated coordinator/MySQL fixture. See docs/engineering/PHASE8_VERIFICATION.md
 for exact evidence and release boundaries; this is not a signed production release.
 
+The app follows the device light/dark setting automatically, including native
+window/system-bar colors. It uses paired readable palettes, not blind inversion;
+Android force-dark is disabled where supported to avoid double inversion.
+
 Wrapper provenance: Gradle v8.13.0 upstream scripts and wrapper JAR. JAR SHA-256
 81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f
 matched the upstream published checksum during pre-flight. Distribution checksum

@@ -22,7 +22,7 @@ class MainActivity:ComponentActivity() {
     override fun onCreate(savedInstanceState:Bundle?) {
         super.onCreate(savedInstanceState);AndroidRuntime.initialize(this)
         val shared=if(intent.action==Intent.ACTION_SEND)intent.getStringExtra(Intent.EXTRA_TEXT)?:"" else ""
-        setContent {MaterialTheme {Surface(Modifier.fillMaxSize()) {WorkerScreen(shared)}}}
+        setContent {WorkerTheme {Surface(Modifier.fillMaxSize()) {WorkerScreen(shared)}}}
     }
     override fun onStart(){super.onStart();AndroidRuntime.enteredForeground()}
     override fun onStop(){AndroidRuntime.exitedForeground();super.onStop()}

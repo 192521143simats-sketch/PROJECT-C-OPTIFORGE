@@ -32,17 +32,25 @@ are external configuration, never generated as a false production identity.
 ## Ordered execution checklist
 
 - [x] Inspect repository, device, installed SDK/JDK, disk and integration contracts.
-- [ ] Configure pinned wrapper/build and native app; prove deterministic computation
+- [x] Configure pinned wrapper/build and native app; prove deterministic computation
   with failing-then-passing Kotlin tests (known digest/count/matrix/LCG literals,
   malformed/oversize/unsupported/cancelled/deadline inputs).
-- [ ] Implement Keystore identity, enrollment, native UI, versioned session,
+- [x] Implement Keystore identity, enrollment, native UI, versioned session,
   heartbeat, scoped statistics, resource policy and cancellation/reconnect fencing.
-- [ ] Add physical-device instrumentation and isolated coordinator/MySQL verifier;
+- [x] Add physical-device instrumentation and isolated coordinator/MySQL verifier;
   validate consent, task results, pause/resume, disconnect/reconnect, revocation,
   leave and lifecycle recovery. Never mutate developer records.
-- [ ] Build debug APK and release APK/AAB, inspect signing; install/test actual phone.
-- [ ] Run existing tests/typechecks/builds/compiler regressions, review changes,
+- [x] Build debug APK and release APK/AAB, inspect signing; install/test actual phone.
+- [x] Run existing tests/typechecks/builds/compiler regressions, review changes,
   record evidence, commit verified stages. Seal only gates actually passed.
+
+Baseline physical checkpoint: PHASE8_VERIFICATION.md, implementation 5a831c3.
+Follow-up: automatic device light/dark palette, OEM force-dark protection, contrast
+and actual rendered theme tests. Rebuilt APK must be installed and tested before
+claiming the theme correction is physically accepted. This follow-up passed:
+25 JVM tests, 5 physical tests, build/lint and isolated acceptance 6f90f70b244a9fa2.
+Production signing remains
+a separate unfulfilled release gate, not part of a functional debug APK claim.
 
 ## Risk-focused tests
 

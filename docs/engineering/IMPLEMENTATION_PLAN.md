@@ -21,6 +21,15 @@ Iterate implementation → unit tests → isolated integration → build → evi
 
 ## Current execution checklist
 
+- [x] Phase8 functional v1: native APK installed on physical Xiaomi/API29,
+  actual supported computation and C IR results, coordinator recovery,
+  cancellation, lifecycle/leave, protected identity and automatic device theme.
+  Final 25 JVM tests, 5 physical tests, Android build/lint and isolated acceptance
+  6f90f70b244a9fa2 passed. Release artifacts built unsigned; production certification
+  is not inferred. See PHASE8_VERIFICATION.md.
+- [ ] Next: Phase9 heterogeneous browser/Windows/Android combinations and fault,
+  cancellation, capability filtering and artifact verification scenarios.
+
 - [x] Phase7 functional Windows native worker: actual installer, protected identity,
   native tasks/results and C/Python/Java attempts, controls/recovery/diagnostics,
   upgrade/uninstall/reinstall passed. User explicitly excludes production-only
