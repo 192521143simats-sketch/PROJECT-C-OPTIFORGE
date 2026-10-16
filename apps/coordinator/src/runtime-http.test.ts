@@ -6,7 +6,7 @@ import {createOriginPolicy} from "./runtime-policy.js";
 describe("HTTP runtime boundaries",()=>{
   async function server(probe:()=>Promise<void>=async()=>{}) {
     const app=Fastify({trustProxy:false});
-    installRuntimeGuards(app,createOriginPolicy("https://grid.example","production"),probe);
+    installRuntimeGuards(app,createOriginPolicy("https://grid.example.com","production"),probe);
     app.post("/protected",async request=>({ip:request.ip}));
     app.get("/ws/worker",async()=>({accepted:true}));
     return app;
@@ -22,7 +22,7 @@ describe("HTTP runtime boundaries",()=>{
           expect(response.json().error.code).toBe('ORIGIN_REJECTED');
         }
       }
-      expect((await app.inject({method:'POST',url:'/protected',headers:{cookie:'gridx_session=private',origin:'https://grid.example'}})).statusCode).toBe(200);
+      expect((await app.inject({method:'POST',url:'/protected',headers:{cookie:'gridx_session=private',origin:'https://grid.example.com'}})).statusCode).toBe(200);
       expect((await app.inject({url:'/ws/worker',headers:{upgrade:'websocket',authorization:'Bearer native'}})).statusCode).toBe(200);
     } finally {await app.close();}
   });

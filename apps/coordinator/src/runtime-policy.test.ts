@@ -2,10 +2,22 @@ import {describe, expect, it} from "vitest";
 import {createOriginPolicy, trustedProxyPolicy, validateProductionEnvironment} from "./runtime-policy.js";
 
 describe("runtime security policy", () => {
+  it("rejects development destinations even when they use HTTPS in production", () => {
+    const safe={nodeEnv:"production",publicBaseUrl:"https://grid.example.com",adminPasswordHash:"$argon2id$v=19$m=19456,t=2,p=1$bootstrap$hash"};
+    for(const host of ["localhost","worker.localhost","grid.local","grid.internal","app.test","app.invalid","app.example","router.home.arpa","127.0.0.1","127.1","10.0.0.5","172.16.1.1","192.168.1.2","169.254.1.1","100.64.1.1","[::1]","[fc00::1]","[fe80::1]","[fec0::1]","[::192.168.1.2]","[::ffff:192.168.1.2]","[2002:c0a8:102::1]","[3fff::1]","grid.example.com:5173"]){
+      const endpoint=`https://${host}`;
+      expect(()=>validateProductionEnvironment({...safe,publicBaseUrl:endpoint}),endpoint).toThrow();
+      expect(()=>validateProductionEnvironment({...safe,coordinatorPublicUrl:endpoint}),endpoint).toThrow();
+      expect(()=>createOriginPolicy(safe.publicBaseUrl,"production",endpoint),endpoint).toThrow();
+    }
+    expect(()=>validateProductionEnvironment({...safe,publicBaseUrl:"https://grid.example.com:8443"})).not.toThrow();
+    expect(()=>validateProductionEnvironment({...safe,publicBaseUrl:"https://[2606:4700:4700::1111]"})).not.toThrow();
+    expect(()=>validateProductionEnvironment({...safe,nodeEnv:"development",publicBaseUrl:"http://localhost:5173"})).not.toThrow();
+  });
   it("rejects unconfigured private-LAN and malformed origins in production", () => {
-    const allows = createOriginPolicy("https://grid.example", "production", "https://admin.example");
-    expect(allows("https://grid.example")).toBe(true);
-    expect(allows("https://admin.example")).toBe(true);
+    const allows = createOriginPolicy("https://grid.example.com", "production", "https://admin.example.com");
+    expect(allows("https://grid.example.com")).toBe(true);
+    expect(allows("https://admin.example.com")).toBe(true);
     for (const origin of ["http://192.168.1.10:5173", "https://grid.example.evil", "https://grid.example/path", "null", "not-a-url"]) expect(allows(origin)).toBe(false);
     expect(allows(undefined)).toBe(true); // Native bearer clients do not send Origin.
   });
@@ -23,11 +35,11 @@ describe("runtime security policy", () => {
     expect(() => trustedProxyPolicy("true")).toThrow(/explicit/);
   });
   it("fails closed on production plaintext passwords or HTTP public endpoints", () => {
-    const safe = {nodeEnv:"production", publicBaseUrl:"https://grid.example", coordinatorPublicUrl:"https://api.example", adminPasswordHash:"$argon2id$v=19$m=19456,t=2,p=1$bootstrap$hash"};
+    const safe = {nodeEnv:"production", publicBaseUrl:"https://grid.example.com", coordinatorPublicUrl:"https://api.example.com", adminPasswordHash:"$argon2id$v=19$m=19456,t=2,p=1$bootstrap$hash"};
     expect(() => validateProductionEnvironment(safe)).not.toThrow();
     expect(() => validateProductionEnvironment({...safe, publicBaseUrl:"http://grid.example"})).toThrow(/HTTPS/);
     expect(() => validateProductionEnvironment({...safe, adminPasswordHash:undefined, adminPassword:"unsafe"})).toThrow(/Argon2id/);
     expect(() => validateProductionEnvironment({...safe, adminPassword:"unsafe"})).toThrow(/plaintext/);
-    expect(() => createOriginPolicy("https://grid.example", "production", "http://admin.example")).toThrow(/HTTPS/);
+    expect(() => createOriginPolicy("https://grid.example.com", "production", "http://admin.example.com")).toThrow(/HTTPS/);
   });
 });

@@ -1,5 +1,24 @@
 # GRID-X master implementation status
 
+## Phase9 initial implementation — 2026-10-16 (not sealed)
+
+Current request expands Phase9 with public independence, unified platform joining,
+administrator approval, terminal dark-only UI, Kubernetes and practical security.
+See PHASE9_EXECUTION.md, PHASE9_THREAT_MODEL.md and the preserved Phase9 master.
+Existing Phase8 functionality is preserved. Production endpoint guards now reject
+known local/private/development destinations, with reviewer-driven IPv6/reserved
+DNS regressions. Full verification: 328 tests, 17 script checks, nine workspace
+builds/typechecks. Fresh individual compiler/browser/Windows/physical-Android
+acceptance passed. Actual browser/Windows mixed fixture 217c46fafff87fe4 passed,
+including independently attributed post-restart work and original identity checks.
+
+Kubernetes templates render locally but are not deployed or launch-ready. No
+provider, cluster or domain is configured/approved; no public resource was created.
+Container images/recipes, Kubernetes-safe compiler execution, controlled migration
+Job, public downloads, approval/rotation flow, terminal UI overhaul, three-platform
+simultaneous acceptance and public laptop-off verification remain open. Do not
+infer that prior individual device tests close these new Phase9 requirements.
+
 ## Phase8 native Android functional checkpoint — 2026-10-15
 
 Implementation 5a831c3 is pushed to origin. Native Kotlin/Compose debug APK is

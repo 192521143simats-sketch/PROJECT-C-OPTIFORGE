@@ -27,6 +27,7 @@
     "verify:android-native": "node scripts/Run-Isolated-Integration.mjs android-native",
     "package:windows": "node scripts/Build-Windows-Worker.mjs",
     "verify:windows": "node scripts/Run-Isolated-Integration.mjs windows",
+    "verify:mixed": "node scripts/Run-Isolated-Integration.mjs mixed",
     "verify:windows-install": "node scripts/Run-Isolated-Integration.mjs windows-install",
     "verify:cancellation": "node scripts/Run-Isolated-Integration.mjs cancellation",
     "sandbox:build": "docker build -t gridx-execution:1 infra/sandbox",
