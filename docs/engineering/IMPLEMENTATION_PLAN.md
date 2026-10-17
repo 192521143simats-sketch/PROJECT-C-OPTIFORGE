@@ -21,6 +21,16 @@ Iterate implementation → unit tests → isolated integration → build → evi
 
 ## Current execution checklist
 
+- [x] Phase9 local integration increment: reusable approval-gated enrollment,
+  credential rotation/import, real checked local downloads, layout-preserving
+  terminal polish, controlled migrations, container recipes and Kubernetes Job
+  adapter. Real web fixture `690dd0a356b83756` and browser/packaged-Windows mixed
+  fixture `d5d8f191c2def565` passed. See PHASE9_LOCAL_ACCEPTANCE.md for exact scope.
+- [ ] Phase9 remaining gates: updated Android rotation/lifecycle and simultaneous
+  three-platform acceptance (phone absent; user requested continuing without it),
+  authorized public Kubernetes deployment, separate-internet joining and service
+  independence with the development PC off. No paid/public action authorized.
+
 - [x] Phase8 functional v1: native APK installed on physical Xiaomi/API29,
   actual supported computation and C IR results, coordinator recovery,
   cancellation, lifecycle/leave, protected identity and automatic device theme.

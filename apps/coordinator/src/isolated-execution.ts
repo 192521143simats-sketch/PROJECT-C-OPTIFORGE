@@ -4,6 +4,7 @@ import {z} from "zod";
 import type {StoredArtifact} from "./database.js";
 import type {ExecutionEvidence} from "./execution-evidence.js";
 import {decodeCompilerOutput} from "./compiler-artifacts.js";
+import {runKubernetesExecution} from './kubernetes-execution.js';
 
 type Input={language:"c"|"python"|"java";sourceName:string;generatedSource:string;artifact:StoredArtifact|null;runnableJar?:boolean;input?:string;signal?:AbortSignal|undefined};
 const evidenceSchema=z.object({status:z.enum(["SUCCEEDED","FAILED","TIMED_OUT","OUTPUT_LIMIT","UNAVAILABLE","NOT_RUN"]),stdout:z.string().max(65536),stderr:z.string().max(65536),exitCode:z.number().int().nullable(),durationMs:z.number().nonnegative().max(60000).nullable(),peakMemoryBytes:z.number().nonnegative().max(536870912).nullable(),target:z.literal("Linux container"),artifactName:z.string().max(255).nullable(),input:z.string().max(16384),message:z.string().max(1000)});
@@ -19,9 +20,13 @@ export async function executeIsolated(input:Input):Promise<{execution:ExecutionE
   const name=`gridx-execution-${randomUUID()}`,owner=randomUUID();let created=false;if(!await acquire())return{execution:unavailable("Execution capacity is currently exhausted; compiled artifacts are preserved. Retry execution later.")};
   try{
     input.signal?.throwIfAborted();
+    const kubernetes=process.env.GRID_X_EXECUTION_MODE==='kubernetes';
+    if(!kubernetes){
     const create=await command(["create","--pull","never","--name",name,"--label",`gridx.execution.owner=${owner}`,"--network","none","--read-only","--cap-drop","ALL","--cap-add","SETUID","--cap-add","SETGID","--cap-add","CHOWN","--cap-add","KILL","--security-opt","no-new-privileges","--user","0:0","--memory","512m","--memory-swap","512m","--cpus","1","--pids-limit","64","--ulimit","nofile=128:128","--init","--interactive","--tmpfs","/work:rw,exec,nosuid,nodev,size=64m,mode=1777","--tmpfs","/tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777",image]);
     if(create.code!==0)return{execution:unavailable("Docker or the GRID-X execution image is unavailable. Build the execution image and retry; compilation artifacts are preserved.")};created=true;
-    const run=await command(["start","--attach","--interactive",name],JSON.stringify({language:input.language,sourceName:input.sourceName,generatedSource:input.generatedSource,input:input.input??"",artifactName:input.artifact?.fileName,artifactBase64:input.artifact?.bytes.toString("base64")}),40000,input.signal);
+    }
+    const payload=JSON.stringify({language:input.language,sourceName:input.sourceName,generatedSource:input.generatedSource,input:input.input??"",artifactName:input.artifact?.fileName,artifactBase64:input.artifact?.bytes.toString("base64")});
+    const run=kubernetes?{code:0,output:await runKubernetesExecution(payload,image,input.signal)}:await command(["start","--attach","--interactive",name],payload,40000,input.signal);
     if(run.code!==0)return{execution:unavailable("The isolated execution environment failed or exhausted its resource limit; program success was not established.")};
     const value=JSON.parse(run.output),execution=evidenceSchema.parse(value.execution);
     // Strip sandbox-internal paths while preserving line numbers and actual errors.
@@ -31,5 +36,5 @@ export async function executeIsolated(input:Input):Promise<{execution:ExecutionE
     const artifact=z.object({fileName:z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,125}$/),contentBase64:z.string().max(11000000)}).parse(value.artifact),bytes=decodeCompilerOutput(artifact.contentBase64,11000000);if(bytes.length>8000000||!bytes.subarray(0,4).equals(Buffer.from([127,69,76,70])))throw new Error("Invalid Linux output");
     return{execution,artifact:{artifactType:"EXECUTABLE",fileName:artifact.fileName,mediaType:"application/octet-stream",bytes}};
   }catch{return{execution:unavailable("Isolated execution did not produce valid evidence. Compilation artifacts are preserved; no execution success is claimed.")};}
-  finally{try{const label=await command(["inspect","--format",'{{ index .Config.Labels "gridx.execution.owner" }}',name],undefined,10000).catch(()=>null);if(label?.output.trim()===owner){let removed=false;for(let attempt=0;attempt<2&&!removed;attempt++){const result=await command(["rm","--force",name],undefined,10000).catch(()=>null);removed=result?.code===0;}if(!removed)console.error("Owned GRID-X execution container cleanup failed; operator inspection is required.");}else if(created)console.error("GRID-X execution container ownership could not be verified; refusing unsafe cleanup.");}finally{release();}}
+  finally{try{const label=process.env.GRID_X_EXECUTION_MODE==='kubernetes'?null:await command(["inspect","--format",'{{ index .Config.Labels "gridx.execution.owner" }}',name],undefined,10000).catch(()=>null);if(label?.output.trim()===owner){let removed=false;for(let attempt=0;attempt<2&&!removed;attempt++){const result=await command(["rm","--force",name],undefined,10000).catch(()=>null);removed=result?.code===0;}if(!removed)console.error("Owned GRID-X execution container cleanup failed; operator inspection is required.");}else if(created)console.error("GRID-X execution container ownership could not be verified; refusing unsafe cleanup.");}finally{release();}}
 }

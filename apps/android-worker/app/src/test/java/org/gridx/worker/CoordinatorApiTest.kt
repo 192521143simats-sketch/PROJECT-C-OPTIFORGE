@@ -4,6 +4,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CoordinatorApiTest {
+    @Test fun rotationAuthenticatesAndValidatesTheReplacement() {
+        val server=MockWebServer();server.enqueue(MockResponse().setBody("""{"workerCredential":"replacement-private-fixture-credential"}"""));server.enqueue(MockResponse().setBody("""{"workerCredential":"bad"}"""))
+        try {
+            val api=CoordinatorApi(server.url("/").toString().trimEnd('/'))
+            assertEquals("replacement-private-fixture-credential",api.rotate("old-private-credential"))
+            val request=server.takeRequest();assertEquals("/api/worker/rotate-credential",request.path);assertEquals("Bearer old-private-credential",request.getHeader("Authorization"))
+            assertThrows(IllegalArgumentException::class.java){api.rotate("old-private-credential")}
+        }finally{server.shutdown()}
+    }
     @Test fun neverFollowsCredentialRedirects() {
         val destination=MockWebServer();val source=MockWebServer()
         source.enqueue(MockResponse().setResponseCode(307).addHeader("Location",destination.url("/stolen")))

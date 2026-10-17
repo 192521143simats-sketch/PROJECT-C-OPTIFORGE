@@ -1,5 +1,29 @@
 # GRID-X master implementation status
 
+## Phase9 local integration increment — 2026-10-17 (not globally sealed)
+
+Approval-gated reusable enrollment, credential rotation/import, real local package
+downloads, permanent terminal UI, image recipes, controlled migration startup and
+Kubernetes execution templates are implemented without replacing the existing
+compiler or MySQL architecture. See PHASE9_LOCAL_ACCEPTANCE.md and
+PHASE9_DEPLOYMENT_EVIDENCE.md for current evidence and failed/retest history.
+Latest repository verification: 351 Vitest passes, 24 script passes and all
+workspace typechecks/builds. Eleven default-skipped Docker execution tests passed
+separately with the actual sandbox image. Android 27 JVM tests and full APK/AAB/
+lint build passed; five isolated physical UI/compute tests passed before the phone
+was disconnected. Updated network-rotation instrumentation is built, not device-
+accepted. User requested continuing without the absent phone.
+
+Actual web fixture `690dd0a356b83756`, mixed browser/packaged-Windows fixture
+`d5d8f191c2def565`, compiler artifacts `f1a85f72e523731c`, Docker execution/report
+fixture `72efe6b512060d43`, durable leases `2e7f90b18428a23a` and recovery
+`0717d3a94cb99de2` passed. The final UI keeps the approved existing layout and
+polishes typography, forms, tables and mobile spacing; it is not a replacement
+navigation design. Three-platform acceptance, public hosting, live Kubernetes,
+signing and laptop-off independence remain open. No public resource was provisioned.
+
+The initial status below is historical; it is not the current implementation map.
+
 ## Phase9 initial implementation — 2026-10-16 (not sealed)
 
 Current request expands Phase9 with public independence, unified platform joining,

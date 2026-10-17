@@ -21,7 +21,7 @@ export class BrowserSession{
   private send(message:object){if(this.ws?.readyState===1)this.ws.send(encodeProtocolMessage(message));}
   private stopTask(){if(this.task){clearTimeout(this.task.timer);this.task.worker.terminate();this.task=undefined;}this.update({taskId:undefined,progress:undefined});}
   private withdraw(){clearTimeout(this.retry);clearTimeout(this.registration);clearInterval(this.heartbeat);this.retry=undefined;this.stopTask();const ws=this.ws;this.ws=undefined;if(ws){ws.onclose=null;ws.onerror=null;ws.onmessage=null;ws.onopen=null;try{if(ws.readyState===1)ws.send(encodeProtocolMessage({type:"disconnect"}));ws.close();}catch{/* Socket may already be closed by the browser. */}}}
-  private reconnect(){this.withdraw();if(!this.canConnect())return;this.update({status:"DISCONNECTED"});const delay=Math.min(30000,1000*2**Math.min(this.failures++,5))*(.8+Math.random()*.2);this.retry=setTimeout(()=>{this.retry=undefined;this.connect();},delay);}
+  private reconnect(){this.withdraw();if(!this.canConnect())return;this.update({status:this.state.status==="PENDING_APPROVAL"?"PENDING_APPROVAL":"DISCONNECTED"});const delay=Math.min(30000,1000*2**Math.min(this.failures++,5))*(.8+Math.random()*.2);this.retry=setTimeout(()=>{this.retry=undefined;this.connect();},delay);}
   private connect(){
     if(!this.canConnect()||this.ws)return;clearTimeout(this.retry);this.update({status:"CONNECTING",error:""});
     let ws:WebSocket;try{ws=this.options.socket(this.options.url);}catch{this.update({error:"Unable to establish a worker connection."});this.reconnect();return;}this.ws=ws;
@@ -35,7 +35,7 @@ export class BrowserSession{
         this.heartbeat=setInterval(()=>this.send({type:"heartbeat",resources:this.options.resources()}),message.heartbeatIntervalMs);
       }else if(message.type==="task_cancel"){
         if(this.task?.taskId===message.taskId&&this.task.attempt===message.attempt){this.stopTask();this.update({status:"AVAILABLE"});}
-      }else if(message.type==="error")this.update({error:message.message});
+      }else if(message.type==="error")this.update({error:message.message,...(message.code==="WORKER_APPROVAL_PENDING"?{status:"PENDING_APPROVAL"}:{})});
       else if(message.type==="task_assignment"){
         if(this.task){if(this.task.taskId!==message.taskId||this.task.attempt!==message.attempt)this.send({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"FAILED",error:"Browser worker already has an active attempt."});return;}
         if(!this.canConnect()||message.payload.operation.endsWith("_compile")){this.send({type:"task_state",taskId:message.taskId,attempt:message.attempt,status:"FAILED",error:"This task requires a native toolchain or unavailable browser contribution."});return;}

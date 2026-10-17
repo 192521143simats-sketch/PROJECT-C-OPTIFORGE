@@ -6,7 +6,7 @@ const {ensurePrivateRuntime}=await import('./Windows-Runtime.mjs');const nodeSou
 const source=join(root,'apps/windows-worker'),manifest=JSON.parse(await readFile(join(source,'package.json'),'utf8'));
 const compiler=join(process.env.SystemRoot??'C:/Windows','Microsoft.NET/Framework64/v4.0.30319/csc.exe');execFileSync(compiler,['/nologo','/target:exe','/platform:x64',`/out:${join(worker,'gridx-job.exe')}`,join(source,'JobGuard.cs')],{windowsHide:true,stdio:'inherit',timeout:30000});
 await writeFile(join(application,'package.json'),JSON.stringify({name:'grid-x-worker',version:manifest.version,description:manifest.description,author:'GRID-X',main:'main.cjs',type:'module'},null,2));
-for(const name of ['main.cjs','preload.cjs','settings.cjs','index.html','renderer.js','style.css'])await copyFile(join(source,name),join(application,name));
+for(const name of ['main.cjs','preload.cjs','settings.cjs','credential-rotation.cjs','index.html','renderer.js','style.css'])await copyFile(join(source,name),join(application,name));
 for(const [entry,outfile]of [['apps/windows-worker/worker-bridge.ts','bridge.js'],['apps/worker/src/task-process.ts','task-process.js']])await build({entryPoints:[join(root,entry)],outfile:join(worker,outfile),bundle:true,platform:'node',format:'esm',target:'node24',external:['bufferutil','utf-8-validate'],banner:{js:"import {createRequire} from 'node:module'; const require=createRequire(import.meta.url);"}});
 await copyFile(join(application,'package.json'),join(worker,'package.json'));
 // Deterministic application icon generated as a build asset, not a fake binary.

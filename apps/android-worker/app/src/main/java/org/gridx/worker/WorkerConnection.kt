@@ -120,7 +120,7 @@ class WorkerConnection(
                 }
             }
             "task_cancel" -> { val task=active; if(task!=null&&task.id==message["taskId"]?.jsonPrimitive?.content&&task.attempt==message["attempt"]?.jsonPrimitive?.intOrNull) task.cancelled.set(true) }
-            "error" -> { update(state.copy(error="Coordinator rejected the request; inspect scoped dashboard diagnostics.")) }
+            "error" -> { if(message["code"]?.jsonPrimitive?.content=="WORKER_APPROVAL_PENDING")update(state.copy(status="PENDING_APPROVAL",error="Waiting for administrator approval. No work is accepted while pending.")) else update(state.copy(error="Coordinator rejected the request; inspect scoped dashboard diagnostics.")) }
             else -> throw IllegalArgumentException("Unknown protocol message.")
         }
     }

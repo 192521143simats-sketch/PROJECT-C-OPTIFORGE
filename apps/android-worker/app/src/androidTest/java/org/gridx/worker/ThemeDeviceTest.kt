@@ -18,15 +18,15 @@ import org.junit.Test
 
 class ThemeDeviceTest {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
-    @Test fun actualScreenFollowsDeviceThemeAndShowsControls() {
+    @Test fun actualScreenIsDarkAndShowsControls() {
         compose.onNodeWithText("GRID-X Worker").assertIsDisplayed()
-        compose.onNodeWithText("Inspect network").assertIsDisplayed()
-        val dark=(compose.activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)==Configuration.UI_MODE_NIGHT_YES
+        val action=if(AndroidRuntime.state.value.hasEnrollment)"Pause contribution" else "Inspect network"
+        compose.onNodeWithText(action).performScrollTo().assertIsDisplayed()
         val pixels=compose.onRoot().captureToImage().toPixelMap()
         val background=pixels[2,2].luminance()
-        assertTrue("Rendered background must follow Android night mode",if(dark) background<0.1f else background>0.8f)
+        assertTrue("Rendered background stays dark in either Android mode",background<0.1f)
     }
-    @Test fun lightConfigurationRendersReadableLightPaletteOnPhysicalDevice() {
+    @Test fun lightConfigurationStillRendersDarkPaletteOnPhysicalDevice() {
         // Xiaomi may lock global night mode. Override only this test composition,
         // never the user's system setting, to exercise our automatic theme boundary.
         val configuration=Configuration(compose.activity.resources.configuration)
@@ -40,6 +40,6 @@ class ThemeDeviceTest {
         }
         compose.onNodeWithText("Light theme verification").assertIsDisplayed()
         val pixels=compose.onRoot().captureToImage().toPixelMap()
-        assertTrue("Light configuration must render a light surface",pixels[2,pixels.height-3].luminance()>0.8f)
+        assertTrue("Light configuration must retain the dark surface",pixels[2,pixels.height-3].luminance()<0.1f)
     }
 }

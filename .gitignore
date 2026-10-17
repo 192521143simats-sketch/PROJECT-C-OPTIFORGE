@@ -36,6 +36,7 @@ local.properties
 .gradle/
 .kotlin/
 apps/android-worker/**/build/
+apps/android-worker/**/build-acceptance/
 *.apk
 *.aab
 *.msi

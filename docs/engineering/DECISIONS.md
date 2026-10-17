@@ -1,5 +1,17 @@
 # Authoritative conflict resolutions
 
+2026-10-16 Phase9: reuse the existing network/enrollment/node and protocol-v1
+systems. Add a separate approval attribute through append-only migration0010;
+preserve old enrollments. Credential replacement retains the same identity and
+requires protected save before explicit resume. Build a separate Android
+acceptance application ID/storage only for safe testing; it uses the same source
+and protocol and never resets the installed normal app's enrollment.
+
+Hosted architecture starts with one active coordinator (in-process socket owner),
+persistent MySQL, controlled migration Job/check-only startup and a separate
+ephemeral execution namespace. A real sandbox RuntimeClass, admission enforcement,
+CNI denial and PID controls are external runtime prerequisites, not proven by YAML.
+
 M2 in the preserved master is authoritative; this table indexes all 18 resolutions, not replacement wording.
 
 | Resolution | Applied decision |

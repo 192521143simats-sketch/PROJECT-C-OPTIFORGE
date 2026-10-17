@@ -13,7 +13,7 @@
     "worker": "npm run start -w @c-optiforge/worker --",
     "test": "vitest run",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "verify": "npm run typecheck && npm test -- --run && node --test scripts/*.test.mjs apps/windows-worker/settings.test.mjs && npm run build",
+    "verify": "npm run typecheck && npm test -- --run && node --test scripts/*.test.mjs apps/windows-worker/*.test.mjs && npm run build",
     "verify:platform": "node scripts/Run-Isolated-Integration.mjs platform",
     "verify:integration": "node scripts/Run-Isolated-Integration.mjs all && node scripts/Run-Isolated-Integration.mjs enrollment && node scripts/Run-Isolated-Integration.mjs reusable",
     "verify:artifacts": "node scripts/Run-Isolated-Integration.mjs artifacts",
@@ -28,6 +28,7 @@
     "package:windows": "node scripts/Build-Windows-Worker.mjs",
     "verify:windows": "node scripts/Run-Isolated-Integration.mjs windows",
     "verify:mixed": "node scripts/Run-Isolated-Integration.mjs mixed",
+    "verify:phase9": "node scripts/Run-Isolated-Integration.mjs phase9",
     "verify:windows-install": "node scripts/Run-Isolated-Integration.mjs windows-install",
     "verify:cancellation": "node scripts/Run-Isolated-Integration.mjs cancellation",
     "sandbox:build": "docker build -t gridx-execution:1 infra/sandbox",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0",
+    "@types/jsdom": "^30.0.0",
     "concurrently": "^9.2.5",
     "electron": "44.7.2",
     "electron-builder": "26.15.3",
@@ -43,7 +45,11 @@
     "typescript": "^5.9.3",
     "vitest": "^5.0.3"
   },
-  "overrides": {"app-builder-lib": {"@electron/get": "5.1.0"}},
+  "overrides": {
+    "app-builder-lib": {
+      "@electron/get": "5.1.0"
+    }
+  },
   "engines": {
     "node": ">=22"
   }

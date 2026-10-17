@@ -1,4 +1,4 @@
 <resources>
-    <color name="worker_background">#1C1B1F</color>
+    <color name="worker_background">#0C0D10</color>
     <bool name="worker_light_bars">false</bool>
 </resources>

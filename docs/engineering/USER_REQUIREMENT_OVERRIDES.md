@@ -1,5 +1,19 @@
 # Explicit user requirement overrides
 
+## 2026-10-16 — Phase9 terminal identity and deployment approval boundary
+
+The new Phase9 master/addendum requires the permanent dark terminal palette
+#FF4D2E / #0C0D10 / #FFFFFF / #D9D9D9 across existing platforms, superseding the
+earlier Phase8 automatic light/dark choice. Preserve readable system bars and
+explicit status/focus states. Existing React, Electron and Material3 components
+remain authoritative; do not replace functional screens for decoration.
+
+No provider, domain or authorized Kubernetes cluster exists. The user explicitly
+authorizes local implementation, builds, device tests, manifests and setup guides,
+but forbids accounts, paid infrastructure and public publishing without separate
+approval. Local test transport and mock Kubernetes API contracts never establish
+public-internet joining, live containment or development-computer independence.
+
 ## 2026-10-15 — Phase7 functional acceptance, not production certification
 
 The user explicitly sets the acceptance bar to the installable Windows app

@@ -31,7 +31,11 @@ export function validateMigrationPlan(plan:readonly Migration[],applied:readonly
 }
 
 /** MySQL DDL commits implicitly. Each callback must be idempotent after partial failure. */
-export async function applyMigrations(pool:Pool,database:string,plan:readonly Migration[]):Promise<void> {
+export function validateCompletedMigrations(plan:readonly Migration[],applied:readonly AppliedMigration[]):void{
+  validateMigrationPlan(plan,applied);
+  if(plan.length!==applied.length)throw new Error('Database has pending migrations; run the controlled migration Job before startup');
+}
+export async function applyMigrations(pool:Pool,database:string,plan:readonly Migration[],mode:'apply'|'check'='apply'):Promise<void> {
   validateMigrationPlan(plan);
   const connection=await pool.getConnection();
   const lock=`gridx:migrations:${createHash('sha256').update(database).digest('hex').slice(0,40)}`;
@@ -40,9 +44,10 @@ export async function applyMigrations(pool:Pool,database:string,plan:readonly Mi
     const [rows]=await connection.execute<RowDataPacket[]>('SELECT GET_LOCK(?,30) AS acquired',[lock]);
     acquired=Number(rows[0]?.acquired)===1;
     if(!acquired)throw new Error('Timed out acquiring database migration lock');
-    await connection.query('CREATE TABLE IF NOT EXISTS schema_migrations (id VARCHAR(96) PRIMARY KEY,checksum CHAR(64) NOT NULL,applied_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)) ENGINE=InnoDB');
+    if(mode==='apply')await connection.query('CREATE TABLE IF NOT EXISTS schema_migrations (id VARCHAR(96) PRIMARY KEY,checksum CHAR(64) NOT NULL,applied_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)) ENGINE=InnoDB');
     const [records]=await connection.query<RowDataPacket[]>('SELECT id,checksum FROM schema_migrations ORDER BY id');
     const applied=records.map(row=>({id:String(row.id),checksum:String(row.checksum)}));
+    if(mode==='check'){validateCompletedMigrations(plan,applied);return;}
     validateMigrationPlan(plan,applied);
     const completed=new Set(applied.map(row=>row.id));
     for(const migration of plan){

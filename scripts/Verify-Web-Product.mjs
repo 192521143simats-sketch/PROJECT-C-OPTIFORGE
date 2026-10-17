@@ -13,8 +13,11 @@ async function startNative(credential){
  const id=crypto.randomUUID();await new Promise((resolve,reject)=>{const timer=setTimeout(()=>{process.off('message',received);reject(new Error("Native fixture start timed out"));},15000);function received(message){if(message.id!==id)return;clearTimeout(timer);process.off('message',received);message.error?reject(new Error(message.error)):resolve();}process.on('message',received);process.send({id,recoveryAction:'startNativeWorker',credential});});
 }
 const failures=[];page.on('pageerror',error=>failures.push(error.message));
+const evidence=resolve(process.env.GRID_X_TEST_EVIDENCE??'');if(evidence!==resolve('.runtime/integration',target.instance))throw new Error('Owned screenshot directory required');
+const screenshot=(subject,name)=>subject.screenshot({path:resolve(evidence,name),fullPage:true});
 try{
   await page.goto('/');await expect(page.getByRole('heading',{name:'Hardware-adaptive distributed compilation.'})).toBeVisible();
+  await screenshot(page,'ui-landing-desktop.png');
   await page.keyboard.press('Tab');await expect(page.getByRole('link',{name:'Skip to content'})).toBeFocused();await page.keyboard.press('Enter');await expect(page.locator('#main-content')).toBeFocused();
   await page.goto('/signup');
   await page.getByLabel('Name',{exact:true}).fill('Web Acceptance');
@@ -44,6 +47,7 @@ try{
   const adminContext=await browser.newContext({baseURL:base}),admin=await adminContext.newPage();
   try{
     await admin.goto('/login');
+    await expect(admin.getByLabel('Username or email')).toBeVisible();await screenshot(admin,'ui-login-desktop.png');
     await admin.getByLabel('Username or email').fill(process.env.ADMIN_USERNAME);
     await admin.getByLabel('Password',{exact:true}).fill(process.env.ADMIN_PASSWORD);
     await admin.getByRole('button',{name:'Sign in',exact:true}).click();
@@ -55,6 +59,7 @@ try{
     await admin.getByRole('button',{name:'Copy',exact:true}).click();
     await expect(admin.getByRole('button',{name:'✓ Copied',exact:true})).toBeVisible();
     const network=(await (await adminContext.request.get('/api/admin/networks?page=1&pageSize=10')).json()).items[0];
+    async function approveEnrollment(workerType,enrollmentId){let pending;await expect.poll(async()=>{const response=await adminContext.request.get(`/api/admin/networks/${network.id}/enrollments?page=1&pageSize=10`);pending=(await response.json()).items.find(item=>item.approvalStatus==='PENDING'&&item.workerType===workerType&&(!enrollmentId||item.enrollmentId===enrollmentId));return Boolean(pending);},{timeout:30000}).toBe(true);await admin.getByRole('button',{name:'Refresh enrollments',exact:true}).click();await admin.getByRole('row').filter({hasText:pending.enrollmentId}).getByRole('button',{name:'Approve',exact:true}).click();}
     expect((await adminContext.request.get(`/api/admin/networks/${network.id}/policy`)).status()).toBe(200);
     await admin.getByRole('button',{name:'Scheduling policy',exact:true}).click();
     await expect(admin.getByRole('heading',{name:'Network details'})).toBeVisible();
@@ -67,6 +72,7 @@ try{
     try{
       workerPage.on('pageerror',error=>failures.push(error.message));
       await workerPage.goto(joinURL);await workerPage.getByRole('button',{name:'Become a Worker'}).click();
+      await approveEnrollment('BROWSER');
       await expect(workerPage.getByText('NODE-A001',{exact:true})).toBeVisible();
       await expect(workerPage.locator('.status-available')).toBeVisible({timeout:30000});
       await admin.getByRole('switch',{name:'Admission for Browser Acceptance Alpha'}).click();
@@ -75,7 +81,7 @@ try{
       await admin.getByRole('switch',{name:'Admission for Browser Acceptance Alpha'}).click();
       const mobileContext=await browser.newContext({baseURL:base,viewport:{width:390,height:844},isMobile:true,hasTouch:true}),mobile=await mobileContext.newPage();
       try{
-        await mobile.goto(joinURL);await mobile.getByRole('button',{name:'Become a Worker'}).click();await expect(mobile.getByText('NODE-A002',{exact:true})).toBeVisible();
+        await mobile.goto(joinURL);await expect(mobile.getByRole('button',{name:'Become a Worker'})).toBeVisible();await expect(mobile.getByRole('heading',{name:'Install a native worker'})).toBeVisible();await screenshot(mobile,'ui-join-mobile.png');await mobile.getByRole('button',{name:'Become a Worker'}).click();await approveEnrollment('BROWSER');await expect(mobile.getByText('NODE-A002',{exact:true})).toBeVisible();
         expect(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
         await page.goto('/compute');await page.getByLabel('Workload parameters (JSON)').fill(JSON.stringify({operation:'sha256',input:'abc'}));
         await page.getByRole('button',{name:'Submit compute task',exact:true}).click();
@@ -85,6 +91,7 @@ try{
         await expect(page.getByRole('heading',{name:'Current compute task'}).locator('..').locator('dd').first()).not.toHaveText(previousTask);
         const credentialResponse=await fetch(target.base+'/api'+new URL(joinURL).pathname+'/accept',{method:'POST',headers:{origin:base,'content-type':'application/json'},body:JSON.stringify({consent:true,workerType:'NATIVE',deviceIdentity:'web-native-toolchain-fixture'})});
         expect(credentialResponse.status).toBe(201);const enrollment=await credentialResponse.json();
+        await approveEnrollment('NATIVE',enrollment.enrollmentId);
         await startNative(enrollment.workerCredential);
         await expect.poll(async()=>{const nodes=await (await adminContext.request.get('/api/admin/nodes?page=1&pageSize=10')).json();return nodes.items.some(node=>node.workerType==='NATIVE'&&node.status==='AVAILABLE');},{timeout:30000}).toBe(true);
         await mobile.getByRole('button',{name:'Leave network'}).click();await expect(mobile.getByRole('heading',{name:'Join distributed network',exact:true})).toBeVisible();await mobileContext.close();await workerContext.close();
@@ -95,6 +102,8 @@ try{
           await page.getByLabel('Upload source file').setInputFiles(resolve(item.file));
           await page.getByRole('button',{name:'Compile and optimize',exact:true}).click();
           await expect(page.getByRole('heading',{name:'Generated artifacts'})).toBeVisible({timeout:120000});
+          const compileButton=await page.getByRole('button',{name:'Compile and optimize',exact:true}).boundingBox();expect(compileButton?.height).toBeLessThan(80);
+          await screenshot(page,`ui-compiler-${item.language}-desktop.png`);
           const reports=page.locator('.artifact-list li').filter({hasText:'Build report (JSON)'});
           const downloading=page.waitForEvent('download');await reports.getByRole('link',{name:'Download',exact:true}).click();const download=await downloading;
           expect(download.suggestedFilename()).toBe('build-report.json');const report=JSON.parse(await readFile(await download.path(),'utf8'));
@@ -105,6 +114,7 @@ try{
         await admin.getByRole('button',{name:'Tasks & jobs'}).click();await admin.getByRole('button',{name:'Inspect job'}).first().click();await expect(admin.getByRole('heading',{name:'Job details'})).toBeVisible();await admin.getByRole('button',{name:'Close details'}).click();
         await admin.getByRole('button',{name:'Inspect task'}).first().click();await expect(admin.getByRole('heading',{name:'Task details'})).toBeVisible();await admin.getByRole('button',{name:'Close details'}).click();
         await admin.getByRole('button',{name:'Overview',exact:true}).click();await admin.getByRole('button',{name:'Inspect node'}).first().click();await expect(admin.getByRole('heading',{name:'Node details'})).toBeVisible();await admin.getByRole('button',{name:'Close details'}).click();
+        await screenshot(admin,'ui-admin-desktop.png');
         await admin.getByRole('button',{name:'Disable',exact:true}).click();
         await expect.poll(async()=>{const snapshot=await (await adminContext.request.get('/api/admin/overview')).json();return snapshot.summary.onlineWorkers;},{timeout:3000}).toBe(0);
         await expect(admin.getByText('Browser Acceptance Alpha',{exact:true})).toHaveCount(0);

@@ -5,7 +5,7 @@
 Execute the supplied Phase9 master and A–F addendum in the requested workstream
 order; preserve the existing compiler, MySQL model, worker protocol and source.
 The exact palette is #FF4D2E / #0C0D10 / #FFFFFF / #D9D9D9. New explicit dark-only
-requirements supersede Phase8 automatic appearance, but have not yet been applied.
+requirements supersede Phase8 automatic appearance and are now implemented.
 Reusable network admission remains controlled and revocable; add administrator
 approval as a separate enrollment authorization gate, not a separate identity system.
 Publishing, chargeable infrastructure and secret creation require explicit approval.
@@ -33,9 +33,9 @@ Publishing, chargeable infrastructure and secret creation require explicit appro
 - [x] Harden public endpoint validation; run targeted red/green and full regressions.
 - [ ] Build simultaneous genuine browser/Windows/Android fixture using existing isolated runner.
 - [ ] Audit security controls with threat-to-control-to-test mapping; remediate verified gaps.
-- [ ] Apply terminal design system across existing web, Windows and native Android views.
-- [ ] Extend same /join page with three platform options; secure approval/rotation and audited admission.
-- [ ] Add checksum-verified versioned distribution registry; unavailable until an actual package is published.
+- [x] Apply terminal design system across existing web, Windows and native Android views; physical acceptance remains separate.
+- [x] Extend same /join page with three options and secure approval/rotation; isolated API acceptance passed.
+- [x] Add checksum-verified registry and real local prerelease downloads; public distribution remains unpublished.
 - [ ] Build minimal single-active-coordinator Kubernetes deployment, MySQL PVC, HTTPS ingress,
   resource limits, controlled migration job, probes, secrets, backup/restore and rollback instructions.
 - [x] Render manifests locally; server-side schema/live validation still blocked without a cluster.
@@ -44,6 +44,10 @@ Publishing, chargeable infrastructure and secret creation require explicit appro
 - [ ] With separately approved infrastructure, verify independent internet joins and laptop-off service.
 
 Source document preserved in specification/PHASE9_MASTER_PROMPT.txt (704 lines).
+
+Current evidence supersedes historical pending notes below:
+PHASE9_LOCAL_ACCEPTANCE.md and PHASE9_DEPLOYMENT_EVIDENCE.md. No global Phase9
+seal or public independence claim is established by local build success.
 Original attachment SHA256: 7a7d5bff2b1f6836fdc1f59b8dd53240f7d9df42fcd71c498c63c789993dca25.
 
 ## Additional integration increment
@@ -100,7 +104,9 @@ with one active replica and Recreate upgrades; do not claim multi-replica HA.
 MySQL must retain persistent storage. Compiler execution currently relies on a
 local Docker execution controller; a Kubernetes pod must not receive a host Docker
 socket to conceal that dependency. A least-privilege remote/container job adapter
-is required before claiming full deployed compiler execution. Merely disabling
+was required before claiming deployed execution. The current increment implements
+and locally tests the Kubernetes Job adapter (see PHASE9_DEPLOYMENT_EVIDENCE.md);
+actual cluster containment/execution remains unverified. Merely disabling
 execution is not completion of this requirement.
 
 ## Remaining external inputs

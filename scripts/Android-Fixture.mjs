@@ -1,0 +1,57 @@
+import assert from 'node:assert/strict';
+import {execFileSync,spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {readFile,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {assertIsolatedTarget,verifyIsolatedCoordinator} from './Integration-Target.mjs';
+import {terminateOwnedTestProcess} from './Owned-Test-Process.mjs';
+
+export function assertAndroidForegroundReady(power,window){
+  assert.match(power,/mWakefulness=Awake\b/,'Unlock the phone and keep GRID-X visible for the physical foreground test');
+  assert.doesNotMatch(window,/^\s*(?:showing|mIsShowing)=true\b/m,'Phone keyguard is showing; unlock it before foreground-worker acceptance');
+}
+export function androidAcceptanceArtifacts(env){
+  assert.ok(env.GRID_X_ANDROID_ACCEPTANCE===undefined||['0','1'].includes(env.GRID_X_ANDROID_ACCEPTANCE),'Invalid Android acceptance mode');
+  const isolated=env.GRID_X_ANDROID_ACCEPTANCE==='1',applicationId=isolated?'org.gridx.worker.acceptance':'org.gridx.worker',directory=isolated?'build-acceptance':'build';
+  return{applicationId,apk:`apps/android-worker/app/${directory}/outputs/apk/debug/app-debug.apk`,testApk:`apps/android-worker/app/${directory}/outputs/apk/androidTest/debug/app-debug-androidTest.apk`};
+}
+
+export function androidFixtureTarget(env,joinUrl){
+  const target=assertIsolatedTarget(env),web=new URL(env.GRID_X_TEST_WEB_BASE),link=new URL(joinUrl);
+  assert.equal(web.protocol,'http:');assert.equal(web.hostname,'127.0.0.1');
+  assert.ok(web.port&&!['4100','5173'].includes(web.port));assert.equal(web.href,web.origin+'/');
+  assert.equal(link.origin,web.origin);assert.equal(link.username,'');assert.equal(link.password,'');assert.equal(link.search,'');assert.equal(link.hash,'');
+  assert.match(link.pathname,/^\/join\/[A-Za-z0-9_-]{16,256}$/);
+  const evidence=resolve('.runtime/integration',target.instance);assert.equal(resolve(env.GRID_X_TEST_EVIDENCE),evidence);
+  return{...target,evidence,mapping:`tcp:${web.port}`};
+}
+
+/** Native instrumentation participant; never resets app data or replaces ADB mappings. */
+export async function startAndroidParticipant(env,joinUrl){
+  const target=androidFixtureTarget(env,joinUrl);await verifyIsolatedCoordinator(target);
+  const adb=env.GRID_X_ADB??'adb';
+  const run=args=>execFileSync(adb,args,{encoding:'utf8',windowsHide:true,timeout:60000,maxBuffer:2_000_000});
+  const devices=run(['devices']).split(/\r?\n/).filter(line=>/^\S+\s+device$/.test(line.trim())).map(line=>line.split(/\s+/)[0]);
+  const serial=env.ANDROID_SERIAL??(devices.length===1?devices[0]:undefined);assert.ok(serial&&devices.includes(serial),'An authorized physical Android device is required');
+  const phone=(...args)=>run(['-s',serial,...args]);
+  assertAndroidForegroundReady(phone('shell','dumpsys','power'),phone('shell','dumpsys','window','policy'));
+  const artifacts=androidAcceptanceArtifacts(env);
+  for(const[name,file]of[[artifacts.applicationId,artifacts.apk],[artifacts.applicationId+'.test',artifacts.testApk]]){
+    const path=phone('shell','pm','path',name).trim();assert.match(path,/^package:\/data\/app\/[A-Za-z0-9_./=+~-]+\.apk$/);
+    assert.equal(phone('shell','sha256sum',path.slice(8)).trim().split(/\s+/)[0],createHash('sha256').update(await readFile(file)).digest('hex'),'Phone APK must match the current build before acceptance');
+  }
+  assert.ok(!phone('reverse','--list').split(/\r?\n/).some(line=>line.split(/\s+/).includes(target.mapping)),'Existing ADB reverse mapping must not be replaced');
+  const model=phone('shell','getprop','ro.product.model').trim();
+  phone('reverse',target.mapping,target.mapping);
+  let child,done,output='';
+  try{
+    child=spawn(adb,['-s',serial,'shell','am','instrument','-w','-e','class','org.gridx.worker.NativeNetworkTest','-e','gridxJoin',joinUrl,'-e','gridxInstance',target.instance,artifacts.applicationId+'.test/androidx.test.runner.AndroidJUnitRunner'],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+    const capture=chunk=>{output+=chunk.toString();if(output.length>2_000_000)child.kill();};child.stdout.on('data',capture);child.stderr.on('data',capture);
+    done=new Promise(resolve=>{child.once('error',error=>{output+=`\nInstrumentation launch failed: ${error.message}`;resolve(-1);});child.once('exit',code=>resolve(code));});
+  }catch(error){phone('reverse','--remove',target.mapping);throw error;}
+  return{
+    model,
+    async finish(){let timer;try{assert.equal(await Promise.race([done,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Android mixed lifecycle timed out')),90000);})]),0);assert.match(output,/OK \(1 test\)/);assert.doesNotMatch(output,/FAILURES!!!|INSTRUMENTATION_FAILED/);}finally{clearTimeout(timer);}},
+    async cleanup(revoke){const errors=[];let timer;try{if(child.exitCode===null){await revoke();await Promise.race([done,new Promise(resolve=>{timer=setTimeout(resolve,60000);})]);if(child.exitCode===null)await terminateOwnedTestProcess(child);}}catch(error){errors.push(error);}finally{clearTimeout(timer);}try{phone('reverse','--remove',target.mapping);}catch(error){errors.push(error);}try{await writeFile(resolve(target.evidence,'mixed-android-instrumentation.log'),output.replaceAll(joinUrl,'[REDACTED admission URL]'));}catch(error){errors.push(error);}if(errors.length)throw new AggregateError(errors,'Android fixture cleanup failed');}
+  };
+}

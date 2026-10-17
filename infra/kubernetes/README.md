@@ -1,5 +1,10 @@
 # Kubernetes preparation (not a running deployment)
 
+Current detailed procedure: [DEPLOYMENT.md](DEPLOYMENT.md). Container recipes,
+the API execution adapter and controlled migration Job/check-only startup now exist;
+actual image builds and cluster acceptance must be recorded separately. The older
+gate list below is retained with its pending implementation statements corrected.
+
 This template is not launch-ready. No cluster/account/domain has been approved.
 Placeholder images are deliberately not real release references. There are no
 credentials in the manifests. Do not apply them unmodified.
@@ -7,9 +12,9 @@ credentials in the manifests. Do not apply them unmodified.
 ## Required release gates before deployment
 
 1. Build and test coordinator/web OCI images and replace both placeholder image
-   references with verified registry digests. Current repository package builds do
-   not establish container compatibility. An image build recipe is still pending.
-2. Implement/test a Kubernetes-compatible bounded compiler execution adapter.
+   references with verified registry digests. Root-context recipes are in
+   infra/containers; package builds alone do not establish container compatibility.
+2. Test the Kubernetes API execution adapter in a real authorized cluster.
    Existing Docker finalization cannot run just because these pods exist. No host
    Docker socket or privileged pod is supplied; execution is not secretly disabled.
 3. Confirm ingress controller, its supported version and WebSocket behavior. The
@@ -59,8 +64,8 @@ observed remote test; a local cluster or ADB reverse cannot pass that gate.
 Exactly one active coordinator; Recreate intentionally trades availability for
 correct process-local socket ownership. Existing migration ledger/advisory lock
 serializes actual DDL; startup verifies frozen migration checksums. Do not increase
-replicas or run competing migration controllers. A separate versioned migration
-Job/check-only startup gate is still required before broader replication. Take a
+replicas or run competing migration controllers. The separate versioned migration
+Job and check-only startup require actual cluster acceptance. Take a
 verified backup before rollout. Never edit historical adopted migrations.
 
 MySQL backups must include users, enrollments, task attempts, jobs, artifact bytes

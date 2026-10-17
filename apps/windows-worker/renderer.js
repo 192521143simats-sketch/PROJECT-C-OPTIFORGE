@@ -3,8 +3,10 @@ let busy=false;
 function render(state){
   $('status').textContent=state.status;$('error').textContent=state.error??'';
   $('version').textContent=`Version ${state.version} · Protocol ${state.protocolVersion} · Windows x64`;
-  $('enroll').disabled=busy||state.hasEnrollment;for(const id of ['connect','pause','disconnect','leave'])$(id).disabled=busy||!state.hasEnrollment;
+  $('enroll').disabled=busy||state.hasEnrollment;for(const id of ['connect','pause','disconnect','leave','rotate'])$(id).disabled=busy||!state.hasEnrollment;
+  if(state.credentialSavePending){$('connect').disabled=true;$('leave').disabled=true;$('rotate').textContent='Retry credential rotation';}else $('rotate').textContent='Rotate private credential';
   $('save').disabled=busy;$('logs').disabled=busy;
+  $('importCredential').disabled=busy||!state.hasEnrollment||state.credentialSavePending;
   const profile=state.profile,resources=state.resources,summary=state.serverSummary,limits=state.resourceLimits;
   const fields=[['Worker ID',state.nodeId||'Not registered'],['Network',summary?.networkName||state.networkId||'Not enrolled'],['Coordinator',state.coordinator||'Not configured'],
     ['CPU',profile?`${profile.cpuModel} · ${profile.logicalCores} logical cores`:'Not profiled'],['Total RAM',profile?`${(profile.totalMemoryBytes/1024**3).toFixed(2)} GB`:'Not profiled'],
@@ -24,7 +26,8 @@ async function act(type,value){
   finally{busy=false;render(await window.gridx.snapshot());if(error)$('error').textContent=error;}
 }
 $('enroll').addEventListener('click',()=>act('enroll',{invitation:$('invitation').value,consent:$('consent').checked}));
-for(const id of ['connect','pause','disconnect','leave'])$(id).addEventListener('click',()=>act(id));
+for(const id of ['connect','pause','disconnect','leave','rotate'])$(id).addEventListener('click',()=>act(id));
+$('importCredential').addEventListener('click',async()=>{await act('importCredential',{credential:$('replacement-credential').value,enrollmentId:$('replacement-enrollment').value.trim()});$('replacement-credential').value='';});
 $('save').addEventListener('click',()=>act('settings',{maxCpuPercent:Number($('cpu').value),maxMemoryMB:Number($('memory').value),maxTaskDurationSeconds:Number($('duration').value),allowNative:$('native').checked}));
 $('logs').addEventListener('click',async()=>{const result=await window.gridx.act('logs');if(result.error)$('error').textContent=result.error;else $('activity').textContent=result.location+'\n'+result.recent.map(event=>`${event.at} ${event.status}`).join('\n');});
 window.gridx.onState(render);

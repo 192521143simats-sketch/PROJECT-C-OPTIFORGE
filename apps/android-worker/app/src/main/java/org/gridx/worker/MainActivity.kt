@@ -36,6 +36,9 @@ class MainActivity:ComponentActivity() {
         var consent by remember {mutableStateOf(false)}
         var settings by remember {mutableStateOf(false)}
         var logs by remember {mutableStateOf(false)}
+        var importing by remember {mutableStateOf(false)}
+        var replacement by remember {mutableStateOf("")}
+        var enrollmentId by remember {mutableStateOf("")}
         val scope=rememberCoroutineScope()
         Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Text("GRID-X Worker",style=MaterialTheme.typography.headlineMedium)
@@ -72,6 +75,15 @@ class MainActivity:ComponentActivity() {
                 Button(onClick={AndroidRuntime.stop("PAUSED");stopService(Intent(this@MainActivity,WorkerService::class.java))},enabled=!model.pending){Text("Pause contribution")}
                 OutlinedButton(onClick={AndroidRuntime.stop();stopService(Intent(this@MainActivity,WorkerService::class.java))},enabled=!model.pending){Text("Disconnect")}
                 OutlinedButton(onClick={scope.launch{AndroidRuntime.leave();stopService(Intent(this@MainActivity,WorkerService::class.java))}},enabled=!model.pending){Text("Leave network")}
+                OutlinedButton(onClick={scope.launch{AndroidRuntime.rotateCredential();stopService(Intent(this@MainActivity,WorkerService::class.java))}},enabled=!model.pending){Text("Rotate private credential")}
+                Text("Rotation stops contribution and saves the replacement in protected storage. Resume explicitly afterward. If saving fails, retry rotation before closing the app.",style=MaterialTheme.typography.bodySmall)
+                OutlinedButton(onClick={importing=!importing;replacement=""},enabled=!model.pending){Text("Administrator replacement credential")}
+                if(importing){
+                    Text("Use only a securely supplied replacement for this exact enrollment. Import verifies its scope and pauses contribution.")
+                    OutlinedTextField(value=enrollmentId,onValueChange={enrollmentId=it},label={Text("Original enrollment ID")},modifier=Modifier.fillMaxWidth(),enabled=!model.pending)
+                    OutlinedTextField(value=replacement,onValueChange={if(it.length<=2048)replacement=it},label={Text("Replacement private credential")},visualTransformation=androidx.compose.ui.text.input.PasswordVisualTransformation(),modifier=Modifier.fillMaxWidth(),enabled=!model.pending)
+                    Button(onClick={scope.launch{AndroidRuntime.importCredential(replacement,enrollmentId.trim());replacement="";stopService(Intent(this@MainActivity,WorkerService::class.java))}},enabled=!model.pending&&replacement.length>=20&&enrollmentId.isNotBlank()){Text("Verify and save replacement")}
+                }
             }
             OutlinedButton(onClick={settings=!settings}){Text("Settings")}
             if(settings) {

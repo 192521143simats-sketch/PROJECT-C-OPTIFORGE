@@ -15,6 +15,7 @@ class NativeNetworkTest {
         Assume.assumeTrue("Run through verify:android-native with isolated fixtures",join!=null)
         require(args.getString("gridxInstance")?.matches(Regex("[a-f0-9]{16}"))==true)
         require(!AndroidRuntime.state.value.hasEnrollment) { "Preserve existing enrollment; leave explicitly before isolated acceptance." }
+        compose.activityRule.scenario.onActivity{it.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)}
         try {
             compose.onNodeWithText("Network join link").performTextInput(join!!)
             compose.onNodeWithText("Inspect network").performScrollTo().performClick()
@@ -27,9 +28,16 @@ class NativeNetworkTest {
             Assert.assertTrue(node.matches(Regex("NODE-[A-Z]+[0-9]{3,}")))
             compose.waitUntil(240000){AndroidRuntime.state.value.connection.status=="REVOKED"||(AndroidRuntime.state.value.summary?.get("completed") as? kotlinx.serialization.json.JsonPrimitive)?.content?.toIntOrNull()?.let{it>=6}==true}
             Assert.assertNotEquals("Isolated network was revoked before contribution completed","REVOKED",AndroidRuntime.state.value.connection.status)
+            compose.onNodeWithText("Rotate private credential").performScrollTo().performClick()
+            compose.waitUntil(30000){!AndroidRuntime.state.value.pending&&AndroidRuntime.state.value.connection.status=="PAUSED"}
+            Assert.assertEquals("Rotation must save the replacement before resume","",AndroidRuntime.state.value.error)
+            compose.onNodeWithText("Resume contribution").performScrollTo().performClick()
+            compose.waitUntil(30000){AndroidRuntime.state.value.connection.status=="AVAILABLE"}
+            Assert.assertEquals(node,AndroidRuntime.state.value.connection.nodeId)
             compose.onNodeWithText("Pause contribution").performScrollTo().performClick()
             compose.waitUntil(10000){AndroidRuntime.state.value.connection.status=="PAUSED"}
             compose.activityRule.scenario.recreate()
+            compose.activityRule.scenario.onActivity{it.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)}
             compose.waitUntil(10000){AndroidRuntime.state.value.connection.status=="PAUSED"}
             compose.onNodeWithText("Resume contribution").performScrollTo().performClick()
             compose.waitUntil(30000){AndroidRuntime.state.value.connection.status=="AVAILABLE"}
@@ -42,6 +50,7 @@ class NativeNetworkTest {
             compose.waitUntil(30000){!AndroidRuntime.state.value.hasEnrollment}
             Assert.assertEquals("LEFT",AndroidRuntime.state.value.connection.status)
         } finally {
+            compose.activityRule.scenario.onActivity{it.window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)}
             // Revokes only this test's newly created enrollment while its fixture is alive.
             if(AndroidRuntime.state.value.hasEnrollment)runBlocking{AndroidRuntime.leave()}
         }

@@ -17,6 +17,7 @@ object AndroidRuntime {
     lateinit var device:DeviceResources; private set
     private var initialized=false
     private var identity:JsonObject?=null
+    private var pendingRotation:JsonObject?=null
     private var connection:WorkerConnection?=null
     private var statistics:Job?=null
     private var inspected:Invitation?=null
@@ -39,7 +40,7 @@ object AndroidRuntime {
     private suspend fun operation(work: suspend ()->Unit) {
         transactions.run {
             state.update{it.copy(pending=true,error="")}
-            try {work()}catch(_:Exception){state.update{it.copy(error="Request failed. Check coordinator availability and the network link. Existing enrollment is preserved.")};record("Requested operation failed; enrollment preserved.")}
+            try {work()}catch(_:Exception){state.update{it.copy(error=if(pendingRotation!=null)"Credential changed at the coordinator but protected saving failed. Retry credential rotation before closing. Contribution remains stopped. If the app closes, ask the administrator to revoke this enrollment and join again." else "Request failed. Check coordinator availability and the network link. Existing enrollment is preserved.")};record("Requested operation failed; contribution state requires review.")}
             finally {state.update{it.copy(pending=false)}}
         }
     }
@@ -61,9 +62,11 @@ object AndroidRuntime {
         val base=buildJsonObject{put("deviceIdentity",deviceId);put("policy",policyJson(state.value.policy))};store.save(base);identity=base
         val enrolled=CoordinatorApi(invitation.origin).enroll(invitation.token,deviceId,true)
         val updated=buildJsonObject {base.forEach{(k,v)->put(k,v)};put("origin",invitation.origin);put("credential",enrolled["workerCredential"]!!);put("networkId",enrolled["networkId"]!!);put("networkName",inspectedName)}
-        store.save(updated);identity=updated;state.update{it.copy(hasEnrollment=true,connection=ConnectionState(status="ENROLLED"))};record("Explicit enrollment accepted. Ready to connect.")
+        val scoped=JsonObject(updated+("enrollmentId" to (enrolled["enrollmentId"]?:error("Missing enrollment identity."))))
+        store.save(scoped);identity=scoped;state.update{it.copy(hasEnrollment=true,connection=ConnectionState(status="ENROLLED"))};record("Explicit enrollment accepted. Ready to connect.")
     }}
     @Synchronized fun start() {
+        if(pendingRotation!=null){state.update{it.copy(error="Retry credential rotation to save the replacement before reconnecting.")};return}
         if(connection!=null)return
         val enrollment=identity?:return;val credential=enrollment["credential"]?.jsonPrimitive?.content?:return
         val origin=enrollment["origin"]!!.jsonPrimitive.content
@@ -78,6 +81,7 @@ object AndroidRuntime {
         state.update{it.copy(connection=it.connection.copy(status=status,currentTask=null))};record("Contribution $status.")
     }
     suspend fun leave()=withContext(Dispatchers.IO){operation {
+        check(pendingRotation==null){"Retry credential rotation before leaving."}
         stop()
         val enrolled=identity?:return@operation
         val credential=enrolled["credential"]?.jsonPrimitive?.content?:return@operation
@@ -87,9 +91,26 @@ object AndroidRuntime {
         state.update{it.copy(hasEnrollment=false,networkName="",summary=null,connection=ConnectionState(status="LEFT"))};record("Enrollment revoked; network left.")
     }}
     suspend fun savePolicy(policy:ContributionPolicy)=withContext(Dispatchers.IO){operation {
+        check(pendingRotation==null){"Retry credential rotation before changing settings."}
         stop("PAUSED")
         val updated=JsonObject((identity?:buildJsonObject{put("deviceIdentity",UUID.randomUUID().toString())})+("policy" to policyJson(policy)))
         store.save(updated);identity=updated;state.update{it.copy(policy=policy)};record("Contribution settings saved. Resume explicitly.")
+    }}
+    suspend fun rotateCredential()=withContext(Dispatchers.IO){operation {
+        stop("PAUSED")
+        val enrolled=identity?:error("No active enrollment.")
+        if(pendingRotation==null){val replacement=CoordinatorApi(enrolled["origin"]!!.jsonPrimitive.content).rotate(enrolled["credential"]!!.jsonPrimitive.content);pendingRotation=JsonObject(enrolled+("credential" to JsonPrimitive(replacement)))}
+        val updated=pendingRotation!!;store.save(updated);identity=updated;pendingRotation=null
+        state.update{it.copy(connection=it.connection.copy(status="PAUSED",error=""))};record("Credential rotated and protected. Resume contribution explicitly.")
+    }}
+    suspend fun importCredential(credential:String,enrollmentId:String)=withContext(Dispatchers.IO){operation {
+        check(pendingRotation==null);require(credential.length in 20..2048&&enrollmentId.isNotBlank())
+        stop("PAUSED")
+        val enrolled=identity?:error("No active enrollment.")
+        val replacement=CoordinatorApi(enrolled["origin"]!!.jsonPrimitive.content).enrollmentStatus(credential)
+        validateReplacementScope(replacement,enrolled["networkId"]!!.jsonPrimitive.content,enrollmentId,state.value.connection.nodeId,enrolled["enrollmentId"]?.jsonPrimitive?.content)
+        val updated=JsonObject(enrolled+mapOf("credential" to JsonPrimitive(credential),"enrollmentId" to JsonPrimitive(enrollmentId)))
+        store.save(updated);identity=updated;record("Administrator replacement verified and protected. Resume contribution explicitly.")
     }}
     private fun policyJson(p:ContributionPolicy)=buildJsonObject{put("wifiOnly",p.wifiOnly);put("chargingOnly",p.chargingOnly);put("minBattery",p.minBattery);put("allowMetered",p.allowMetered);put("allowBackground",p.allowBackground);put("thermalProtection",p.thermalProtection);put("maxTaskDurationMs",p.maxTaskDurationMs);put("maxMemoryBytes",p.maxMemoryBytes);put("maxCpuPercent",p.maxCpuPercent)}
 }

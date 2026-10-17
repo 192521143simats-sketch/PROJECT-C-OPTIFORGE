@@ -1,0 +1,32 @@
+# Render separately; never keep an already-completed migration Job in app rollout.
+apiVersion: batch/v1
+kind: Job
+metadata: {name: gridx-migrate-REPLACE_WITH_RELEASE, namespace: gridx}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels: {app: migration}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
+      containers:
+        - name: migrate
+          image: registry.example.invalid/gridx/coordinator:REPLACE_WITH_VERIFIED_VERSION
+          command: [node, --import, tsx, apps/coordinator/src/migrate.ts]
+          envFrom: [{configMapRef: {name: gridx-config}}]
+          env:
+            - {name: GRID_X_MIGRATION_MODE, value: apply}
+            - name: DB_USER
+              valueFrom: {secretKeyRef: {name: gridx-migrations, key: DB_USER}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: gridx-migrations, key: DB_PASSWORD}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+            seccompProfile: {type: RuntimeDefault}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: "1", memory: 512Mi}

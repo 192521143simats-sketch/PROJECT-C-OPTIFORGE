@@ -28,5 +28,11 @@ class CoordinatorApi(private val origin:String) {
         return result
     }
     fun status(credential:String)=request("/api/worker/status",credential=credential)
+    fun enrollmentStatus(credential:String)=request("/api/enrollments/status",credential=credential)
+    fun rotate(credential:String):String {
+        val replacement=request("/api/worker/rotate-credential",buildJsonObject{},credential)["workerCredential"]?.jsonPrimitive?.content
+        require(replacement!=null&&replacement.length in 20..2048){"Invalid replacement credential response."}
+        return replacement
+    }
     fun leave(credential:String) { request("/api/worker/leave",buildJsonObject{},credential,true) }
 }

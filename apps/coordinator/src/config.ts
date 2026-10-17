@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {readFileSync} from "node:fs";
 import {createOriginPolicy, trustedProxyPolicy, validateProductionEnvironment} from "./runtime-policy.js";
+import {parseDistributionManifest} from './distribution.js';
 
 const projectRoot=resolve(fileURLToPath(new URL("../../../",import.meta.url)));
 // Isolated runners supply a complete environment; do not inherit developer secrets.
@@ -14,6 +15,9 @@ function integer(name: string, fallback: number): number {
 }
 
 export const config = {
+  distributionManifest:parseDistributionManifest(process.env.GRID_X_DISTRIBUTION_MANIFEST),
+  localDistributionManifest:process.env.GRID_X_LOCAL_DISTRIBUTION_MANIFEST,
+  requireAdminApproval:process.env.GRID_X_REQUIRE_ADMIN_APPROVAL===undefined?process.env.NODE_ENV==='production':process.env.GRID_X_REQUIRE_ADMIN_APPROVAL==='true',
   productVersion: String(JSON.parse(readFileSync(resolve(projectRoot,"package.json"),"utf8")).version),
   host: process.env.HOST ?? "0.0.0.0",
   port: integer("PORT", 4100),
@@ -26,7 +30,7 @@ export const config = {
   allowedOrigins: process.env.ALLOWED_ORIGINS,
   trustedProxies: trustedProxyPolicy(process.env.TRUSTED_PROXIES),
   testInstance: process.env.GRID_X_TEST_INSTANCE,
-  executionEnabled: (process.env.GRID_X_EXECUTION_MODE??"docker")==="docker",
+  executionEnabled: ["docker","kubernetes"].includes(process.env.GRID_X_EXECUTION_MODE??"docker"),
   sessionTtlHours: integer("SESSION_TTL_HOURS", 12),
   resetTtlMinutes: integer("RESET_TTL_MINUTES", 20),
   integrations: {

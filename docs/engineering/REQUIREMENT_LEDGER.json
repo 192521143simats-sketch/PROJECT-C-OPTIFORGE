@@ -397,10 +397,12 @@
       "heading": "M1. CAREFULLY ORDERED EXECUTION AND REQUIREMENT TRACEABILITY",
       "line": 54,
       "text": "Phase 9 — Cross-platform integration: B:4–9, B:16, B:20 Phase 9, B:22; A:19–29, A:55–60, A:69, A:80–85. All platform combinations, real execution, failure/reassignment, deterministic verification, cancellation, compiler artifacts, portable workloads, load tests, heterogeneous demonstrations.",
-      "status": "NOT_STARTED",
-      "implementation": "packages/compiler-c; packages/compiler-python; packages/compiler-java; apps/coordinator",
-      "verification": "compiler semantic differential tests and authorized artifact integration",
-      "evidence": []
+      "status": "IMPLEMENTED",
+      "implementation": "Existing coordinator/worker/UI plus Phase9 approval, rotation, distribution and deployment adapters",
+      "verification": "Local source/build/API evidence recorded; heterogeneous physical and public deployment gates remain open",
+      "evidence": [
+        "docs/engineering/PHASE9_LOCAL_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "M:M1:L56",
@@ -47780,7 +47782,10 @@
       "status": "VERIFIED",
       "implementation": "apps/windows-worker; apps/worker/src/session.ts; scripts/Build-Windows-Worker.mjs",
       "verification": "Functional v1 sealed under explicit 2026-10-15 user override; real installed native-node lifecycle and reinstall passed; production certification excluded, not passed",
-      "evidence": ["docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md", "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md",
+        "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5515",
@@ -47792,7 +47797,9 @@
       "status": "VERIFIED",
       "implementation": "apps/worker/src/session.ts; apps/windows-worker/worker-bridge.ts; existing versioned contracts",
       "verification": "Actual installed desktop register/task/result/pause/reconnect, coordinator-restart recovery, encrypted identity and revocation; retained CLI compiler and recovery regressions",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5516",
@@ -47804,7 +47811,9 @@
       "status": "VERIFIED",
       "implementation": "apps/windows-worker/main.cjs; settings.cjs; existing coordinator enrollment",
       "verification": "Actual packaged consent, Windows DPAPI restart/upgrade identity, revocation and re-enrollment; corrupt identity preserved",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5517",
@@ -47816,7 +47825,9 @@
       "status": "VERIFIED",
       "implementation": "apps/windows-worker/JobGuard.cs; main.cjs; renderer.js; apps/coordinator/src/worker-status.ts",
       "verification": "Actual kernel CPU/memory queries and child termination; live packaged measured state and scoped MySQL counters",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5518",
@@ -47828,7 +47839,10 @@
       "status": "SUPERSEDED_BY_USER",
       "implementation": "apps/windows-worker/JobGuard.cs; existing owned task execution",
       "verification": "Existing CPU/memory/lifetime/timeout limits verified and preserved; full arbitrary-untrusted-code containment excluded by functional scope override, not claimed implemented",
-      "evidence": ["docs/engineering/USER_REQUIREMENT_OVERRIDES.md", "docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md"]
+      "evidence": [
+        "docs/engineering/USER_REQUIREMENT_OVERRIDES.md",
+        "docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md"
+      ]
     },
     {
       "id": "B:20:L5519",
@@ -47840,7 +47854,9 @@
       "status": "VERIFIED",
       "implementation": "apps/windows-worker/main.cjs; renderer.js; apps/worker/src/session.ts",
       "verification": "Actual packaged controls, persisted credential-free activity, server rejection/revocation, safe-stop failure unit coverage",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5520",
@@ -47852,7 +47868,9 @@
       "status": "VERIFIED",
       "implementation": "scripts/Build-Windows-Worker.mjs; scripts/Windows-Runtime.mjs; apps/windows-worker/runtime-lock.json",
       "verification": "Actual unsigned NSIS installer/private runtime, real developer-host install, 0.1.0-to-0.1.1 upgrade and uninstall; not signed release certification",
-      "evidence": ["docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/evidence/2026-10-15-phase7-windows/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5521",
@@ -47864,7 +47882,10 @@
       "status": "SUPERSEDED_BY_USER",
       "implementation": "scripts/Verify-Windows-Installation.mjs; scripts/Windows-Install-Fixture.mjs",
       "verification": "Actual install/upgrade/uninstall/reinstall passed; fresh-OS/VM certification explicitly excluded by revised functional acceptance, not falsely claimed",
-      "evidence": ["docs/engineering/USER_REQUIREMENT_OVERRIDES.md", "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/USER_REQUIREMENT_OVERRIDES.md",
+        "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5523",
@@ -47876,7 +47897,10 @@
       "status": "VERIFIED",
       "implementation": "apps/windows-worker; scripts/Verify-Windows-Installation.mjs; scripts/Verify-Windows-Worker.mjs",
       "verification": "Real install/register/tasks/results/coordinator restart/recovery/leave/upgrade/uninstall/reinstall verified; functional v1 accepted under the explicit user scope override",
-      "evidence": ["docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md", "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"]
+      "evidence": [
+        "docs/engineering/PHASE7_FUNCTIONAL_ACCEPTANCE.md",
+        "docs/engineering/evidence/2026-10-15-phase7-functional/RESULTS.md"
+      ]
     },
     {
       "id": "B:20:L5525",
@@ -47888,7 +47912,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker; scripts/Verify-Android-Native.mjs",
       "verification": "Nine functional B20 obligations accepted on physical API29; unsigned release and broader production gates remain separate",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5527",
@@ -47900,7 +47926,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker",
       "verification": "Native Kotlin/Compose module built and installed on physical API29 phone",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5528",
@@ -47912,7 +47940,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker/gradle/wrapper; build.gradle.kts",
       "verification": "JDK21, Gradle8.13, SDK36 and buildtools36 actual builds",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5529",
@@ -47924,7 +47954,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker/app/src/main/java/org/gridx/worker/MainActivity.kt",
       "verification": "Physical Compose consent and contribution controls passed",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5530",
@@ -47936,7 +47968,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker; existing coordinator protocol v1 and enrollment",
       "verification": "Physical Keystore and actual isolated consent/enrollment/registration/results/leave",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5531",
@@ -47948,7 +47982,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker/PortableExecutor.kt; IrOptimizer.kt; DeviceResources.kt",
       "verification": "Five portable task results and C IR optimization accepted from physical Android; desktop toolchains not advertised",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5532",
@@ -47960,7 +47996,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker/WorkerConnection.kt; WorkerService.kt; ContributionPolicy.kt",
       "verification": "Physical cancellation/reconnect/pause/recreation/resume/disconnect; bounded input and cooperative deadlines, not hard OS heap isolation",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5533",
@@ -47972,7 +48010,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker/app/build/outputs",
       "verification": "Debug APK, unsigned release APK and AAB built; production signing explicitly remains unfulfilled",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5534",
@@ -47984,7 +48024,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker/app/src/androidTest; scripts/Verify-Android-Native.mjs",
       "verification": "Installed and verified Xiaomi M2004J19C API29; isolated MySQL/coordinator acceptance passed",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5535",
@@ -47996,7 +48038,9 @@
       "status": "VERIFIED",
       "implementation": "scripts/Verify-Android-Native.mjs; native PortableExecutor and IrOptimizer",
       "verification": "Persisted actual phone attempts/results, restart recovery and authorized compiler artifact download",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5537",
@@ -48008,7 +48052,9 @@
       "status": "VERIFIED",
       "implementation": "apps/android-worker; scripts/Verify-Android-Native.mjs",
       "verification": "Physical API29 actual APK enrollment, supported results, coordinator restart, cancellation, pause/recreation/resume/disconnect/leave; final theme build fixture 6f90f70b244a9fa2",
-      "evidence": ["docs/engineering/PHASE8_VERIFICATION.md"]
+      "evidence": [
+        "docs/engineering/PHASE8_VERIFICATION.md"
+      ]
     },
     {
       "id": "B:20:L5539",

@@ -1,0 +1,19 @@
+import React from "react";
+import {renderToStaticMarkup} from "react-dom/server";
+import {expect,it} from "vitest";
+import {WorkerInstallation} from "./worker-installation.js";
+
+it("offers the same joining link for both native platforms and no fabricated download",()=>{
+  const html=renderToStaticMarkup(<WorkerInstallation joinUrl="https://grid.example/join/shared" platforms={[]}/>);
+  expect(html).toContain("Windows");expect(html).toContain("Android");
+  expect(html).toContain("https://grid.example/join/shared");
+  expect(html).toContain("Download unavailable");expect(html).not.toContain("download=");
+});
+it("shows version, checksum and byte size beside a verified artifact",()=>{
+  const html=renderToStaticMarkup(<WorkerInstallation joinUrl="https://grid.example/join/shared" platforms={[{platform:"WINDOWS",available:true,version:"1.2.0",fileName:"worker.exe",sha256:"a".repeat(64),sizeBytes:1234,url:"/api/distribution/WINDOWS/download"}]}/>);
+  expect(html).toContain("1.2.0");expect(html).toContain("1234 bytes");expect(html).toContain("a".repeat(64));expect(html).toContain("/api/distribution/WINDOWS/download");
+});
+it("labels a controlled local package as an unsigned prerelease instead of a published release",()=>{
+  const html=renderToStaticMarkup(<WorkerInstallation joinUrl="https://grid.example/join/shared" platforms={[{platform:"WINDOWS",available:false,localAvailable:true,localDownloadUrl:"/api/distribution/WINDOWS/download",channel:"LOCAL_PRERELEASE",trust:"UNSIGNED_DEVELOPMENT",version:"1.2.0",fileName:"worker.exe",sha256:"a".repeat(64),sizeBytes:1234}]}/>);
+  expect(html).toContain("Local prerelease");expect(html).toContain("Unsigned development package");expect(html).toContain("/api/distribution/WINDOWS/download");
+});

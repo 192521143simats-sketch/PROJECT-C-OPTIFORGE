@@ -16,10 +16,11 @@ class WorkerThemeTest {
         assertTrue(scheme.onBackground.luminance()>0.8f)
         assertReadable(scheme)
     }
-    @Test fun lightDeviceUsesLightBackgroundAndReadableForegrounds() {
+    @Test fun lightDeviceStillUsesCarbonBackgroundAndReadableForegrounds() {
         val scheme=workerColorScheme(false)
-        assertTrue(scheme.background.luminance()>0.8f)
-        assertTrue(scheme.onBackground.luminance()<0.1f)
+        assertTrue(scheme.background==Color(0xFF0C0D10))
+        assertTrue(scheme.onBackground==Color.White)
+        assertTrue(scheme.primary==Color(0xFFFF4D2E))
         assertReadable(scheme)
     }
     private fun assertReadable(scheme: androidx.compose.material3.ColorScheme) {

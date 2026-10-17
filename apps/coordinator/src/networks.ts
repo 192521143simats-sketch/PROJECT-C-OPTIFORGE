@@ -16,14 +16,14 @@ export type Page={page:number;pageSize:number};
 export class NetworkService{
   constructor(private readonly pool:Pool){}
 
-  async create(input:{name:string;description:string;expiresAt:string|null;maxNodes:number},adminId:string){
+  async create(input:{name:string;description:string;expiresAt:string|null;maxNodes:number;requireAdminApproval?:boolean},adminId:string){
     return retryTransaction(this.pool,async connection=>{
       const [rows]=await connection.execute<RowDataPacket[]>("SELECT next_value nextValue FROM network_identity_sequence WHERE id=1 FOR UPDATE");
       const number=Number(rows[0]?.nextValue);
       if(!Number.isSafeInteger(number)||number<1||!Number.isSafeInteger(number+1))throw new Error("Network identity sequence is unavailable");
       const networkId=id("NETWORK"),publicId=id("NET"),joinToken=token(),createdAt=now(),networkCode=alphaCode(number);
       await connection.execute("UPDATE network_identity_sequence SET next_value=? WHERE id=1",[number+1]);
-      await connection.execute("INSERT INTO distributed_networks(id,public_id,join_token_hash,name,description,status,created_by,created_at,expires_at,max_nodes,configuration_json,network_code,next_node_number,join_link_token,join_link_enabled) VALUES(?,?,?,?,?,'ACTIVE',?,?,?,?,?,?,1,?,TRUE)",[networkId,publicId,digest(joinToken),input.name,input.description,adminId,createdAt,input.expiresAt,input.maxNodes,JSON.stringify({}),networkCode,joinToken]);
+      await connection.execute("INSERT INTO distributed_networks(id,public_id,join_token_hash,name,description,status,created_by,created_at,expires_at,max_nodes,configuration_json,network_code,next_node_number,join_link_token,join_link_enabled) VALUES(?,?,?,?,?,'ACTIVE',?,?,?,?,?,?,1,?,TRUE)",[networkId,publicId,digest(joinToken),input.name,input.description,adminId,createdAt,input.expiresAt,input.maxNodes,JSON.stringify({requireAdminApproval:input.requireAdminApproval===true}),networkCode,joinToken]);
       return{id:networkId,publicId,networkCode,name:input.name,description:input.description,status:"ACTIVE",createdAt,expiresAt:input.expiresAt,maxNodes:input.maxNodes,joinToken};
     });
   }
@@ -71,24 +71,56 @@ export class NetworkService{
       if(!this.json(invite.allowed_worker_types).includes(workerType))throw new AdmissionError("WORKER_TYPE_NOT_ALLOWED","This invitation does not permit that worker type.",403);}
       if(!network)throw new AdmissionError("JOIN_LINK_EXPIRED","This network is unavailable.",410);
       if(await this.usedCapacity(connection,networkId)>=Number(network.max_nodes))throw new AdmissionError("NETWORK_FULL","All worker slots are occupied or reserved. Try again after a slot is released.",409);
-      const enrollmentId=id("ENROLLMENT"),credential=token(),createdAt=now(),expiresAt=new Date(Math.min(Date.now()+30*24*3_600_000,network.expires_at?Date.parse(String(network.expires_at)):Infinity)).toISOString(),deadline=new Date(Math.min(Date.now()+10*60_000,Date.parse(expiresAt))).toISOString();
-      await connection.execute("INSERT INTO network_enrollments(id,network_id,device_identity_hash,consent_status,status,worker_type,credential_hash,created_at,updated_at,expires_at,registration_deadline) VALUES(?,?,?,'ACCEPTED','PENDING',?,?,?,?,?,?)",[enrollmentId,networkId,digest(deviceIdentity),workerType,digest(credential),createdAt,createdAt,expiresAt,deadline]);
+      const approvalStatus=this.json(network.configuration_json)?.requireAdminApproval===true?'PENDING':'APPROVED';
+      const enrollmentId=id("ENROLLMENT"),credential=token(),createdAt=now(),expiresAt=new Date(Math.min(Date.now()+30*24*3_600_000,network.expires_at?Date.parse(String(network.expires_at)):Infinity)).toISOString(),deadline=new Date(Math.min(Date.now()+(approvalStatus==='PENDING'?24*60:10)*60_000,Date.parse(expiresAt))).toISOString();
+      await connection.execute("INSERT INTO network_enrollments(id,network_id,device_identity_hash,consent_status,status,worker_type,credential_hash,created_at,updated_at,expires_at,registration_deadline,approval_status) VALUES(?,?,?,'ACCEPTED','PENDING',?,?,?,?,?,?,?)",[enrollmentId,networkId,digest(deviceIdentity),workerType,digest(credential),createdAt,createdAt,expiresAt,deadline,approvalStatus]);
       if(!reusable)await connection.execute("UPDATE worker_invitations SET consumed_at=?,consumed_enrollment_id=? WHERE id=?",[createdAt,enrollmentId,invite!.id]);
-      return{enrollmentId,networkId,credential,expiresAt};
+      return{enrollmentId,networkId,credential,expiresAt,approvalStatus};
     });
   }
   private async lockNetwork(connection:PoolConnection,networkId:string){const [rows]=await connection.execute<RowDataPacket[]>("SELECT * FROM distributed_networks WHERE id=? FOR UPDATE",[networkId]);const row=rows[0];return row&&row.status==="ACTIVE"&&(!row.expires_at||Date.parse(String(row.expires_at))>Date.now())?row:null;}
-  private async usedCapacity(connection:Pick<PoolConnection,"execute">,networkId:string){const [rows]=await connection.execute<RowDataPacket[]>("SELECT (SELECT COUNT(*) FROM nodes WHERE network_id=? AND revoked_at IS NULL AND status IN ('ONLINE','AVAILABLE','BUSY'))+(SELECT COUNT(*) FROM network_enrollments WHERE network_id=? AND status='PENDING' AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at>?) AND (registration_deadline IS NULL OR registration_deadline>?)) total",[networkId,networkId,now(),now()]);return Number(rows[0]?.total??0);}
+  private async usedCapacity(connection:Pick<PoolConnection,"execute">,networkId:string){const [rows]=await connection.execute<RowDataPacket[]>("SELECT (SELECT COUNT(*) FROM nodes WHERE network_id=? AND revoked_at IS NULL AND status IN ('ONLINE','AVAILABLE','BUSY'))+(SELECT COUNT(*) FROM network_enrollments WHERE network_id=? AND status='PENDING' AND approval_status!='REJECTED' AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at>?) AND (registration_deadline IS NULL OR registration_deadline>?)) total",[networkId,networkId,now(),now()]);return Number(rows[0]?.total??0);}
 
-  async authenticateCredential(raw:string){const[rows]=await this.pool.execute<RowDataPacket[]>(`SELECT e.id enrollmentId,e.network_id networkId,e.worker_type workerType,e.status,e.expires_at expiresAt,e.registration_deadline registrationDeadline,n.status networkStatus,n.expires_at networkExpiresAt,w.id nodeId,w.status nodeStatus FROM network_enrollments e JOIN distributed_networks n ON n.id=e.network_id LEFT JOIN nodes w ON w.enrollment_id=e.id WHERE e.credential_hash=? AND e.status IN ('PENDING','ACTIVE') AND e.revoked_at IS NULL AND e.consent_status='ACCEPTED' AND (w.id IS NULL OR w.revoked_at IS NULL)`,[digest(raw)]);const row=rows[0];if(!row||row.status==="PENDING"&&row.registrationDeadline&&Date.parse(String(row.registrationDeadline))<=Date.now()||row.networkStatus!=="ACTIVE"||(row.expiresAt&&Date.parse(String(row.expiresAt))<=Date.now())||(row.networkExpiresAt&&Date.parse(String(row.networkExpiresAt))<=Date.now()))return null;return{enrollmentId:String(row.enrollmentId),networkId:String(row.networkId),workerType:String(row.workerType) as WorkerType,nodeId:row.nodeId?String(row.nodeId):null,nodeStatus:row.nodeStatus?String(row.nodeStatus) as NodeStatus:null};}
+  async authenticateCredential(raw:string){const[rows]=await this.pool.execute<RowDataPacket[]>(`SELECT e.id enrollmentId,e.network_id networkId,e.worker_type workerType,e.approval_status approvalStatus,e.status,e.expires_at expiresAt,e.registration_deadline registrationDeadline,n.status networkStatus,n.expires_at networkExpiresAt,w.id nodeId,w.status nodeStatus FROM network_enrollments e JOIN distributed_networks n ON n.id=e.network_id LEFT JOIN nodes w ON w.enrollment_id=e.id WHERE e.credential_hash=? AND e.status IN ('PENDING','ACTIVE') AND e.revoked_at IS NULL AND e.consent_status='ACCEPTED' AND (w.id IS NULL OR w.revoked_at IS NULL)`,[digest(raw)]);const row=rows[0];if(!row||row.status==="PENDING"&&row.registrationDeadline&&Date.parse(String(row.registrationDeadline))<=Date.now()||row.networkStatus!=="ACTIVE"||(row.expiresAt&&Date.parse(String(row.expiresAt))<=Date.now())||(row.networkExpiresAt&&Date.parse(String(row.networkExpiresAt))<=Date.now()))return null;return{enrollmentId:String(row.enrollmentId),networkId:String(row.networkId),workerType:String(row.workerType) as WorkerType,approvalStatus:String(row.approvalStatus),nodeId:row.nodeId?String(row.nodeId):null,nodeStatus:row.nodeStatus?String(row.nodeStatus) as NodeStatus:null};}
+
+  async setAdmission(networkId:string,requireAdminApproval:boolean){return retryTransaction(this.pool,async connection=>{if(!await this.lockNetwork(connection,networkId))return null;await connection.execute("UPDATE distributed_networks SET configuration_json=JSON_SET(configuration_json,'$.requireAdminApproval',CAST(? AS JSON)) WHERE id=?",[JSON.stringify(requireAdminApproval),networkId]);return{requireAdminApproval};});}
+  async listEnrollments(networkId:string,page:Page){const [[items],[count]]=await Promise.all([this.pool.execute<RowDataPacket[]>("SELECT e.id enrollmentId,e.network_id networkId,e.worker_type workerType,e.status,e.approval_status approvalStatus,e.created_at createdAt,e.expires_at expiresAt,w.id nodeId FROM network_enrollments e LEFT JOIN nodes w ON w.enrollment_id=e.id WHERE e.network_id=? ORDER BY e.created_at DESC,e.id DESC LIMIT ? OFFSET ?",[networkId,page.pageSize,(page.page-1)*page.pageSize]),this.pool.execute<RowDataPacket[]>('SELECT COUNT(*) total FROM network_enrollments WHERE network_id=?',[networkId])]);return this.page(items,page,Number(count[0]?.total??0));}
+  async decideApproval(enrollmentId:string,approved:boolean,adminId:string){
+    const [ids]=await this.pool.execute<RowDataPacket[]>('SELECT network_id networkId FROM network_enrollments WHERE id=?',[enrollmentId]);if(!ids[0])return null;
+    return retryTransaction(this.pool,async connection=>{
+      if(!await this.lockNetwork(connection,String(ids[0]!.networkId)))return null;
+      const [rows]=await connection.execute<RowDataPacket[]>('SELECT * FROM network_enrollments WHERE id=? FOR UPDATE',[enrollmentId]);const row=rows[0];
+      if(!row||row.revoked_at||row.approval_status!=='PENDING'||row.status!=='PENDING'||Date.parse(String(row.expires_at))<=Date.now()||row.registration_deadline&&Date.parse(String(row.registration_deadline))<=Date.now())return null;
+      const approvalStatus=approved?'APPROVED':'REJECTED',timestamp=now();
+      await connection.execute('UPDATE network_enrollments SET approval_status=?,registration_deadline=?,updated_at=? WHERE id=?',[approvalStatus,new Date(Math.min(Date.now()+10*60_000,Date.parse(String(row.expires_at)))).toISOString(),timestamp,enrollmentId]);
+      await this.audit(connection,adminId,approved?'ENROLLMENT_APPROVED':'ENROLLMENT_REJECTED','ENROLLMENT',enrollmentId);
+      return{enrollmentId,approvalStatus};
+    });
+  }
+  async rotateJoinLink(networkId:string,adminId:string){return retryTransaction(this.pool,async connection=>{const network=await this.lockNetwork(connection,networkId);if(!network)return null;const raw=token();await connection.execute('UPDATE distributed_networks SET join_token_hash=?,join_link_token=? WHERE id=?',[digest(raw),raw,networkId]);await this.audit(connection,adminId,'JOIN_LINK_ROTATED','NETWORK',networkId);return{networkId,token:raw,enabled:Boolean(network.join_link_enabled)};});}
+  async rotateCredential(enrollmentId:string,adminId:string|null,expectedCredential?:string){
+    const [ids]=await this.pool.execute<RowDataPacket[]>('SELECT network_id networkId FROM network_enrollments WHERE id=?',[enrollmentId]);if(!ids[0])return null;
+    return retryTransaction(this.pool,async connection=>{
+      if(!await this.lockNetwork(connection,String(ids[0]!.networkId)))return null;
+      const [rows]=await connection.execute<RowDataPacket[]>('SELECT * FROM network_enrollments WHERE id=? FOR UPDATE',[enrollmentId]);const row=rows[0];
+      if(!row||row.revoked_at||row.approval_status==='REJECTED'||!['ACTIVE','PENDING'].includes(String(row.status))||Date.parse(String(row.expires_at))<=Date.now()||row.status==='PENDING'&&row.registration_deadline&&Date.parse(String(row.registration_deadline))<=Date.now()||expectedCredential&&row.credential_hash!==digest(expectedCredential))return null;
+      const credential=token();await connection.execute('UPDATE network_enrollments SET credential_hash=?,updated_at=? WHERE id=?',[digest(credential),now(),enrollmentId]);
+      const [nodes]=await connection.execute<RowDataPacket[]>('SELECT id FROM nodes WHERE enrollment_id=? FOR UPDATE',[enrollmentId]);
+      await this.audit(connection,adminId??enrollmentId,'WORKER_CREDENTIAL_ROTATED','ENROLLMENT',enrollmentId,adminId?'ADMIN':'WORKER');
+      return{enrollmentId,credential,expiresAt:String(row.expires_at),nodeId:nodes[0]?String(nodes[0].id):null,workerType:String(row.worker_type)};
+    });
+  }
+  private async audit(connection:PoolConnection,actorId:string,event:string,targetType:string,targetId:string,actorType='ADMIN'){await connection.execute('INSERT INTO audit_events(id,actor_type,actor_id,event_type,target_type,target_id,metadata_json,created_at) VALUES(?,?,?,?,?,?,?,?)',[id('AUDIT'),actorType,actorId,event,targetType,targetId,'{}',now()]);}
 
   async register(rawCredential:string,profile:CapabilityProfile){
     const identity=await this.authenticateCredential(rawCredential);if(!identity||identity.workerType!==profile.workerType)return null;
+    if(identity.approvalStatus==='PENDING')throw new AdmissionError('WORKER_APPROVAL_PENDING','Waiting for administrator approval. Retry with the same enrollment.',409);
+    if(identity.approvalStatus!=='APPROVED')return null;
     if(profile.workerType!=="NATIVE"&&(profile.operations.nativeCompilation||Object.values(profile.runtimes).some(Boolean)||Object.values(profile.toolchains).some(tool=>tool.available)))return null;
     return retryTransaction(this.pool,async connection=>{
       const network=await this.lockNetwork(connection,identity.networkId);if(!network)return null;
       const [enrollments]=await connection.execute<RowDataPacket[]>("SELECT * FROM network_enrollments WHERE id=? AND credential_hash=? FOR UPDATE",[identity.enrollmentId,digest(rawCredential)]),enrollment=enrollments[0];
-      if(!enrollment||enrollment.revoked_at||!["PENDING","ACTIVE"].includes(String(enrollment.status))||enrollment.worker_type!==profile.workerType||enrollment.consent_status!=="ACCEPTED"||enrollment.expires_at&&Date.parse(String(enrollment.expires_at))<=Date.now()||enrollment.status==="PENDING"&&enrollment.registration_deadline&&Date.parse(String(enrollment.registration_deadline))<=Date.now())return null;
+      if(!enrollment||enrollment.approval_status!=='APPROVED'||enrollment.revoked_at||!["PENDING","ACTIVE"].includes(String(enrollment.status))||enrollment.worker_type!==profile.workerType||enrollment.consent_status!=="ACCEPTED"||enrollment.expires_at&&Date.parse(String(enrollment.expires_at))<=Date.now()||enrollment.status==="PENDING"&&enrollment.registration_deadline&&Date.parse(String(enrollment.registration_deadline))<=Date.now())return null;
       const [nodes]=await connection.execute<RowDataPacket[]>("SELECT id,status,revoked_at FROM nodes WHERE enrollment_id=? FOR UPDATE",[identity.enrollmentId]),node=nodes[0];
       if(node?.revoked_at)return null;
       const alreadyConnected=Boolean(node&&["ONLINE","AVAILABLE","BUSY"].includes(String(node.status)));

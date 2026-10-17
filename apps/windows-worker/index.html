@@ -17,7 +17,9 @@
   </section>
   <section>
     <h2>Contribution</h2>
-    <div class="actions"><button id="connect">Connect / Resume</button><button id="pause">Pause</button><button id="disconnect">Disconnect</button><button id="leave">Leave network</button></div>
+    <div class="actions"><button id="connect">Connect / Resume</button><button id="pause">Pause</button><button id="disconnect">Disconnect</button><button id="leave">Leave network</button><button id="rotate">Rotate private credential</button></div>
+    <p>Rotation stops contribution, replaces the private credential in protected storage and preserves this worker’s identity. Resume explicitly afterward. If saving fails, retry rotation before closing the app.</p>
+    <details><summary>Import administrator replacement credential</summary><p>Use only a replacement supplied securely by your administrator for this exact enrollment. Import pauses contribution and verifies network, enrollment and node identity before protected saving.</p><label>Original enrollment ID<input id="replacement-enrollment" autocomplete="off"></label><label>Replacement private credential<input id="replacement-credential" type="password" autocomplete="off" maxlength="2048"></label><button id="importCredential">Verify and save replacement</button></details>
     <dl id="details"></dl>
     <p>Local submissions and coordinator-accepted results are shown separately. Reliability uses attributable coordinator attempt history; excluded user/server interruptions are not worker failures.</p>
   </section>
